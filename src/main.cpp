@@ -10,6 +10,7 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <stdexcept>
 
 struct copyto{
     std::wstring source;
@@ -203,8 +204,19 @@ void copy_process(std::vector<copyto> &dirs, std::shared_ptr<std::string> cm){
         *cm = "Copying Files";
         console_message_mutex.unlock();
 
-        // copy the files
-        std::filesystem::copy(dirs.at(i).source,dirs.at(i).destination,copyOptions);
+        try{
+            // attempt to copy the files
+            std::filesystem::copy(dirs.at(i).source,dirs.at(i).destination,copyOptions);
+        } catch (const std::filesystem::filesystem_error& e) {
+            std::cerr << "Filesystem error: " << e.what() << '\n';
+            std::cerr << "Error code: " << e.code() << '\n';
+        } catch (const std::exception& e) {
+            // This catches other standard exceptions
+            std::cerr << "Standard exception: " << e.what() << '\n';
+        } catch (...) {
+            // This catches any other exceptions
+            std::cerr << "An unknown error occurred.\n";
+        }
 
         // set the intial write times
         dirs.at(i).time_modified = std::filesystem::last_write_time(dirs.at(i).source);

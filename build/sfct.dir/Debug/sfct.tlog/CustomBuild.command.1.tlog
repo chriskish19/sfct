@@ -1,6 +1,6 @@
-^C:\USERS\CHRIS\ONEDRIVE\PROJECTS\SFCT\CMAKELISTS.TXT
+^C:\USERS\CHRIS\MYFILES\PROJECTS\SFCT\CMAKELISTS.TXT
 setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/chris/OneDrive/projects/sfct -BC:/Users/chris/OneDrive/projects/sfct/build --check-stamp-file C:/Users/chris/OneDrive/projects/sfct/build/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/chris/MyFiles/projects/sfct -BC:/Users/chris/MyFiles/projects/sfct/build --check-stamp-file C:/Users/chris/MyFiles/projects/sfct/build/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
