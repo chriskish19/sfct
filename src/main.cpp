@@ -3,11 +3,13 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
-#include <unordered_map>
 #include <filesystem>
 #include <thread>
 #include <chrono>
-
+#include <format>
+#include <atomic>
+#include <memory>
+#include <mutex>
 
 struct copyto{
     std::wstring source;
@@ -15,14 +17,18 @@ struct copyto{
     std::filesystem::file_time_type time_modified;
 };
 
-void copy_process(std::vector<copyto> &dirs);
+void copy_process(std::vector<copyto> &dirs,std::shared_ptr<std::string> cm);
+void output_animation(std::shared_ptr<std::atomic<bool>> run, std::shared_ptr<std::string> s);
+
+// to prevent concurrent access to the shared_ptr<std::string> console_message
+std::mutex console_message_mutex;
 
 int main(){
     // open the sfct folder list file for parsing
     std::wifstream f_list{L"sfct_list.txt",std::ios::in};
     if(f_list.fail()){
-        std::puts("Failed to open sfct list of directories for cloning \n");
-        std::puts("Creating file sfct_list.txt in the exe directory. See docs for example usage \n");
+        std::puts("Failed to open sfct list of directories for cloning");
+        std::puts("Creating file sfct_list.txt in the exe directory. See docs for example usage");
         std::ofstream CreateList{"sfct_list.txt",std::ios::out};
         return -1;
     }
@@ -88,60 +94,146 @@ int main(){
 
     // check that directories has entries
     if(directories.empty()){
-        std::puts("Error: No valid directories in sfct_list.txt \n");
+        std::puts("Error: No valid directories in sfct_list.txt");
         return -1;
     }
-
-    
-    // intial copying process
-    copy_process(directories);
 
 
     // use a listener and update the directories when a new file is added or existing is changed
     // periodically check the directory write times, if they have changed then initiate the copy process
-    bool begin_copy{false};
+    bool begin_copy{false},writetimeExit{false};
+
+    std::shared_ptr<std::atomic<bool>> running{std::make_shared<std::atomic<bool>>(true)};
+    std::shared_ptr<std::string> console_message{std::make_shared<std::string>()};
+    
+    // set capacity to 50 chars
+    console_message->reserve(50);
+
+    // output to the console on separate thread
+    // the thread runs the lifetime of the program
+    // console_message is changed throughout the the while loop depending on the 
+    // current action
+    std::thread t1(output_animation,running,console_message);
+    
+    // prevent concurrent access to console_message
+    console_message_mutex.lock();
+    
+    *console_message = "Initial Copying Process";
+    
+    // safe to unlock
+    console_message_mutex.unlock();
+    
+    // initial copy process
+    copy_process(directories,console_message);
+
     while(true){
         const auto file_system_time = std::filesystem::file_time_type::clock::now();
 
-        // wait five seconds
-        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+        // prevent concurrent access to console_message
+        console_message_mutex.lock();
 
-    
-        for(size_t i{};i<directories.size();i++){
-            // get the latest write times
-            directories.at(i).time_modified = std::filesystem::last_write_time(directories.at(i).source);
-            const auto modified_file_time = directories.at(i).time_modified; 
+        // set console message
+        *console_message = "Waiting";
+
+        // safe to unlock
+        console_message_mutex.unlock();
+
+        // wait 15 seconds
+        std::this_thread::sleep_for(std::chrono::milliseconds(15000));
+        
             
-            if(file_system_time < modified_file_time){
-                begin_copy = true;
+        for(size_t i{};i<directories.size() && !writetimeExit ;i++){
+            // prevent concurrent access to console_message
+            console_message_mutex.lock();
+            
+            // set console message to the current action
+            *console_message = "Checking Directories";
+
+            // safe to unlock
+            console_message_mutex.unlock();
+
+
+            // check the latest write times
+            for(const auto& entry : std::filesystem::recursive_directory_iterator(directories.at(i).source)){
+                // prevent concurrent access to console_message
+                console_message_mutex.lock();
+
+                *console_message = "Recursivley Checking Directories";
+                
+                // safe to unlock
+                console_message_mutex.unlock();
+
+
+                if(entry.last_write_time() > file_system_time ){
+                    begin_copy = true;
+                    writetimeExit = true;
+                    break;
+                }
             }
         }
 
         if(begin_copy){
-            copy_process(directories);
+            copy_process(directories,console_message);
         }
         
         // reset
         begin_copy = false;
+        writetimeExit = false;
         
     }
 
-
+    *running = false;
+    if(t1.joinable()){
+        t1.join();
+    }
 
 
 
     return 0;
 }
 
-void copy_process(std::vector<copyto> &dirs){
+void copy_process(std::vector<copyto> &dirs, std::shared_ptr<std::string> cm){
     const auto copyOptions = std::filesystem::copy_options::update_existing | std::filesystem::copy_options::recursive;
-    
+
     // TODO: multithread this
     // start the copy operations
     for(size_t i{};i<dirs.size();i++){
+        // update console message
+        // thread saftey
+        console_message_mutex.lock();
+        *cm = "Copying Files";
+        console_message_mutex.unlock();
+
+        // copy the files
         std::filesystem::copy(dirs.at(i).source,dirs.at(i).destination,copyOptions);
 
         // set the intial write times
         dirs.at(i).time_modified = std::filesystem::last_write_time(dirs.at(i).source);
+    }
+}
+
+void output_animation(std::shared_ptr<std::atomic<bool>> run, std::shared_ptr<std::string> s){
+    char animationChars[4] = {'/', '-', '\\', '|'};
+    int animationIndex = 0;
+    std::string clearLine(50, ' '); // Line of 50 spaces
+
+    while(*run){
+        // prevent concurrent access
+        console_message_mutex.lock();
+        
+        // clear the line
+        std::cout << "\r" << clearLine << "\r";
+
+        // animate the output
+        std::cout << "\r" << std::format("{} {}", *s, animationChars[animationIndex++]) << std::flush;
+        
+        // unlock mutex
+        console_message_mutex.unlock();
+
+        // cycle the index from 0 to 4
+        animationIndex %= 4;
+
+        // pause execution for 50ms so the output animation is fluid
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }

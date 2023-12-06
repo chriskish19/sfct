@@ -1,0 +1,3 @@
+C:/Users/chris/OneDrive/projects/sfct/build/CMakeFiles/sfct.dir
+C:/Users/chris/OneDrive/projects/sfct/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/chris/OneDrive/projects/sfct/build/CMakeFiles/ZERO_CHECK.dir

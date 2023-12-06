@@ -1,0 +1,10 @@
+^C:\USERS\CHRIS\ONEDRIVE\PROJECTS\SFCT\BUILD\CMAKEFILES\E91C9E05F73B62BF5934BFCA35EEBD12\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/chris/OneDrive/projects/sfct -BC:/Users/chris/OneDrive/projects/sfct/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/chris/OneDrive/projects/sfct/build/sfct.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -6,7 +6,7 @@ project(sfct VERSION 1.0.0.0)
 
 # Set the variable CMAKE_CXX_STANDARD to 17
 # and the variable CMAKE_CXX_STANDARD_REQUIRED to True
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 add_executable(sfct src/main.cpp)
