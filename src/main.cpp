@@ -195,7 +195,6 @@ int main(){
 void copy_process(std::vector<copyto> &dirs, std::shared_ptr<std::string> cm){
     const auto copyOptions = std::filesystem::copy_options::update_existing | std::filesystem::copy_options::recursive;
 
-    // TODO: multithread this
     // start the copy operations
     for(size_t i{};i<dirs.size();i++){
         // update console message
