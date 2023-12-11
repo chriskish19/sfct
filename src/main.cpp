@@ -11,20 +11,58 @@
 #include <memory>
 #include <mutex>
 #include <stdexcept>
+#include <functional>
 
 struct copyto{
     std::wstring source;
     std::wstring destination;
-    std::filesystem::file_time_type time_modified;
+    std::filesystem::path fs_source;
+    std::filesystem::path fs_destination;
 };
 
-void copy_process(std::vector<copyto> &dirs,std::shared_ptr<std::string> cm);
+// main copy process
+void copy_process(std::vector<copyto> &dirs, std::shared_ptr<std::string> cm, std::shared_ptr<std::string> fm, std::filesystem::copy_options co);
+
+// console messages and animation
 void output_animation(std::shared_ptr<std::atomic<bool>> run, std::shared_ptr<std::string> s);
+
+// copy an individual file useful with threads
+void copyFile(const std::filesystem::path& source, const std::filesystem::path& destination, std::filesystem::copy_options options);
+
 
 // to prevent concurrent access to the shared_ptr<std::string> console_message
 std::mutex console_message_mutex;
 
+// to prevent concurrent access to the shread_ptr<std::string> CurrentFilepathCopied
+std::mutex CurrentFilepathCopied_mtx;
+
+// global pc specs for running copy operations
+// if the system is slow then copy operations are slowed down
+// if the system is considered fast then copy operations are not slowed down
+SystemPerformance PC_SPEC;
+
+enum class SystemPerformance{
+    SLOW,
+    AVERAGE,
+    FAST
+};
+
 int main(){
+
+    // check hardware concurrency, avaliable threads
+    unsigned int total_threads = std::thread::hardware_concurrency();
+
+    // set PC_SPEC for system
+    if(total_threads<5){ // 1 to 4
+        PC_SPEC = SystemPerformance::SLOW;
+    }
+    else if(total_threads > 4 && total_threads < 9){ // 5 to 8
+        PC_SPEC = SystemPerformance::AVERAGE;
+    } 
+    else{
+        PC_SPEC = SystemPerformance::FAST;
+    }
+
     // open the sfct folder list file for parsing
     std::wifstream f_list{L"sfct_list.txt",std::ios::in};
     if(f_list.fail()){
@@ -100,6 +138,17 @@ int main(){
     }
 
 
+    // initialize fs_source and fs_destination in the directories vector
+    // using the std::wstring's source and destination
+    // std::filesystem works best with its native path type
+    for(size_t i{};i<directories.size();i++){
+        std::filesystem::path src_init(directories.at(i).source);
+        std::filesystem::path dest_init(directories.at(i).destination);
+        directories.at(i).fs_source = src_init;
+        directories.at(i).fs_destination = dest_init;
+    }
+
+
     // use a listener and update the directories when a new file is added or existing is changed
     // periodically check the directory write times, if they have changed then initiate the copy process
     bool begin_copy{false},writetimeExit{false};
@@ -107,6 +156,15 @@ int main(){
     std::shared_ptr<std::atomic<bool>> running{std::make_shared<std::atomic<bool>>(true)};
     std::shared_ptr<std::string> console_message{std::make_shared<std::string>()};
     
+    // this will be used to display the full file name and path that is 
+    // currently being copied
+    std::shared_ptr<std::string> CurrentFilepathCopied{std::make_shared<std::string>()};
+
+    // set capacity of CurrentFilepathCopied
+    // on UNIX systems 4096 is the limit
+    // ON windows typically 260 but can be extended to >32000
+    CurrentFilepathCopied->reserve(4096);
+
     // set capacity to 50 chars
     console_message->reserve(50);
 
@@ -155,7 +213,7 @@ int main(){
 
 
             // check the latest write times
-            for(const auto& entry : std::filesystem::recursive_directory_iterator(directories.at(i).source)){
+            for(const auto& entry : std::filesystem::recursive_directory_iterator(directories.at(i).fs_source)){
                 // prevent concurrent access to console_message
                 console_message_mutex.lock();
 
@@ -193,9 +251,11 @@ int main(){
     return 0;
 }
 
-void copy_process(std::vector<copyto> &dirs, std::shared_ptr<std::string> cm){
-    const auto copyOptions = std::filesystem::copy_options::update_existing | std::filesystem::copy_options::recursive;
-
+// std::vector<copyto> &dirs : vector containing directories to copy
+// cm: console message to display
+// fm: file path message to display current file being copied
+// co: copy options ,example would be std::filesystem::copy_options::update_existing enum flag
+void copy_process(std::vector<copyto> &dirs, std::shared_ptr<std::string> cm, std::shared_ptr<std::string> fm, std::filesystem::copy_options co){
     // start the copy operations
     for(size_t i{};i<dirs.size();i++){
         // update console message
@@ -205,8 +265,102 @@ void copy_process(std::vector<copyto> &dirs, std::shared_ptr<std::string> cm){
         console_message_mutex.unlock();
 
         try{
-            // attempt to copy the files
-            std::filesystem::copy(dirs.at(i).source,dirs.at(i).destination,copyOptions);
+            // check co flag for recursive copy 
+            if((co & std::filesystem::copy_options::recursive) != std::filesystem::copy_options::none){
+
+            }
+            else{
+                switch(PC_SPEC){
+                    case SystemPerformance::SLOW:{
+                        // single threaded regular copy
+                        // get a directory iterator for displaying current file being copied
+                        for(const auto& file_entry: std::filesystem::directory_iterator(dirs.at(i).fs_source)){
+                            // to display the file path to the console
+                            CurrentFilepathCopied_mtx.lock();
+                            *fm = file_entry.path().string();
+                            CurrentFilepathCopied_mtx.unlock();
+                            
+                            // copy
+                            std::filesystem::copy_file(file_entry.path(),dirs.at(i).fs_destination,co);
+                        }
+                        break;
+                    }
+                    case SystemPerformance::AVERAGE:{ // safe to use 4 threads to copy the files
+                        // vector to hold the created threads
+                        std::vector<std::thread> threads;
+                        
+                        // multithreaded copy
+                        // get a directory iterator for displaying current file being copied
+                        for(const auto& file_entry: std::filesystem::directory_iterator(dirs.at(i).fs_source)){
+                            // to display the file path to the console
+                            // it wont be able to display the exact file being copied but
+                            // instead when it was started
+                            // in the future I will change this so that the console will display 
+                            // all working threads and files currently being copied
+                            // TODO: display all files currently being copied by x threads
+                            CurrentFilepathCopied_mtx.lock();
+                            *fm = file_entry.path().string();
+                            CurrentFilepathCopied_mtx.unlock();
+                            
+                            // only allow 4 threads to run at a time
+                            if (threads.size() >= 4) {
+                                threads.front().join();  // Join the oldest thread
+                                threads.erase(threads.begin());  // Remove it from the vector
+                            }
+                            
+                            // create a thread to run the copyFile function
+                            threads.emplace_back(copyFile,file_entry.path(),dirs.at(i).fs_destination,co);
+                        }
+
+                        // Join any remaining threads
+                        for (auto& t : threads) {
+                            if (t.joinable()) {
+                                t.join();
+                            }
+                        }
+
+                        break;
+                    }
+                    case SystemPerformance::FAST:{ // safe to use 8 threads to copy the files
+                        // vector to hold the created threads
+                        std::vector<std::thread> threads;
+                        
+                        // multithreaded copy
+                        // get a directory iterator for displaying current file being copied
+                        for(const auto& file_entry: std::filesystem::directory_iterator(dirs.at(i).fs_source)){
+                            // to display the file path to the console
+                            CurrentFilepathCopied_mtx.lock();
+                            *fm = file_entry.path().string();
+                            CurrentFilepathCopied_mtx.unlock();
+                            
+                            // only allow 8 threads to run at a time
+                            // Check if we need to join any threads
+                            if (threads.size() >= 8) {
+                                threads.front().join();  // Join the oldest thread
+                                threads.erase(threads.begin());  // Remove it from the vector
+                            }
+                            
+                            // create a thread to run the copyFile function
+                            threads.emplace_back(copyFile,file_entry.path(),dirs.at(i).fs_destination,co);
+                        }
+
+                        // Join any remaining threads
+                        for (auto& t : threads) {
+                            if (t.joinable()) {
+                                t.join();
+                            }
+                        }
+
+                        break;
+                    }
+                    default:{
+                        // if PC_SPEC is not initialized return to the caller
+                        return;
+                    }
+
+                }
+            }
+            
         } catch (const std::filesystem::filesystem_error& e) {
             std::cerr << "Filesystem error: " << e.what() << '\n';
             std::cerr << "Error code: " << e.code() << '\n';
@@ -217,9 +371,6 @@ void copy_process(std::vector<copyto> &dirs, std::shared_ptr<std::string> cm){
             // This catches any other exceptions
             std::cerr << "An unknown error occurred.\n";
         }
-
-        // set the intial write times
-        dirs.at(i).time_modified = std::filesystem::last_write_time(dirs.at(i).source);
     }
 }
 
@@ -236,10 +387,15 @@ void output_animation(std::shared_ptr<std::atomic<bool>> run, std::shared_ptr<st
         std::cout << "\r" << clearLine << "\r";
 
         // animate the output
-        std::cout << "\r" << std::format("{} {}", *s, animationChars[animationIndex++]) << std::flush;
+        std::cout << "\r" << std::format("{} {}", animationChars[animationIndex++], *s) << std::flush;
         
         // unlock mutex
         console_message_mutex.unlock();
+
+        // TODO: output the current file being copied
+        // 
+
+        
 
         // cycle the index from 0 to 4
         animationIndex %= 4;
@@ -247,4 +403,16 @@ void output_animation(std::shared_ptr<std::atomic<bool>> run, std::shared_ptr<st
         // pause execution for 50ms so the output animation is fluid
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
+}
+
+void copyFile(const std::filesystem::path& source, const std::filesystem::path& destination, std::filesystem::copy_options options) {
+    try {
+        std::filesystem::copy_file(source, destination, options);
+        // If you want, you can add code here to indicate success.
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Failed to copy file: " << e.what() << std::endl;
+        std::cerr << "Error code: " << e.code() << '\n';
+        // Handle the error, for example, logging it or setting an error flag.
+    }
+    // Additional error handling if necessary.
 }

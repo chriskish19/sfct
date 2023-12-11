@@ -66,6 +66,9 @@
         "condition_variable": "cpp",
         "mutex": "cpp",
         "stop_token": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "functional": "cpp",
+        "shared_mutex": "cpp",
+        "syncstream": "cpp"
     }
 }
