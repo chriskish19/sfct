@@ -27,6 +27,8 @@ namespace application{
         std::string destination;
         std::filesystem::path fs_source;
         std::filesystem::path fs_destination;
+        std::filesystem::directory_entry src_entry;
+        bool no_file{false};
     };
 
     // to use this class first call one of the constructors with a full path or a filename relative to 
@@ -49,8 +51,9 @@ namespace application{
         void ExtractData(const std::string& keyword);
         
         // opens m_File
-        // if opening the file fails fstream will throw an exception
-        void OpenFile();
+        // if the path is valid but opening the file fails std::runtime_error exception is thrown
+        // if the path is invalid the function returns false
+        bool OpenFile();
         
         // changes m_FilePath to a new path and resets the class members
         // then its safe to call OpenFile agian and ExtractData with the same object
@@ -62,6 +65,7 @@ namespace application{
         // data will need to be used elsewhere in the program
         // TODO: template this class to handle any type of data for future use in making cli programs
         const std::shared_ptr<std::vector<copyto>> GetSPdata(){return m_Data;}
+
     private:
         // the path to the current file being parsed
         std::filesystem::path m_FilePath;

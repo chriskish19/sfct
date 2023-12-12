@@ -39,29 +39,32 @@ void application::FileParse::ExtractData(const std::string& keyword){
     m_DataExtracted = true;
 }
 
-void application::FileParse::OpenFile(){
+bool application::FileParse::OpenFile(){
     // the file does not exist
-    // dont execute the function instead return to the caller
+    // dont execute the function instead return false to the caller
     if(!m_FileExists){
-        logger log(L"File does not exist, OpenFile function will return to the caller without executing further, use SetFilePath() to set a new valid path",Error::DEBUG,App_LOCATION);
+        logger log(L"File does not exist, use SetFilePath() to set a new valid path",Error::DEBUG,App_LOCATION);
         log.to_console();
         log.to_log_file();
-        return;
+        return false;
     }
     
     // open the file for reading
     m_File.open(m_FilePath,std::ios::in);
 
     if(!m_File.is_open()){
-        logger log(L"Failed to open file for reading",Error::WARNING,App_LOCATION);
+        logger log(L"Failed to open file for reading",Error::FATAL,App_LOCATION);
         log.to_console();
         log.to_log_file();
+        throw std::runtime_error("std::fstream fail");
     }
     else{
         logger log(L"Succesfully opened the file",Error::INFO,App_LOCATION);
         log.to_console();
         log.to_log_file();
     }
+
+    return true;
 }
 
 application::FileParse::FileParse(const std::string& filename){
@@ -180,7 +183,7 @@ void application::FileParse::CheckDirectories(){
         logger log(L"No valid directory entries in file",Error::FATAL,m_FilePath,App_LOCATION);
         log.to_console();
         log.to_log_file();
-        throw std::runtime_error("No valid directories found");
+        throw std::runtime_error("No valid directories found, program will now exit");
     }
 
 

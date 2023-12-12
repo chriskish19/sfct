@@ -40,6 +40,9 @@ namespace application{
         // auto this_obj: this pointer to the class object
         // only works on void functions with no args, but a class object can be passed in
         void do_work(auto fp,auto this_obj);
+
+        // returns the number of workers used by TM class specified by the pc spec
+        size_t GetNumberOfWorkers(){return m_Workers;}
     private:
         // set the number of worker to use
         void SetWorkers();
