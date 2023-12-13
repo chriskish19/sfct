@@ -26,6 +26,9 @@ namespace application{
         // used to prevent concurrent access on shared resources in next_file()
         // each thread must wait in line to access the next file
         inline std::mutex m_next_file_mtx;
+
+        // prevents copy file being called when no more entrys exist
+        inline std::atomic<bool> no_files_left = false;
     }
     
     class FileCopyState{

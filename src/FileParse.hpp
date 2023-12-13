@@ -28,7 +28,6 @@ namespace application{
         std::filesystem::path fs_source;
         std::filesystem::path fs_destination;
         std::filesystem::directory_entry src_entry;
-        bool no_file{false};
     };
 
     // to use this class first call one of the constructors with a full path or a filename relative to 

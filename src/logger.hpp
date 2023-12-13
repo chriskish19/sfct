@@ -74,12 +74,14 @@ namespace application{
 // TODO: add linux and macos specific error handling
 // Windows specific error handling
 #ifdef WINDOWS_BUILD
+    public:
         // log windows errors with this constructor
         logger(Error type, const std::wstring& location, DWORD Win32error = GetLastError());
 
         // output mMessage to output window in visual studio
         void to_output() const;
-
+        
+    private:
         // default initialization code for logger class on windows
         void initLoggerWIN32();
 

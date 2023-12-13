@@ -13,7 +13,7 @@ void application::FileCopy::copy_file(){
         copyto file_directory = next_file();
 
         // signals no more files left to copy
-        if(file_directory.no_file){
+        if(application::MT::no_files_left){
             break;
         }
 
@@ -148,6 +148,9 @@ const application::copyto application::FileCopy::next_file(){
             // set fs_destination
             file_directory.fs_destination = m_pState->m_pDirectories->at(m_pState->m_Directories_index).fs_destination;
 
+            // adavnce to the next entry
+            m_pState->m_dit++;
+
             return file_directory;
         }
         else if(m_pState->m_Directories_index < m_pState->m_pDirectories->size()){
@@ -172,7 +175,7 @@ const application::copyto application::FileCopy::next_file(){
     }
     
     // no more files left to return
-    file_directory.no_file = true;
+    application::MT::no_files_left = true;
     return file_directory;
 }
 
