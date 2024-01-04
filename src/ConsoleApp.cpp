@@ -1,25 +1,16 @@
 #include "ConsoleApp.hpp"
 
 application::ConsoleApp::ConsoleApp(){
-    // set copy options
-    std::filesystem::copy_options co = std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing;
-
+#if WINDOWS_BUILD
+    Windows::enableANSIEscapeCodes();
+#endif
+    
     // Note: class member functions need to be called to actually parse the data
     // into the vector thats passed as a shared_ptr to m_Copier
-    // InitializationCheck() will contain the calls to parse the data since its bad practice to 
-    // throw exceptions from constructors
     m_List = std::make_unique<FileParse>(m_FileName);
 
-    
-    m_Copier = std::make_unique<FileCopy>();
-
     // get the number of worker threads that are going to be used
-    size_t max_workers = m_MessageWorkers->GetNumberOfWorkers();
-
-    // now build that many ConsoleTM objects for each worker
-    for(size_t i{};i<max_workers;i++){
-        m_MessageStreams->push_back(ConsoleTM());
-    }
+    size_t max_workers = m_CopyWorkers->GetNumberOfWorkers();
 
     // Open the file for reading
     // The FileParse class does not handle file not found it just returns false
@@ -35,11 +26,34 @@ application::ConsoleApp::ConsoleApp(){
     // FileParse handles the case where no valid directories are found and
     // throws a std::runtime_error exception
     m_List->CheckData(DataType::Directory);
+
+    // get the data shared_ptr for use in the console app class
+    // it holds the directory paths
+    m_data = m_List->GetSPdata();
+    
+    // make a monitor for directories
+    m_Monitor = std::make_unique<DirectorySignal>(m_data);
+
+    // get a file queue shared_ptr from DirectorySignal class
+    m_FileQueue = m_Monitor->GetFileQueueSP();
 }
 
 void application::ConsoleApp::Go(){
-    while(true){
-        
+    InitialCopy();
+
+    // main thread monitors directories indefinitely
+    m_Monitor->monitor();
+}
+
+void application::ConsoleApp::InitialCopy(){
+    for(auto& dir:*m_data){
+        std::filesystem::copy(dir.fs_source,dir.fs_destination,m_co);
     }
 }
+
+application::ConsoleApp::~ConsoleApp(){
+    // clean up
+    
+}
+
 

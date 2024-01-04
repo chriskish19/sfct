@@ -10,7 +10,7 @@ void application::TM::join_all(){
     m_Threads.clear();
 }
 
-application::SystemPerformance application::TM::GetPCspec(){
+application::SystemPerformance application::TM::GetPCspec() noexcept{
     // cant use m_TotalThreads because there is no guarantee of initialization order
     // of static class members
     unsigned int total_threads = std::thread::hardware_concurrency();
@@ -50,12 +50,6 @@ void application::TM::SetWorkers(){
             break;
         }
     }
-}
-
-void application::TM::do_work(auto fp,auto this_obj){
-    if(m_Threads.size()<m_Workers){
-        m_Threads.emplace_back(fp,this_obj);
-    }  
 }
 
 void application::TM::join_one(){
