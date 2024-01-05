@@ -59,7 +59,7 @@ bool application::FileParse::OpenFile(){
         throw std::runtime_error("std::fstream fail");
     }
     else{
-        logger log(App_MESSAGE("Succesfully opened the file"),Error::INFO,App_LOCATION);
+        logger log(App_MESSAGE("Succesfully opened sfct_lists.txt"),Error::INFO,App_LOCATION);
         log.to_console();
         log.to_log_file();
     }
