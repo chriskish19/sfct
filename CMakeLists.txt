@@ -26,7 +26,8 @@ set(SOURCE_FILES    src/main.cpp
                     src/AppMacros.hpp
                     src/WinHelper.hpp
                     src/FastFileCopy.hpp
-                    src/FastFileCopy.cpp)
+                    src/FastFileCopy.cpp
+                    src/Helper.hpp)
 
 
 add_executable(sfct ${SOURCE_FILES})

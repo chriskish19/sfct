@@ -164,6 +164,11 @@ void application::DirectorySignal::monitor(){
             pNotify = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(reinterpret_cast<unsigned char*>(pNotify) + pNotify->NextEntryOffset);
         }while(true); 
 
+        if(bytesTransferred == sizeof(pMonitor->m_buffer)){
+            m_MessageStream.SetMessage(App_MESSAGE("Performing a full copy/update to all directories as the monitoring buffer has overflowed"));
+            application::FullCopy(m_Dirs);
+        }
+
         if(!ReadDirectoryChangesW(
             pMonitor->m_hDir, 
             &pMonitor->m_buffer, 

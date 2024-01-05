@@ -10,6 +10,8 @@
 #include <mutex>
 #include <condition_variable>
 #include "ConsoleTM.hpp"
+#include "Helper.hpp"
+
 
 /////////////////////////////////////////////////////////////////////
 /* Future TODO:                                                    */
@@ -33,7 +35,7 @@
 namespace application{
     struct DS_resources {
         HANDLE m_hDir;
-        BYTE m_buffer[104857600]; // 100MB buffer, do not allocate this on the stack
+        BYTE m_buffer[10485760]; // 10MB buffer, do not allocate this on the stack
         OVERLAPPED m_ol;
         std::filesystem::path src_path;
         std::filesystem::path dest_path;
