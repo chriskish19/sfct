@@ -5,17 +5,15 @@
 /* Windows version of logger class definitions */
 /////////////////////////////////////////////////
 #if WINDOWS_BUILD
-application::logger::logger(const std::wstring& s, Error type, const std::wstring& location){
+application::logger::logger(const std::wstring& s, Error type, const std::source_location& location)
+:m_location(location),m_type(type){
     initLogger();
-    initErrorType(type);
-
-    // mMessage is timestamped and has error type now add location and s to the end
-    mMessage += location + L" Message: " + s;
+    mMessage += L" Message: " + s;
 }
 
-application::logger::logger(Error type, const std::wstring& location, DWORD Win32error){
+application::logger::logger(Error type, const std::source_location& location, DWORD Win32error)
+:m_location(location),m_type(type){
     initLogger();
-    initErrorType(type);
 
     LPWSTR errorMsgBuffer = nullptr;
     FormatMessageW(
@@ -34,14 +32,14 @@ application::logger::logger(Error type, const std::wstring& location, DWORD Win3
         LocalFree(errorMsgBuffer);
     }
     else {
-        logger log(L"Format message failed", Error::WARNING, App_LOCATION);
+        logger log(L"Format message failed", Error::WARNING);
         log.to_console();
         log.to_output();
         log.to_log_file();
     }
     
     // mMessage is timestamped and has error type now add win32error and location to the end
-    mMessage += win32error_str + location;
+    mMessage += win32error_str;
 }
 
 void application::logger::to_console() const{
@@ -57,7 +55,7 @@ void application::logger::to_log_file() const{
     
     // if logFile is not open send info to console and output window
     if (!logFile.is_open()) {
-        logger log(L"failed to open logFile", Error::WARNING, App_LOCATION);
+        logger log(L"failed to open logFile", Error::WARNING);
         log.to_console();
         log.to_output();
     }
@@ -67,7 +65,7 @@ void application::logger::to_log_file() const{
     
     // if it fails to write mMessage to log.txt, log the fail to the console and output window
     if (logFile.fail()) {
-        logger log(L"failed to write to log file", Error::WARNING, App_LOCATION);
+        logger log(L"failed to write to log file", Error::WARNING);
         log.to_console();
         log.to_output();
     }
@@ -76,8 +74,8 @@ void application::logger::to_log_file() const{
     logFile.flush();
 }
 
-void application::logger::initErrorType(Error type) {
-    switch (type) {
+void application::logger::initErrorType() {
+    switch (m_type) {
         case Error::FATAL: { mMessage = L"[FATAL ERROR]" + mMessage; } break;
         case Error::DEBUG: { mMessage = L"[DEBUG ERROR]" + mMessage; } break;
         case Error::INFO: { mMessage = L"[INFO]" + mMessage; } break;
@@ -87,33 +85,38 @@ void application::logger::initErrorType(Error type) {
 }
 
 void application::logger::initLogger(){
+    time_stamp();
+    initErrorType();
+    location_stamp();
+}
+
+application::logger::logger(const std::wstring& s,Error type,const std::filesystem::path& filepath,const std::source_location& location)
+:m_location(location),m_type(type){
+    initLogger();
+    mMessage += L" Message: " + s;
+
+    // wrap filepath in brackets for easy reading
+    mMessage += std::format(L"{{}}",filepath);
+}
+
+void application::logger::time_stamp(){
     //Geting Current time
     auto clock = std::chrono::system_clock::now();
 
-    // convert to a string to be displayed in the console
-    std::wstring CurrentTime{std::format(L"{:%F %T}", clock)};
-
-    // add brackets for easy reading
-    CurrentTime.insert(CurrentTime.begin(),L'[');
-    CurrentTime.push_back(L']');
-
-    // add the time to m_Message
-    mMessage = CurrentTime + mMessage;
+    // add the time to the message
+    mMessage = std::format(L"[{:%F %T}] {}", clock, mMessage);
 }
 
-application::logger::logger(const std::wstring& s,Error type,const std::filesystem::path& filepath,const std::wstring& location){
-    initLogger();
-    initErrorType(type);
+void application::logger::location_stamp(){
+    std::string file_name(m_location.file_name());
+    std::string function_name(m_location.function_name());
+    std::string line(std::to_string(m_location.line()));
 
-    // mMessage is timestamped and has error type now add location and s to the end
-    mMessage += location + L" Message: " + s;
+    std::wstring w_file_name(file_name.begin(),file_name.end());
+    std::wstring w_function_name(function_name.begin(),function_name.end());
+    std::wstring w_line(line.begin(),line.end());
 
-    // convert the path to a wide string
-    std::wstring filepath_wstr{filepath.c_str()};
-
-    // add to filepath_wstr to make it more readable
-    filepath_wstr.insert(filepath_wstr.begin(),L'{');
-    filepath_wstr.push_back(L'}'); 
+    mMessage += std::format(L"File: {} Line: {} Function: {}",w_file_name,w_line,w_function_name);
 }
 #endif
 

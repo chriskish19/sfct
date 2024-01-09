@@ -11,7 +11,7 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
 :m_Dirs(dirs_to_watch){
 
     if(!dirs_to_watch){
-        logger log(L"nullptr",Error::FATAL,App_LOCATION);
+        logger log(L"nullptr",Error::FATAL);
         log.to_console();
         log.to_log_file();
         log.to_output();
@@ -27,7 +27,7 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
             NULL);
 
         if (hDir == INVALID_HANDLE_VALUE) {
-            logger log(Error::WARNING,App_LOCATION);
+            logger log(Error::WARNING);
             log.to_console();
             log.to_log_file();
             log.to_output();
@@ -38,7 +38,7 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
         // monitor.m_buffer.resize(4096);
         
         if(!CreateIoCompletionPort(hDir, m_hCompletionPort, (ULONG_PTR)monitor, 0)){
-            logger log(Error::WARNING,App_LOCATION);
+            logger log(Error::WARNING);
             log.to_console();
             log.to_log_file();
             log.to_output();
@@ -54,7 +54,7 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
             NULL, 
             &monitor->m_ol, 
             NULL)){
-                logger log(Error::WARNING,App_LOCATION);
+                logger log(Error::WARNING);
                 log.to_console();
                 log.to_log_file();
                 log.to_output();
@@ -106,7 +106,7 @@ void application::DirectorySignal::monitor(){
             
             if(!std::filesystem::exists(dest_dir)){
                 if(std::filesystem::create_directories(dest_dir)){
-                    logger log(App_MESSAGE("Failed to create directories"),Error::WARNING,dest_dir,App_LOCATION);
+                    logger log(App_MESSAGE("Failed to create directories"),Error::WARNING,dest_dir);
                     log.to_console();
                     log.to_log_file();
                     log.to_output();
@@ -178,7 +178,7 @@ void application::DirectorySignal::monitor(){
             NULL, 
             &pMonitor->m_ol, 
             NULL)){
-                logger log(Error::WARNING,App_LOCATION);
+                logger log(Error::WARNING);
                 log.to_console();
                 log.to_log_file();
                 log.to_output();

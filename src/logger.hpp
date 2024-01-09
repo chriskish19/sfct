@@ -7,15 +7,14 @@
 #include <filesystem>
 #include <format>
 #include <mutex>
+#include <source_location>
 
 
 // include the windows header on windows builds
 #if WINDOWS_BUILD
     #include <Windows.h>
-    #define App_LOCATION std::format(L"Line: {} File: {}",__LINE__,__FILEW__)
     #define App_MESSAGE(x) L##x
 #else
-    #define App_LOCATION std::format("Line: {} File: {}",__LINE__,__FILE__)
     #define App_MESSAGE(x) x
 #endif
 
@@ -48,13 +47,13 @@ namespace application{
     // simple logger class that handles writing to a log file and posting messages
     class logger{
     public:
-        logger(const std::wstring& s, Error type, const std::wstring& location);
+        logger(const std::wstring& s, Error type, const std::source_location& location = std::source_location::current());
 
         // special logger constructor useful for working with file paths
-        logger(const std::wstring& s,Error type, const std::filesystem::path& filepath,const std::wstring& location);
+        logger(const std::wstring& s,Error type, const std::filesystem::path& filepath,const std::source_location& location = std::source_location::current());
 
         // log windows errors with this constructor
-        logger(Error type, const std::wstring& location, DWORD Win32error = GetLastError());
+        logger(Error type, const std::source_location& location = std::source_location::current(), DWORD Win32error = GetLastError());
 
         // output mMessage to output window in visual studio
         void to_output() const;
@@ -69,11 +68,21 @@ namespace application{
         // timestamps mMessage with the current date and time
         void initLogger(); 
 
+        // adds the time to mMessage
+        void time_stamp();
+
+        // adds the location to mMessage
+        void location_stamp();
+
         // adds the type of error to the begining of mMessage 
-        void initErrorType(Error type = Error::INFO);
+        void initErrorType();
 
         // the main log message
         std::wstring mMessage;
+
+        const std::source_location m_location;
+
+        const Error m_type;
     };
 #endif
 
