@@ -10,6 +10,8 @@
 
 
 namespace application{
+    inline CONSOLETM m_MessageStream;
+
     inline bool FileReady(std::filesystem::path src){
         if(std::filesystem::is_regular_file(src)){
             std::fstream file;
@@ -28,6 +30,8 @@ namespace application{
     
     
     inline void FullCopy(std::shared_ptr<std::vector<copyto>> data){
+        m_MessageStream.SetMessage(App_MESSAGE("Checking files before copying"));
+        
         // checks that each file is avaliable and can be copied before attempting to copy
         for(const auto& dir:*data){
             std::filesystem::recursive_directory_iterator rdit(dir.fs_source);
@@ -44,7 +48,9 @@ namespace application{
 
         }
 
+        
         for(const auto& dir:*data){
+            m_MessageStream.SetMessage(App_MESSAGE("Copying Directory: ") + STRING(dir.fs_source));
             std::filesystem::copy(dir.fs_source,dir.fs_destination,std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing);
         }
     }

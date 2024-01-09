@@ -67,8 +67,6 @@ namespace application{
 
         std::shared_ptr<std::vector<copyto>> m_Dirs;
 
-        CONSOLETM m_MessageStream;
-
         std::filesystem::copy_options m_co{std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing};
     };
 }
