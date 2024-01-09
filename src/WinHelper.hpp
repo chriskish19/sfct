@@ -30,8 +30,10 @@ namespace Windows{
             log.to_log_file();
             log.to_output();
         }
+    }
 
-        // Set the console mode to handle werid wide characters
+    inline void SetWideConsoleMode(){
+         // Set the console mode to handle werid wide characters
         _setmode(_fileno(stdout), _O_U16TEXT);
     }
 }

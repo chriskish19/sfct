@@ -7,7 +7,7 @@ application::FileParse::FileParse(const std::filesystem::path& path):m_FilePath(
 
 void application::FileParse::ExtractData(const std::string& keyword){
     if(!m_File.is_open()){
-        logger log(App_MESSAGE("You need to Open the file before extracting the data, ExtractData will return to the caller without executing further"),Error::DEBUG,App_LOCATION);
+        logger log(App_MESSAGE("You need to Open the file before extracting the data, ExtractData will return to the caller without executing further"),Error::DEBUG);
         log.to_console();
         log.to_log_file();
         return;
@@ -15,7 +15,7 @@ void application::FileParse::ExtractData(const std::string& keyword){
 
     // if m_Data has data in it, it means the data has already been extracted
     if(!m_Data->empty() || m_DataExtracted){
-        logger log(App_MESSAGE("Data has already been extracted, returning to function caller"),Error::INFO,App_LOCATION);
+        logger log(App_MESSAGE("Data has already been extracted, returning to function caller"),Error::INFO);
         log.to_console();
         log.to_log_file();
         return;
@@ -43,7 +43,7 @@ bool application::FileParse::OpenFile(){
     // the file does not exist
     // dont execute the function instead return false to the caller
     if(!m_FileExists){
-        logger log(App_MESSAGE("File does not exist, use SetFilePath() to set a new valid path"),Error::DEBUG,App_LOCATION);
+        logger log(App_MESSAGE("File does not exist, use SetFilePath() to set a new valid path"),Error::DEBUG);
         log.to_console();
         log.to_log_file();
         return false;
@@ -53,13 +53,13 @@ bool application::FileParse::OpenFile(){
     m_File.open(m_FilePath,std::ios::in);
 
     if(!m_File.is_open()){
-        logger log(App_MESSAGE("Failed to open file for reading"),Error::FATAL,App_LOCATION);
+        logger log(App_MESSAGE("Failed to open file for reading"),Error::FATAL);
         log.to_console();
         log.to_log_file();
         throw std::runtime_error("std::fstream fail");
     }
     else{
-        logger log(App_MESSAGE("Succesfully opened sfct_lists.txt"),Error::INFO,App_LOCATION);
+        logger log(App_MESSAGE("Succesfully opened sfct_lists.txt"),Error::INFO);
         log.to_console();
         log.to_log_file();
     }
@@ -83,7 +83,7 @@ void application::FileParse::SetFilePath(const std::filesystem::path& new_path){
     bool path_exists = std::filesystem::exists(new_path);
 
     if(!path_exists){
-        logger log(App_MESSAGE("New path is not valid"),Error::DEBUG,App_LOCATION);
+        logger log(App_MESSAGE("New path is not valid"),Error::DEBUG);
         log.to_console();
         log.to_log_file();
     }
@@ -109,7 +109,7 @@ void application::FileParse::SetFilePath(const std::filesystem::path& new_path){
 
 void application::FileParse::CheckData(DataType t){
     if(!m_DataExtracted){
-        logger log(App_MESSAGE("Data has not been extracted, you need to call ExtractData() before calling CheckData()"),Error::DEBUG,App_LOCATION);
+        logger log(App_MESSAGE("Data has not been extracted, you need to call ExtractData() before calling CheckData()"),Error::DEBUG);
         log.to_console();
         log.to_log_file();
         return;
@@ -180,7 +180,7 @@ void application::FileParse::CheckDirectories(){
 
     // check that m_Data has entries
     if(m_Data->empty()){
-        logger log(App_MESSAGE("No valid directory entries in file"),Error::FATAL,m_FilePath,App_LOCATION);
+        logger log(App_MESSAGE("No valid directory entries in file"),Error::FATAL,m_FilePath);
         log.to_console();
         log.to_log_file();
         throw std::runtime_error("No valid directories found, program will now exit");

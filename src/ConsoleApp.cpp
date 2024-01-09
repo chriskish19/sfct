@@ -2,7 +2,7 @@
 
 application::ConsoleApp::ConsoleApp(){
 #if WINDOWS_BUILD
-    Windows::enableANSIEscapeCodes();
+    Windows::SetWideConsoleMode();
 #endif
     
     // Note: class member functions need to be called to actually parse the data
@@ -39,21 +39,11 @@ application::ConsoleApp::ConsoleApp(){
 }
 
 void application::ConsoleApp::Go(){
-    InitialCopy();
+    FullCopy(m_data);
 
     // main thread monitors directories indefinitely
     m_Monitor->monitor();
 }
 
-void application::ConsoleApp::InitialCopy(){
-    for(auto& dir:*m_data){
-        std::filesystem::copy(dir.fs_source,dir.fs_destination,m_co);
-    }
-}
-
-application::ConsoleApp::~ConsoleApp(){
-    // clean up
-    
-}
 
 
