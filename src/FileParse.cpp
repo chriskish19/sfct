@@ -21,18 +21,60 @@ void application::FileParse::ExtractData(const std::string& keyword){
         return;
     }
 
+    copyto directory;
     std::string line;
+    bool src_set{false},dst_set{false};
+
     while(std::getline(m_File,line)){
         std::istringstream lineStream(line);
-        std::string prefix;
-        lineStream >> prefix;
+        std::string token;
+        lineStream >> token;
+        if(token == keyword){
+            continue;
+        }
+        else if(token == "{"){
+            continue;
+        }
+        else if(token == "src"){
+            std::getline(lineStream,line);
+            
+            // remove leading whitespace
+            size_t begin_pos = line.find_first_not_of(" ");
+            std::string new_line(line.begin()+begin_pos,line.end());
 
-        if(prefix == keyword){
-            copyto directory;
-            lineStream >> directory.source >> directory.destination;
+            size_t last_pos = new_line.find_last_of(';');
+            if(last_pos!=std::string::npos){
+                new_line.erase(new_line.begin()+last_pos);
+                directory.source = new_line;
+                src_set = true;
+            }
+        }
+        else if(token == "dst"){
+            std::getline(lineStream,line);
+            
+            // remove leading whitespace
+            size_t begin_pos = line.find_first_not_of(" ");
+            std::string new_line(line.begin()+begin_pos,line.end());
+
+            size_t last_pos = new_line.find_last_of(';');
+            if(last_pos!=std::string::npos){
+                new_line.erase(new_line.begin()+last_pos);
+                directory.destination = new_line;
+                dst_set = true;
+            }
+        }
+        else if(token == "}"){
+            continue;
+        }
+
+        if(src_set && dst_set){
             m_Data->push_back(directory);
+            directory = {};
+            src_set = false;
+            dst_set = false;
         }
     }
+
 
     // this function should only be called once per object unless a new valid path is set with 
     // SetFilePath() 
@@ -141,8 +183,10 @@ void application::FileParse::CheckDirectories(){
     // if the destination does not exist it will be created
     for(size_t i{};i<m_Data->size();){
         if(!std::filesystem::exists(m_Data->at(i).source)){
-            std::puts("The copy directory is invalid, its entry will not be used");
-            std::cout << m_Data->at(i).source << "\n";
+            logger log(App_MESSAGE("entry is invalid and will not be used"),Error::WARNING,std::filesystem::path(m_Data->at(i).source));
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
 
             // erase the entry
             // Do not increment i, as the next element has shifted to the current position
@@ -158,9 +202,11 @@ void application::FileParse::CheckDirectories(){
     for(size_t i{};i<m_Data->size();i++){
         if(!std::filesystem::exists(m_Data->at(i).destination)){
             if(!std::filesystem::create_directories(m_Data->at(i).destination)){
-                std::puts("Error: failed to create directories, destination is an invalid path");
-                std::cout << m_Data->at(i).destination << "\n";
-
+                logger log(App_MESSAGE("Error: failed to create directories, destination is an invalid path"),Error::WARNING,std::filesystem::path(m_Data->at(i).destination));
+                log.to_console();
+                log.to_log_file();
+                log.to_output();
+                
                 // mark the directory as invalid
                 m_Data->at(i).destination = "INVALID";
                 m_Data->at(i).source = "INVALID";
