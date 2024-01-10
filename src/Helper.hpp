@@ -38,10 +38,11 @@ namespace application{
             std::filesystem::recursive_directory_iterator rdit_end;
             while(rdit != rdit_end){
                 // loop through the directory
-                
+                m_MessageStream.SetMessage(App_MESSAGE("Waiting for file to become available: ") + STRING(rdit->path().filename()));
                 while(!FileReady(rdit->path())){
                     std::this_thread::sleep_for(std::chrono::seconds(1));
                 }
+                m_MessageStream.SetMessage(App_MESSAGE("File is available: ") + STRING(rdit->path().filename()));
 
                 rdit++;
             }
