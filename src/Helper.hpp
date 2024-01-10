@@ -49,6 +49,7 @@ namespace application{
 
         }
 
+        m_MessageStream.ReleaseBuffer();
         
         for(const auto& dir:*data){
             m_MessageStream.SetMessage(App_MESSAGE("Copying Directory: ") + STRING(dir.fs_source));

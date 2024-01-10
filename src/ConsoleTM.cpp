@@ -8,7 +8,7 @@ void application::ConsoleTM::to_console(){
 
     if(!m_MessageQueue.empty()){
         // animate the output
-        std::cout << m_MessageQueue.front() << std::endl;
+        std::cout << m_MessageQueue.front() << "\n";
 
         m_MessageQueue.pop();
     }
@@ -17,9 +17,6 @@ void application::ConsoleTM::to_console(){
 
         // cycle the index from 0 to 4
         m_AnimationIndex %= 4;
-
-        // pause execution for 150ms so the output animation is fluid
-        std::this_thread::sleep_for(std::chrono::milliseconds(150));
     }
 }
 
@@ -31,6 +28,10 @@ void application::ConsoleTM::SetMessage(const std::string& m){
 void application::ConsoleTM::RunMessages(){
     while(*m_Running){
         to_console();
+
+        // pause execution for 150ms so the output animation is fluid
+        // and messages can be added to the queue
+        std::this_thread::sleep_for(std::chrono::milliseconds(150));
     }
 }
 
@@ -40,12 +41,15 @@ void application::ConsoleTM::RunMessages(){
 /////////////////////////////////////////////////
 
 void application::wConsoleTM::to_console(){
-    std::lock_guard<std::mutex> local_lock(m_Message_mtx);
+    
+    if(m_release){
+        std::lock_guard<std::mutex> local_lock(m_Message_mtx);
+        while(!m_MessageQueue.empty()){
+            std::wcout << m_MessageQueue.front() << "\n";
 
-    if(!m_MessageQueue.empty()){
-        std::wcout << m_MessageQueue.front() << std::endl;
-
-        m_MessageQueue.pop();
+            m_MessageQueue.pop();
+        }
+        m_release = false;
     }
     else{
         // animate the output
@@ -68,4 +72,8 @@ void application::wConsoleTM::RunMessages(){
     while(*m_Running){
         to_console();
     }
+}
+
+void application::wConsoleTM::ReleaseBuffer(){
+    m_release = true;
 }

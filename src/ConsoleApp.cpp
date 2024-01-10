@@ -39,10 +39,18 @@ application::ConsoleApp::ConsoleApp(){
 }
 
 void application::ConsoleApp::Go(){
+    std::thread MessageStreamThread(&application::CONSOLETM::RunMessages,&m_MessageStream);
+    
     FullCopy(m_data);
 
     // main thread monitors directories indefinitely
     m_Monitor->monitor();
+
+    *m_MessageStream.GetSPRunning() = false;
+
+    if(MessageStreamThread.joinable()){
+        MessageStreamThread.join();
+    }
 }
 
 

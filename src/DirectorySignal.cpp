@@ -80,10 +80,9 @@ void application::DirectorySignal::monitor(){
     DWORD bytesTransferred;
     DS_resources* pMonitor;
     LPOVERLAPPED pOverlapped;
-    
-    std::thread MessageStreamThread(&application::CONSOLETM::RunMessages,&m_MessageStream);
 
     m_MessageStream.SetMessage(App_MESSAGE("Waiting in Queue"));
+    m_MessageStream.ReleaseBuffer();
     
     while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
         // Process change notification in pMonitor->buffer
@@ -187,12 +186,7 @@ void application::DirectorySignal::monitor(){
             }
 
             m_MessageStream.SetMessage(App_MESSAGE("Waiting in Queue"));
-    }
-
-    *m_MessageStream.GetSPRunning() = false;
-
-    if(MessageStreamThread.joinable()){
-        MessageStreamThread.join();
+            m_MessageStream.ReleaseBuffer();
     }
 }
 #endif
