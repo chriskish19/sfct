@@ -32,16 +32,19 @@ Download the current version of sfct from the releases page.
 
 ## Setup
 Run sfct.exe for the first time and it will create an sfct_lists.txt file in the current directory. This is where you specify the directories you want synced/copied.
-The syntax is simple with only one command "copy" then the source directory and the destination directory seperated by a space. Note: If your directory has spaces in it, the entry will be ignored.
+The syntax is simple with only one command "copy" then the source directory using the keyword "src" and the destination directory using the keyword "dst" all in braces. 
+Semi-colon on the end of each directory is needed aswell.
 
 sftc_lists.txt Example:
 ```
 # valid entries
-copy C:/src C:/dest
-copy D:/src D:/dest
+copy
+{
+    src C:/test example;
+    dst D:/test example;
+}
 
-# invalid entry
-copy D:/my music D:/back up music 
+
 ```
 
 There is no limit to the number of directories, but each will use 10MB of memory for monitoring so watch that if your adding 100 directories it will use 1GB of memory.
@@ -50,8 +53,8 @@ Add your directories to the sfct_lists.txt file, save it and re-run sfct.exe you
 
 # Info
 ## Current Limitations
-1. Single threaded copying
-2. Can't handle spaces in directories listed in sfct_lists.txt file
+1. Single threaded copying(its still really fast at copying it maxes out my gen3 ssd +2GB/s)
+2. ~~Can't handle spaces in directories listed in sfct_lists.txt file~~
 3. No GUI
 4. Windows Only
 
