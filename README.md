@@ -31,11 +31,11 @@ cmake --build .
 Download the latest release from the releases page.
 
 ## Setup
-Run sfct.exe for the first time and it will create an sfct_lists.txt file in the current directory. This is where you specify the directories you want synced/copied.
+Run sfct.exe for the first time and it will create an sfct_list.txt file in the current directory. This is where you specify the directories you want synced/copied.
 The syntax is simple with only one command "copy" then the source directory using the keyword "src" and the destination directory using the keyword "dst" all in braces. 
 Semi-colon on the end of each directory is needed aswell.
 
-sftc_lists.txt Example:
+sftc_list.txt Example:
 ```
 copy
 {
@@ -53,7 +53,7 @@ copy
 
 There is no limit to the number of directories, but each will use 10MB of memory for monitoring so watch that if your adding 100 directories it will use 1GB of memory.
 
-Add your directories to the sfct_lists.txt file, save it and re-run sfct.exe you should see a message in the console that says "Succesfully opened sfct_lists.txt".
+Add your directories to the sfct_list.txt file, save it and re-run sfct.exe you should see a message in the console that says "Succesfully opened sfct_list.txt".
 
 # Info
 ## Current Limitations
@@ -65,7 +65,7 @@ Add your directories to the sfct_lists.txt file, save it and re-run sfct.exe you
 
 
 ## Future Plans
-1. Add more control over syncing and copying(sftc_lists.txt will have more commands and arguments)
+1. Add more control over syncing and copying(sftc_list.txt will have more commands and arguments)
 2. Implement multithreaded copying
 3. Linux support
 4. Mac support
