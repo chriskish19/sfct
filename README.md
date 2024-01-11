@@ -37,7 +37,6 @@ Semi-colon on the end of each directory is needed aswell.
 
 sftc_lists.txt Example:
 ```
-# valid entries
 copy
 {
     src C:/test example;
