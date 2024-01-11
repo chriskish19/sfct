@@ -27,8 +27,8 @@ cmake --build .
 ```
 
 # Getting Started
-## Download
-Download the current version of sfct from the releases page.
+## Compile From Source
+This is the dev branch which I work on daily so there is no releases, you'll need to compile from source to run.
 
 ## Setup
 Run sfct.exe for the first time and it will create an sfct_lists.txt file in the current directory. This is where you specify the directories you want synced/copied.
@@ -63,4 +63,3 @@ Add your directories to the sfct_lists.txt file, save it and re-run sfct.exe you
 2. Linux support
 3. Mac support
 4. Add GUI
-
