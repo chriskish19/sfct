@@ -44,6 +44,11 @@ copy
     dst D:/test example;
 }
 
+copy
+{
+    src D:\test\beattles;
+    dst D:\dest dir1;
+}
 
 ```
 
