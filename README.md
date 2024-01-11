@@ -15,6 +15,10 @@ git clone https://github.com/chriskish19/sfct.git
 # navigate to the directory
 cd sfct
 
+# select dev branch, main branch is default
+git branch
+git checkout dev
+
 # Make a build folder
 mkdir build
 cd build
