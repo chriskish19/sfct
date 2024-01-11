@@ -62,6 +62,7 @@ Add your directories to the sfct_lists.txt file, save it and re-run sfct.exe you
 3. No GUI
 4. Windows Only
 
+
 ## Future Plans
 1. Implement multithreaded copying
 2. Linux support
