@@ -101,7 +101,7 @@ bool application::FileParse::OpenFile(){
         throw std::runtime_error("std::fstream fail");
     }
     else{
-        logger log(App_MESSAGE("Succesfully opened sfct_lists.txt"),Error::INFO);
+        logger log(App_MESSAGE("Succesfully opened sfct_list.txt"),Error::INFO);
         log.to_console();
         log.to_log_file();
     }
