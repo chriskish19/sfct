@@ -15,10 +15,6 @@ git clone https://github.com/chriskish19/sfct.git
 # navigate to the directory
 cd sfct
 
-# select dev branch, main branch is default
-git branch
-git checkout dev
-
 # Make a build folder
 mkdir build
 cd build
@@ -31,8 +27,8 @@ cmake --build .
 ```
 
 # Getting Started
-## Compile From Source
-This is the dev branch which I work on daily so there is no releases, you'll need to compile from source to run.
+## Get the latest release
+Download the latest release from the releases page.
 
 ## Setup
 Run sfct.exe for the first time and it will create an sfct_lists.txt file in the current directory. This is where you specify the directories you want synced/copied.
@@ -58,13 +54,43 @@ Add your directories to the sfct_lists.txt file, save it and re-run sfct.exe you
 # Info
 ## Current Limitations
 1. Single threaded copying(its still really fast at copying it maxes out my gen3 ssd +2GB/s)
-2. ~~Can't handle spaces in directories listed in sfct_lists.txt file~~
+2. No control over copying flags
 3. No GUI
 4. Windows Only
+5. No control over syncing(currently updates existing files)
 
 
 ## Future Plans
-1. Implement multithreaded copying
-2. Linux support
-3. Mac support
-4. Add GUI
+1. Add more control over syncing and copying(sftc_lists.txt will have more commands and arguments)
+2. Implement multithreaded copying
+3. Linux support
+4. Mac support
+5. Add GUI
+
+## Get the beta version of sfct
+There is a dev branch I work on daily and its usually compile ready and tested. But not always. 
+To try out the dev branch:
+
+```powershell
+# clone the repository
+git clone https://github.com/chriskish19/sfct.git
+
+# navigate to the directory
+cd sfct
+
+# Make a build folder
+mkdir build
+cd build
+
+# check which branch is currently selected
+git branch
+
+# switch to the dev branch
+git checkout dev
+
+# To build your IDE solution
+cmake ../
+
+# Compile the project into an executable
+cmake --build .
+```
