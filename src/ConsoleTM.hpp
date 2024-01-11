@@ -24,6 +24,8 @@ namespace application{
 
         // get a shared_ptr to m_Running if needed else where in the program
         const std::shared_ptr<std::atomic<bool>> GetSPRunning(){return m_Running;}
+
+        void ReleaseBuffer();
     private:
         // output m_Message to the console
         void to_console();
@@ -39,6 +41,8 @@ namespace application{
         std::shared_ptr<std::atomic<bool>> m_Running{std::make_shared<std::atomic<bool>>(true)};
 
         std::queue<std::string> m_MessageQueue;
+
+        bool m_release{false};
     };
 
 
@@ -74,6 +78,5 @@ namespace application{
         std::queue<std::wstring> m_MessageQueue;
 
         bool m_release{false};
-
     };
 }
