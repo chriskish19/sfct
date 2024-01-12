@@ -5,7 +5,7 @@ application::FileParse::FileParse(const std::filesystem::path& path):m_FilePath(
     m_FileExists = std::filesystem::exists(m_FilePath);
 }
 
-void application::FileParse::ExtractData(const std::string& keyword){
+void application::FileParse::ExtractData(){
     if(!m_File.is_open()){
         logger log(App_MESSAGE("You need to Open the file before extracting the data, ExtractData will return to the caller without executing further"),Error::DEBUG);
         log.to_console();
@@ -21,60 +21,7 @@ void application::FileParse::ExtractData(const std::string& keyword){
         return;
     }
 
-    copyto directory;
-    std::string line;
-    bool src_set{false},dst_set{false};
-
-    while(std::getline(m_File,line)){
-        std::istringstream lineStream(line);
-        std::string token;
-        lineStream >> token;
-        if(token == keyword){
-            continue;
-        }
-        else if(token == "{"){
-            continue;
-        }
-        else if(token == "src"){
-            std::getline(lineStream,line);
-            
-            // remove leading whitespace
-            size_t begin_pos = line.find_first_not_of(" ");
-            std::string new_line(line.begin()+begin_pos,line.end());
-
-            size_t last_pos = new_line.find_last_of(';');
-            if(last_pos!=std::string::npos){
-                new_line.erase(new_line.begin()+last_pos);
-                directory.source = new_line;
-                src_set = true;
-            }
-        }
-        else if(token == "dst"){
-            std::getline(lineStream,line);
-            
-            // remove leading whitespace
-            size_t begin_pos = line.find_first_not_of(" ");
-            std::string new_line(line.begin()+begin_pos,line.end());
-
-            size_t last_pos = new_line.find_last_of(';');
-            if(last_pos!=std::string::npos){
-                new_line.erase(new_line.begin()+last_pos);
-                directory.destination = new_line;
-                dst_set = true;
-            }
-        }
-        else if(token == "}"){
-            continue;
-        }
-
-        if(src_set && dst_set){
-            m_Data->push_back(directory);
-            directory = {};
-            src_set = false;
-            dst_set = false;
-        }
-    }
-
+    ParseSyntax();
 
     // this function should only be called once per object unless a new valid path is set with 
     // SetFilePath() 
@@ -170,6 +117,67 @@ void application::FileParse::CheckData(DataType t){
         default:{return;}
     }
     return;
+}
+
+void application::FileParse::ParseSyntax()
+{
+    copyto directory;
+    std::string line;
+    bool src_set{false},dst_set{false},cmd_set{false};
+
+    while(std::getline(m_File,line)){
+        std::istringstream lineStream(line);
+        std::string token;
+        lineStream >> token;
+        if(token == *std::find(m_commands.begin(),m_commands.end(),token)){
+            directory.command = token;
+            cmd_set = true;
+            while(lineStream >> token){
+                
+            }
+        }
+        else if(token == "{"){
+            continue;
+        }
+        else if(token == "src"){
+            std::getline(lineStream,line);
+            
+            // remove leading whitespace
+            size_t begin_pos = line.find_first_not_of(" ");
+            std::string new_line(line.begin()+begin_pos,line.end());
+
+            size_t last_pos = new_line.find_last_of(';');
+            if(last_pos!=std::string::npos){
+                new_line.erase(new_line.begin()+last_pos);
+                directory.source = new_line;
+                src_set = true;
+            }
+        }
+        else if(token == "dst"){
+            std::getline(lineStream,line);
+            
+            // remove leading whitespace
+            size_t begin_pos = line.find_first_not_of(" ");
+            std::string new_line(line.begin()+begin_pos,line.end());
+
+            size_t last_pos = new_line.find_last_of(';');
+            if(last_pos!=std::string::npos){
+                new_line.erase(new_line.begin()+last_pos);
+                directory.destination = new_line;
+                dst_set = true;
+            }
+        }
+        else if(token == "}"){
+            continue;
+        }
+
+        if(src_set && dst_set){
+            m_Data->push_back(directory);
+            directory = {};
+            src_set = false;
+            dst_set = false;
+        }
+    }
 }
 
 void application::FileParse::CheckText(){

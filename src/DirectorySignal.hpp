@@ -2,13 +2,7 @@
 #include <filesystem>
 #include "AppMacros.hpp"
 #include "logger.hpp"
-#include <vector>
 #include "FileParse.hpp"
-#include <map>
-#include <queue>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include "ConsoleTM.hpp"
 #include "Helper.hpp"
 

@@ -28,6 +28,9 @@ namespace application{
         std::filesystem::path fs_source;
         std::filesystem::path fs_destination;
         std::filesystem::directory_entry src_entry;
+        std::string command;
+        std::string copy_arg;
+        std::string monitor_arg;
     };
 
     // to use this class first call one of the constructors with a full path or a filename relative to 
@@ -46,8 +49,7 @@ namespace application{
         FileParse(const std::string& filename);
 
         // parse the file into m_Data
-        // const std::string& keyword: the keyword to match in the file for each line to be parsed
-        void ExtractData(const std::string& keyword);
+        void ExtractData();
         
         // opens m_File
         // if the path is valid but opening the file fails std::runtime_error exception is thrown
@@ -66,6 +68,8 @@ namespace application{
         const std::shared_ptr<std::vector<copyto>> GetSPdata(){return m_Data;}
 
     private:
+        void ParseSyntax();
+
         // the path to the current file being parsed
         std::filesystem::path m_FilePath;
 
@@ -89,5 +93,9 @@ namespace application{
         // This function is called from CheckData() if the flag is Text
         // checks m_Data for valid Text
         void CheckText();
+
+        std::vector<std::string> m_commands{"copy","monitor","fast_copy"};
+        std::vector<std::string> m_copy_args{"recurse","update","overwrite","single"};
+        std::vector<std::string> m_monitor_args{"sync","sync_add"};
     };
 }

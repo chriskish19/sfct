@@ -35,7 +35,7 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
         }
 
         DS_resources* monitor = new DS_resources{hDir, {}, {},{dir.fs_source},{dir.fs_destination}};
-        // monitor.m_buffer.resize(4096);
+        
         
         if(!CreateIoCompletionPort(hDir, m_hCompletionPort, (ULONG_PTR)monitor, 0)){
             logger log(Error::WARNING);
