@@ -31,8 +31,7 @@ namespace application{
         HANDLE m_hDir;
         BYTE m_buffer[10485760]; // 10MB buffer, do not allocate this on the stack
         OVERLAPPED m_ol;
-        std::filesystem::path src_path;
-        std::filesystem::path dest_path;
+        copyto directory;
     }; 
 
     class DirectorySignal{
@@ -45,8 +44,6 @@ namespace application{
 
         DWORD GetNotifyFilter(){return m_NotifyFilter;}
         HANDLE GetCompletionPort(){return m_hCompletionPort;}
-
-        std::shared_ptr<std::queue<copyto>> GetFileQueueSP(){return m_ReadyFiles;}
     private:
 
         DWORD m_NotifyFilter{FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME};
@@ -56,12 +53,7 @@ namespace application{
 
         std::vector<DS_resources*> m_pMonitors;
 
-        // files queued for copying
-        std::shared_ptr<std::queue<copyto>> m_ReadyFiles{std::make_shared<std::queue<copyto>>()};
-
         std::shared_ptr<std::vector<copyto>> m_Dirs;
-
-        std::filesystem::copy_options m_co{std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing};
     };
 }
 

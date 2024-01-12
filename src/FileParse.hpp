@@ -7,12 +7,7 @@
 #include <filesystem>
 #include "logger.hpp"
 #include <sstream>
-
-/////////////////////////////////////////////////////////////////
-/* Future TODO:                                                */
-/* 1. Template this class to accept any form of data           */
-/* 2. Add more types of data to DataType enum class flags      */
-/////////////////////////////////////////////////////////////////
+#include "args.hpp"
 
 
 namespace application{
@@ -21,16 +16,11 @@ namespace application{
         Text
         // add more for future use of this class in building other cli tools
     };
-      
+
     struct copyto{
-        std::string source;
-        std::string destination;
-        std::filesystem::path fs_source;
-        std::filesystem::path fs_destination;
-        std::filesystem::directory_entry src_entry;
-        std::string command;
-        std::string copy_arg;
-        std::string monitor_arg;
+        std::filesystem::path source;
+        std::filesystem::path destination;
+        args cmd_args;
     };
 
     // to use this class first call one of the constructors with a full path or a filename relative to 
@@ -40,6 +30,13 @@ namespace application{
     // 3. CheckData() 
     class FileParse{
     public:
+        struct VariantVisitor {
+            void operator()(application::command cmd) const;
+            void operator()(application::copy cp) const;
+            void operator()(application::monitor mn) const;
+            void operator()(application::ds ds_arg) const;
+        };
+
         // use this constructor if you need to use a file not in the current working directory
         // must be an absolute path
         // std::filesystem::path path: the file name including extension and full path
@@ -93,9 +90,5 @@ namespace application{
         // This function is called from CheckData() if the flag is Text
         // checks m_Data for valid Text
         void CheckText();
-
-        std::vector<std::string> m_commands{"copy","monitor","fast_copy"};
-        std::vector<std::string> m_copy_args{"recurse","update","overwrite","single"};
-        std::vector<std::string> m_monitor_args{"sync","sync_add"};
     };
 }

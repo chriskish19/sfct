@@ -19,23 +19,14 @@ namespace application{
 
         void Go();
     private:
-        // using pointers and memory allocated on the heap to avoid high stack usage
-        std::unique_ptr<TM> m_CopyWorkers{std::make_unique<TM>()};
-        std::unique_ptr<FileParse> m_List;
-        
         // name of the file to edit and store the copy directories
         std::string m_FileName{"sfct_list.txt"};
-
-        // keyword used to parse the data
-        std::string m_Keyword{"copy"};
 
         // parsed directories
         std::shared_ptr<std::vector<copyto>> m_data;
 
+        FileParse m_List{m_FileName};
+
         std::unique_ptr<DirectorySignal> m_Monitor;
-
-        std::shared_ptr<std::queue<copyto>> m_FileQueue;
-
-        std::filesystem::copy_options m_co{std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing};
     };
 }

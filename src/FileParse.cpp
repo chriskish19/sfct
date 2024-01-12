@@ -123,18 +123,27 @@ void application::FileParse::ParseSyntax()
 {
     copyto directory;
     std::string line;
-    bool src_set{false},dst_set{false},cmd_set{false};
-
     while(std::getline(m_File,line)){
         std::istringstream lineStream(line);
         std::string token;
         lineStream >> token;
-        if(token == *std::find(m_commands.begin(),m_commands.end(),token)){
-            directory.command = token;
-            cmd_set = true;
-            while(lineStream >> token){
-                
-            }
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            std::visit(VariantVisitor{},found_token.value());
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        if(token == ){
+            
         }
         else if(token == "{"){
             continue;
@@ -249,5 +258,36 @@ void application::FileParse::CheckDirectories(){
         std::filesystem::path dest_init(m_Data->at(i).destination);
         m_Data->at(i).fs_source = src_init;
         m_Data->at(i).fs_destination = dest_init;
+    }
+}
+
+void application::FileParse::VariantVisitor::operator()(application::command cmd) const
+{
+    switch(cmd){
+        case command::copy:{
+            
+            break;
+        }
+    }
+}
+
+void application::FileParse::VariantVisitor::operator()(application::copy cp) const
+{
+    switch(cp){
+
+    }
+}
+
+void application::FileParse::VariantVisitor::operator()(application::monitor mn) const
+{
+    switch(mn){
+
+    }
+}
+
+void application::FileParse::VariantVisitor::operator()(application::ds ds_arg) const
+{
+    switch(ds_arg){
+
     }
 }

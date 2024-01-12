@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 # Create a project named sfct
-project(sfct VERSION 1.0.0.0)
+project(sfct VERSION 1.0.0.1)
 
 # Set the variable CMAKE_CXX_STANDARD to c++20
 # and the variable CMAKE_CXX_STANDARD_REQUIRED to True

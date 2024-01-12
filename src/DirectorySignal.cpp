@@ -20,7 +20,7 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
 
     for(const auto &dir:*dirs_to_watch){
         HANDLE hDir = CreateFile(
-            dir.fs_source.c_str(), FILE_LIST_DIRECTORY,
+            dir.source.c_str(), FILE_LIST_DIRECTORY,
             FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
             NULL, OPEN_EXISTING,
             FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
@@ -34,7 +34,7 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
             continue;
         }
 
-        DS_resources* monitor = new DS_resources{hDir, {}, {},{dir.fs_source},{dir.fs_destination}};
+        DS_resources* monitor = new DS_resources{hDir, {}, {}, {{dir.source},{dir.destination},{dir.cmd_args}}};
         
         
         if(!CreateIoCompletionPort(hDir, m_hCompletionPort, (ULONG_PTR)monitor, 0)){
@@ -94,10 +94,10 @@ void application::DirectorySignal::monitor(){
             // Extract the file name
             std::wstring fileName(pNotify->FileName, pNotify->FileNameLength / sizeof(WCHAR));
             
-            std::filesystem::path src(pMonitor->src_path/fileName);
-            std::filesystem::path dest(pMonitor->dest_path/fileName);
+            std::filesystem::path src(pMonitor->directory.source/fileName);
+            std::filesystem::path dest(pMonitor->directory.destination/fileName);
 
-            std::filesystem::path dest_dir(pMonitor->dest_path/fileName);
+            std::filesystem::path dest_dir(pMonitor->directory.destination/fileName);
 
 
             dest_dir.remove_filename();
