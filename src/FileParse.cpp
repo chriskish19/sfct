@@ -96,7 +96,7 @@ void application::FileParse::SetFilePath(const std::filesystem::path& new_path){
     
 }
 
-void application::FileParse::CheckData(DataType t){
+void application::FileParse::CheckData(){
     if(!m_DataExtracted){
         logger log(App_MESSAGE("Data has not been extracted, you need to call ExtractData() before calling CheckData()"),Error::DEBUG);
         log.to_console();
@@ -104,19 +104,7 @@ void application::FileParse::CheckData(DataType t){
         return;
     }
     
-    
-    switch(t){
-        case DataType::Directory:{
-            CheckDirectories();
-            break;
-        }
-        case DataType::Text:{
-            CheckText();
-            break;
-        }
-        default:{return;}
-    }
-    return;
+    CheckDirectories();
 }
 
 void application::FileParse::ParseSyntax()
@@ -129,165 +117,250 @@ void application::FileParse::ParseSyntax()
         lineStream >> token;
         auto found_token = global_tokenizer.Find(token);
         if(found_token.has_value()){
-            std::visit(VariantVisitor{},found_token.value());
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        if(token == ){
-            
-        }
-        else if(token == "{"){
-            continue;
-        }
-        else if(token == "src"){
-            std::getline(lineStream,line);
-            
-            // remove leading whitespace
-            size_t begin_pos = line.find_first_not_of(" ");
-            std::string new_line(line.begin()+begin_pos,line.end());
+            switch(found_token.value()){
+                case cs::copy:{
+                    directory.commands.insert(cs::copy);
+                    while(lineStream >> token){
+                        found_token = global_tokenizer.Find(token);
+                        if(found_token.has_value()){
+                            switch(found_token.value()){
+                                case cs::recursive:{
+                                    directory.commands.insert(cs::recursive);
+                                    break;
+                                }
+                                case cs::update:{
+                                    directory.commands.insert(cs::update);
+                                    break;
+                                }
+                                case cs::overwrite:{
+                                    if(directory.commands.find(cs::update)==directory.commands.end()){
+                                        directory.commands.insert(cs::overwrite);
+                                    }
+                                    break;
+                                }
+                                case cs::single:{
+                                    if(directory.commands.find(cs::recursive)==directory.commands.end()){
+                                        directory.commands.insert(cs::single);
+                                    }
+                                    break;
+                                }
+                                default:{
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    bool end{false};
+                    while(std::getline(m_File,line) && !end){
+                        lineStream = std::istringstream(line);
+                        lineStream >> token;
+                        found_token = global_tokenizer.Find(token);
+                        if(found_token.has_value()){
+                            switch(found_token.value()){
+                                case cs::open_brace:{
+                                    continue;
+                                    break;
+                                }
+                                case cs::src:{
+                                    std::getline(lineStream,line);
+                                    size_t begin_pos = line.find_first_not_of(" ");
+                                    size_t end_pos = line.find_last_of(';');
+                                    std::string src_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    directory.source = std::filesystem::path(src_dir);
+                                    break;
+                                }
+                                case cs::dst:{
+                                    std::getline(lineStream,line);
+                                    size_t begin_pos = line.find_first_not_of(" ");
+                                    size_t end_pos = line.find_last_of(';');
+                                    std::string dst_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    directory.destination = std::filesystem::path(dst_dir);
+                                    break;
+                                }
+                                case cs::close_brace:{
+                                    end = true;
+                                    m_Data->push_back(directory);
+                                    directory = {};
+                                    break;
+                                }
+                                default:{
+                                    break;
+                                }
+                                
+                            }
+                        }
+                    }
+                    break;
+                }
+                case cs::monitor:{
+                    directory.commands.insert(cs::monitor);
+                    while(lineStream >> token){
+                         found_token = global_tokenizer.Find(token);
+                         if(found_token.has_value()){
+                            switch(found_token.value()){
+                                case cs::sync:{
+                                    directory.commands.insert(cs::sync);
+                                    break;
+                                }
+                                case cs::sync_add:{
+                                    if(directory.commands.find(cs::sync)==directory.commands.end()){
+                                        directory.commands.insert(cs::sync_add);
+                                    }
+                                    break;
+                                }
+                                default:{
+                                    break;
+                                }
+                            }
+                         }
+                    }
 
-            size_t last_pos = new_line.find_last_of(';');
-            if(last_pos!=std::string::npos){
-                new_line.erase(new_line.begin()+last_pos);
-                directory.source = new_line;
-                src_set = true;
+                    bool end{false};
+                    while(std::getline(m_File,line) && !end){
+                        lineStream = std::istringstream(line);
+                        lineStream >> token;
+                        found_token = global_tokenizer.Find(token);
+                        if(found_token.has_value()){
+                            switch(found_token.value()){
+                                case cs::open_brace:{
+                                    continue;
+                                    break;
+                                }
+                                case cs::src:{
+                                    std::getline(lineStream,line);
+                                    size_t begin_pos = line.find_first_not_of(" ");
+                                    size_t end_pos = line.find_last_of(';');
+                                    std::string src_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    directory.source = std::filesystem::path(src_dir);
+                                    break;
+                                }
+                                case cs::dst:{
+                                    std::getline(lineStream,line);
+                                    size_t begin_pos = line.find_first_not_of(" ");
+                                    size_t end_pos = line.find_last_of(';');
+                                    std::string dst_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    directory.destination = std::filesystem::path(dst_dir);
+                                    break;
+                                }
+                                case cs::close_brace:{
+                                    end = true;
+                                    m_Data->push_back(directory);
+                                    directory = {};
+                                    break;
+                                }
+                                default:{
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                case cs::fast_copy:{
+                    directory.commands.insert(cs::fast_copy);
+                    while(lineStream >> token){
+                        found_token = global_tokenizer.Find(token);
+                        if(found_token.has_value()){
+                            switch(found_token.value()){
+                                case cs::recursive:{
+                                    directory.commands.insert(cs::recursive);
+                                    break;
+                                }
+                                case cs::update:{
+                                    directory.commands.insert(cs::update);
+                                    break;
+                                }
+                                case cs::overwrite:{
+                                    if(directory.commands.find(cs::update)==directory.commands.end()){
+                                        directory.commands.insert(cs::overwrite);
+                                    }
+                                    break;
+                                }
+                                case cs::single:{
+                                    if(directory.commands.find(cs::recursive)==directory.commands.end()){
+                                        directory.commands.insert(cs::single);
+                                    }
+                                    break;
+                                }
+                                default:{
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    bool end{false};
+                    while(std::getline(m_File,line) && !end){
+                        lineStream = std::istringstream(line);
+                        lineStream >> token;
+                        found_token = global_tokenizer.Find(token);
+                        if(found_token.has_value()){
+                            switch(found_token.value()){
+                                case cs::open_brace:{
+                                    continue;
+                                    break;
+                                }
+                                case cs::src:{
+                                    std::getline(lineStream,line);
+                                    size_t begin_pos = line.find_first_not_of(" ");
+                                    size_t end_pos = line.find_last_of(';');
+                                    std::string src_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    directory.source = std::filesystem::path(src_dir);
+                                    break;
+                                }
+                                case cs::dst:{
+                                    std::getline(lineStream,line);
+                                    size_t begin_pos = line.find_first_not_of(" ");
+                                    size_t end_pos = line.find_last_of(';');
+                                    std::string dst_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    directory.destination = std::filesystem::path(dst_dir);
+                                    break;
+                                }
+                                case cs::close_brace:{
+                                    end = true;
+                                    m_Data->push_back(directory);
+                                    directory = {};
+                                    break;
+                                }
+                                default:{
+                                    break;
+                                }
+                                
+                            }
+                        }
+                    }
+
+                    break;
+                }
+                default:{
+                    break;
+                }
             }
         }
-        else if(token == "dst"){
-            std::getline(lineStream,line);
-            
-            // remove leading whitespace
-            size_t begin_pos = line.find_first_not_of(" ");
-            std::string new_line(line.begin()+begin_pos,line.end());
-
-            size_t last_pos = new_line.find_last_of(';');
-            if(last_pos!=std::string::npos){
-                new_line.erase(new_line.begin()+last_pos);
-                directory.destination = new_line;
-                dst_set = true;
-            }
-        }
-        else if(token == "}"){
-            continue;
-        }
-
-        if(src_set && dst_set){
-            m_Data->push_back(directory);
-            directory = {};
-            src_set = false;
-            dst_set = false;
-        }
-    }
+    }   
 }
 
-void application::FileParse::CheckText(){
-    return; // blank for now
-}
+
 
 
 void application::FileParse::CheckDirectories(){
-    // check that the directories are valid
-    // if the source entry is not valid mark the entry to be removed
-    // if the destination does not exist it will be created
-    for(size_t i{};i<m_Data->size();){
-        if(!std::filesystem::exists(m_Data->at(i).source)){
-            logger log(App_MESSAGE("entry is invalid and will not be used"),Error::WARNING,std::filesystem::path(m_Data->at(i).source));
+    for(auto it{m_Data->begin()};it!=m_Data->end();){
+        if(!std::filesystem::exists(it->source) && !std::filesystem::exists(it->destination)){
+            logger log(App_MESSAGE("Invalid entry"),Error::WARNING,it->source);
             log.to_console();
             log.to_log_file();
-            log.to_output();
-
-            // erase the entry
-            // Do not increment i, as the next element has shifted to the current position
-            m_Data->erase(m_Data->begin() + i);
+            m_Data->erase(it);
         }
         else{
-            // Only increment i if an element was not erased
-            i++;
-        }
-    }
-    
-    // check that the destination exists and if it does not, attempt to create it
-    for(size_t i{};i<m_Data->size();i++){
-        if(!std::filesystem::exists(m_Data->at(i).destination)){
-            if(!std::filesystem::create_directories(m_Data->at(i).destination)){
-                logger log(App_MESSAGE("Error: failed to create directories, destination is an invalid path"),Error::WARNING,std::filesystem::path(m_Data->at(i).destination));
-                log.to_console();
-                log.to_log_file();
-                log.to_output();
-                
-                // mark the directory as invalid
-                m_Data->at(i).destination = "INVALID";
-                m_Data->at(i).source = "INVALID";
-            }
+            it++;
         }
     }
 
-    // erase the invalid directories
-    for(size_t i{};i<m_Data->size();){
-        if(m_Data->at(i).destination == "INVALID"){
-            m_Data->erase(m_Data->begin()+i);
-        }
-        else{
-            i++;
-        }
-    }
-
-    // check that m_Data has entries
     if(m_Data->empty()){
-        logger log(App_MESSAGE("No valid directory entries in file"),Error::FATAL,m_FilePath);
+        logger log(App_MESSAGE("No Valid directories"),Error::FATAL);
         log.to_console();
         log.to_log_file();
-        throw std::runtime_error("No valid directories found, program will now exit");
-    }
-
-
-    // initialize fs_source and fs_destination in the m_Data vector
-    // using the std::string's source and destination
-    // std::filesystem works best with its native path type
-    for(size_t i{};i<m_Data->size();i++){
-        std::filesystem::path src_init(m_Data->at(i).source);
-        std::filesystem::path dest_init(m_Data->at(i).destination);
-        m_Data->at(i).fs_source = src_init;
-        m_Data->at(i).fs_destination = dest_init;
+        throw std::runtime_error("");
     }
 }
 
-void application::FileParse::VariantVisitor::operator()(application::command cmd) const
-{
-    switch(cmd){
-        case command::copy:{
-            
-            break;
-        }
-    }
-}
 
-void application::FileParse::VariantVisitor::operator()(application::copy cp) const
-{
-    switch(cp){
-
-    }
-}
-
-void application::FileParse::VariantVisitor::operator()(application::monitor mn) const
-{
-    switch(mn){
-
-    }
-}
-
-void application::FileParse::VariantVisitor::operator()(application::ds ds_arg) const
-{
-    switch(ds_arg){
-
-    }
-}

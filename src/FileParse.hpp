@@ -8,20 +8,17 @@
 #include "logger.hpp"
 #include <sstream>
 #include "args.hpp"
+#include <unordered_set>
+#include <optional>
 
 
 namespace application{
-    enum class DataType{
-        Directory,
-        Text
-        // add more for future use of this class in building other cli tools
-    };
-
     struct copyto{
         std::filesystem::path source;
         std::filesystem::path destination;
-        args cmd_args;
+        std::unordered_set<cs> commands;
     };
+
 
     // to use this class first call one of the constructors with a full path or a filename relative to 
     // the cwd(current working directory) then call functions in this order:
@@ -30,13 +27,6 @@ namespace application{
     // 3. CheckData() 
     class FileParse{
     public:
-        struct VariantVisitor {
-            void operator()(application::command cmd) const;
-            void operator()(application::copy cp) const;
-            void operator()(application::monitor mn) const;
-            void operator()(application::ds ds_arg) const;
-        };
-
         // use this constructor if you need to use a file not in the current working directory
         // must be an absolute path
         // std::filesystem::path path: the file name including extension and full path
@@ -58,7 +48,7 @@ namespace application{
         void SetFilePath(const std::filesystem::path& new_path);
 
         // checks for valid data
-        void CheckData(DataType t);
+        void CheckData();
 
         // data will need to be used elsewhere in the program
         // TODO: template this class to handle any type of data for future use in making cli programs

@@ -18,7 +18,7 @@ application::ConsoleApp::ConsoleApp(){
     // check the data for valid entries
     // FileParse handles the case where no valid directories are found and
     // throws a std::runtime_error exception
-    m_List.CheckData(DataType::Directory);
+    m_List.CheckData();
 
     // get the data shared_ptr for use in the console app class
     // it holds the directory paths
