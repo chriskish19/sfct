@@ -35,6 +35,12 @@ namespace application{
         FileParse m_List{m_FileName};
 
         // the object that monitors directories                   
-        std::unique_ptr<DirectorySignal> m_Monitor;     
+        std::unique_ptr<DirectorySignal> m_Monitor;
+
+        // monitor only directories
+        std::shared_ptr<std::vector<copyto>> m_monitor_dirs{std::make_shared<std::vector<copyto>>()};
+
+        // copy only directories
+        std::shared_ptr<std::vector<copyto>> m_copy_dirs{std::make_shared<std::vector<copyto>>()};     
     };
 }

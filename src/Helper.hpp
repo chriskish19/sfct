@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <chrono>
 #include <thread>
+#include "obj.hpp"
+
 
 //////////////////////////////////////////////////////////////////////////
 // This header provides helper functions needed throughout the program
@@ -105,5 +107,17 @@ namespace application{
         } 
         // add more later
         return co;
+    }
+
+    inline FullCopy(const std::vector<copyto> dirs){
+        for(const auto& dir:dirs){
+            if((dir.commands & cs::recursive) == cs::recursive){
+                recursive_check(dir.source);
+            }
+            else if((dir.commands & cs::single) == cs::single){
+                single_check(dir.source)
+            }
+            std::filesystem::copy(dir.source,dir.destination,dir.co);
+        }
     }
 }

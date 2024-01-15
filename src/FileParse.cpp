@@ -344,7 +344,7 @@ void application::FileParse::ParseSyntax()
 
 void application::FileParse::CheckDirectories(){
     for(auto it{m_Data->begin()};it!=m_Data->end();){
-        if(!std::filesystem::exists(it->source) && !std::filesystem::exists(it->destination)){
+        if(!std::filesystem::exists(it->source) || !std::filesystem::exists(it->destination)){
             logger log(App_MESSAGE("Invalid entry"),Error::WARNING,it->source);
             log.to_console();
             log.to_log_file();
@@ -363,4 +363,7 @@ void application::FileParse::CheckDirectories(){
     }
 }
 
-
+void application::FileParse::CheckCommands()
+{
+    
+}

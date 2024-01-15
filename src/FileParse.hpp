@@ -75,5 +75,7 @@ namespace application{
         // checks m_Data for valid directory entries
         // if no valid directories are found it throws an exception std::runtime_error()
         void CheckDirectories();
+
+        void CheckCommands();
     };
 }

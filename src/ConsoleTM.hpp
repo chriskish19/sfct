@@ -29,10 +29,11 @@ namespace application{
         // changes m_Message to m
         void SetMessage(const std::string& m);
 
-        // get a shared_ptr to m_Running if needed else where in the program
-        const std::shared_ptr<std::atomic<bool>> GetSPRunning(){return m_Running;}
-
+        // causes the queue the output all messages
         void ReleaseBuffer();
+
+        // ends the message stream
+        void end();
     private:
         // output m_Message to the console
         void to_console();
@@ -44,11 +45,13 @@ namespace application{
         char m_AnimationChars[4] = {'/', '-', '\\', '|'};
         int m_AnimationIndex = 0;
 
-        // a thread safe boolean shared_ptr to close the message loop if needed
-        std::shared_ptr<std::atomic<bool>> m_Running{std::make_shared<std::atomic<bool>>(true)};
+        // a thread safe boolean to close the message loop if needed
+        std::atomic<bool> m_Running{true};
 
+        // queue of messages 
         std::queue<std::string> m_MessageQueue;
 
+        // true releases the queue
         bool m_release{false};
     };
 
@@ -63,11 +66,11 @@ namespace application{
         // adds a message to the queue
         void SetMessage(const std::wstring& m);
 
-        // get a shared_ptr to m_Running if needed else where in the program
-        const std::shared_ptr<std::atomic<bool>> GetSPRunning(){return m_Running;}
-
-        
+        // causes the queue the output all messages
         void ReleaseBuffer();
+
+        // ends the message stream
+        void end();
     private:
         // output m_Message to the console
         void to_console();
@@ -80,10 +83,12 @@ namespace application{
         int m_AnimationIndex = 0;
 
         // a thread safe boolean shared_ptr to close the message loop if needed
-        std::shared_ptr<std::atomic<bool>> m_Running{std::make_shared<std::atomic<bool>>(true)};
+        std::atomic<bool> m_Running{true};
 
+        // queue of messages 
         std::queue<std::wstring> m_MessageQueue;
 
+        // true releases the queue
         bool m_release{false};
     };
 

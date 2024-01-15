@@ -24,21 +24,35 @@ application::ConsoleApp::ConsoleApp(){
     // it holds the directory paths
     m_data = m_List.GetSPdata();
     
+    // get the monitor directories and put them in m_monitor_dir
+    for(auto& dir:*m_data){
+        // set co options
+        dir.co = GetCopyOptions(dir.commands);
+        
+        if((dir.commands & cs::monitor) == cs::monitor){
+            m_monitor_dirs->push_back(dir);
+        }
+
+        if((dir.commands & cs::copy) == cs::copy){
+            m_copy_dirs->push_back(dir);
+        }
+    }
+
     // make a monitor for directories
-    m_Monitor = std::make_unique<DirectorySignal>(m_data);
+    m_Monitor = std::make_unique<DirectorySignal>(m_monitor_dirs);
 }
 
 void application::ConsoleApp::Go(){
     std::thread MessageStreamThread(&application::CONSOLETM::RunMessages,&m_MessageStream);
     
-    
+    // copy the directories set with copy command
+    FullCopy(*m_copy_dirs);
 
+    // monitor directories
+    m_Monitor->monitor();
 
-
-
-    
-
-    *m_MessageStream.GetSPRunning() = false;
+    // end the message stream
+    m_MessageStream.end();
 
     if(MessageStreamThread.joinable()){
         MessageStreamThread.join();

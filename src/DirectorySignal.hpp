@@ -5,6 +5,7 @@
 #include "FileParse.hpp"
 #include "ConsoleTM.hpp"
 #include "helper.hpp"
+#include <queue>
 
 /////////////////////////////////////////////////////////////////////
 // This header is responsible for monitoring directories for changes
@@ -39,6 +40,8 @@ namespace application{
         HANDLE m_hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
         std::vector<DS_resources*> m_pMonitors;
         std::shared_ptr<std::vector<copyto>> m_Dirs;
+        bool no_watch{false};
+        std::queue<std::filesystem::path> m_directory_remove;   // directories set for deletion
     };
 }
 #endif

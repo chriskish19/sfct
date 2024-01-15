@@ -30,7 +30,7 @@ void application::ConsoleTM::SetMessage(const std::string& m){
 }
 
 void application::ConsoleTM::RunMessages(){
-    while(*m_Running){
+    while(m_Running){
         to_console();
     }
 }
@@ -38,6 +38,11 @@ void application::ConsoleTM::RunMessages(){
 void application::ConsoleTM::ReleaseBuffer(){
     m_release = true;
 }
+
+void application::ConsoleTM::end(){
+    m_Running = false;
+}
+
 
 /////////////////////////////////////////////////
 /* wide string version of ConsoleTM definitions*/
@@ -72,11 +77,15 @@ void application::wConsoleTM::SetMessage(const std::wstring& m){
 }
 
 void application::wConsoleTM::RunMessages(){
-    while(*m_Running){
+    while(m_Running){
         to_console();
     }
 }
 
 void application::wConsoleTM::ReleaseBuffer(){
     m_release = true;
+}
+
+void application::ConsoleTM::end(){
+    m_Running = false;
 }

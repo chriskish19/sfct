@@ -12,5 +12,6 @@ namespace application{
         std::filesystem::path source;               // source directory path to monitor or copy from
         std::filesystem::path destination;          // destination directory path to copy or sync to
         cs commands;                                // holds the arguments whether to copy or monitor, sync, update ect.
+        std::filesystem::copy_options co;           // holds the arguments in std::filesystem::copy_options format
     };
 }
