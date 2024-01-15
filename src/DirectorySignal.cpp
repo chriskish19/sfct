@@ -19,48 +19,50 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
     }
 
     for(const auto &dir:*dirs_to_watch){
-        HANDLE hDir = CreateFile(
-            dir.source.c_str(), FILE_LIST_DIRECTORY,
-            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-            NULL, OPEN_EXISTING,
-            FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-            NULL);
+        if(dir.commands.find(cs::monitor)!=dir.commands.end()){
+            HANDLE hDir = CreateFile(
+                dir.source.c_str(), FILE_LIST_DIRECTORY,
+                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                NULL, OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+                NULL);
 
-        if (hDir == INVALID_HANDLE_VALUE) {
-            logger log(Error::WARNING);
-            log.to_console();
-            log.to_log_file();
-            log.to_output();
-            continue;
-        }
+            if (hDir == INVALID_HANDLE_VALUE) {
+                logger log(Error::WARNING);
+                log.to_console();
+                log.to_log_file();
+                log.to_output();
+                continue;
+            }
 
-        DS_resources* monitor = new DS_resources{hDir, {}, {}, {{dir.source},{dir.destination},{dir.cmd_args}}};
-        
-        
-        if(!CreateIoCompletionPort(hDir, m_hCompletionPort, (ULONG_PTR)monitor, 0)){
-            logger log(Error::WARNING);
-            log.to_console();
-            log.to_log_file();
-            log.to_output();
-        }
-        
-        
-        if(!ReadDirectoryChangesW(
-            hDir, 
-            &monitor->m_buffer, 
-            sizeof(monitor->m_buffer), 
-            TRUE,
-            m_NotifyFilter,
-            NULL, 
-            &monitor->m_ol, 
-            NULL)){
+            DS_resources* monitor = new DS_resources{hDir, {}, {}, {{dir.source},{dir.destination},{dir.commands}}};
+            
+            
+            if(!CreateIoCompletionPort(hDir, m_hCompletionPort, (ULONG_PTR)monitor, 0)){
                 logger log(Error::WARNING);
                 log.to_console();
                 log.to_log_file();
                 log.to_output();
             }
+            
+            
+            if(!ReadDirectoryChangesW(
+                hDir, 
+                &monitor->m_buffer, 
+                sizeof(monitor->m_buffer), 
+                TRUE,
+                m_NotifyFilter,
+                NULL, 
+                &monitor->m_ol, 
+                NULL)){
+                    logger log(Error::WARNING);
+                    log.to_console();
+                    log.to_log_file();
+                    log.to_output();
+                }
 
-        m_pMonitors.push_back(monitor);
+            m_pMonitors.push_back(monitor);
+        }
     }
 }
 

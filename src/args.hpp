@@ -3,24 +3,43 @@
 #include <string>
 #include <optional>
 
+/////////////////////////////////////////////////////////////////////
+// This header contains everything needed for tokenizing the commands from strings into enum values.
+// cherry_script is defined here.
+// global_tokenizer is defiend here.
+/////////////////////////////////////////////////////////////////////
+
+
 namespace application{
-    enum class cherry_script{
-        copy,
-        monitor,
-        fast_copy,
-        recursive,
-        update,
-        overwrite,
-        single,
-        sync,
-        sync_add,
-        src,
-        dst,
-        open_brace,
-        close_brace,
-        semi_colon
+    enum class cherry_script {
+        none = 0,               // Default value representing no flags set
+        copy = 1 << 0,          // 1
+        monitor = 1 << 1,       // 2
+        fast_copy = 1 << 2,     // 4
+        recursive = 1 << 3,     // 8
+        update = 1 << 4,        // 16
+        overwrite = 1 << 5,     // 32
+        single = 1 << 6,        // 64
+        sync = 1 << 7,          // 128
+        sync_add = 1 << 8,      // 256
+        src = 1 << 9,           // 512
+        dst = 1 << 10,          // 1024
+        open_brace = 1 << 11,   // 2048
+        close_brace = 1 << 12,  // 4096
+        semi_colon = 1 << 13,   // 8192
     };
     using cs = cherry_script;
+
+    inline cs operator|(cs a, cs b) {
+        return static_cast<cs>(static_cast<int>(a) | static_cast<int>(b));
+    }
+
+    inline cs operator&(cs a, cs b) {
+        return static_cast<cs>(static_cast<int>(a) & static_cast<int>(b));
+    }
+    inline cs& operator|=(cs& a, cs b) {
+        return a = a | b;
+    }
 
     class args_maps{
     public:

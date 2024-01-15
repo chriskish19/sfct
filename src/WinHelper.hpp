@@ -3,6 +3,10 @@
 #include <fcntl.h>
 #include <io.h>
 
+/////////////////////////////////////////////////////////////////////////////////
+// This header is for handling windows specific settings in the terminal. 
+/////////////////////////////////////////////////////////////////////////////////
+
 namespace Windows{
     inline void enableANSIEscapeCodes() {
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -32,8 +36,8 @@ namespace Windows{
         }
     }
 
+    // Set the console mode to handle wide characters UTF-16
     inline void SetWideConsoleMode(){
-         // Set the console mode to handle werid wide characters
-        _setmode(_fileno(stdout), _O_U16TEXT);
+        _setmode(_fileno(stdout), _O_U16TEXT);          
     }
 }

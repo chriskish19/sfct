@@ -1,10 +1,12 @@
 #include "ConsoleApp.hpp"
 #include <stdexcept>
 
+// Main entry point for the application
 int main(){
     try{
-		application::ConsoleApp sfct;
-        sfct.Go();
+		using namespace application;
+		std::unique_ptr<ConsoleApp> sfct{std::make_unique<ConsoleApp>()};
+		sfct->Go();
 	}
 	catch (const std::filesystem::filesystem_error& e) {
         // Handle filesystem related errors

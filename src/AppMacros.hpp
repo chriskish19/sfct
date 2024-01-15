@@ -1,9 +1,11 @@
 #pragma once
-#include <iostream>
+
+///////////////////////////////////////////////////////////////
+// This header defines and uses macros depending on the OS
+///////////////////////////////////////////////////////////////
 
 
 #ifdef _WIN32
-#include <Windows.h>
 #define WINDOWS_BUILD 1
 #define STRING std::wstring
 #define OFSTREAM std::wofstream

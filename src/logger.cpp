@@ -95,8 +95,8 @@ application::logger::logger(const std::wstring& s,Error type,const std::filesyst
     initLogger();
     mMessage += L" Message: " + s;
 
-    // wrap filepath in brackets for easy reading
-    mMessage += std::format(L"{{}}",filepath.c_str());
+    // wrap filepath in square bracket for easy reading
+    mMessage += std::format(L"{[]}",filepath.c_str());
 }
 
 void application::logger::time_stamp(){

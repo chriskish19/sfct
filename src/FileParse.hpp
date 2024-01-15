@@ -5,21 +5,21 @@
 #include <vector>
 #include <memory>
 #include <filesystem>
-#include "logger.hpp"
+#include "Logger.hpp"
 #include <sstream>
 #include "args.hpp"
 #include <unordered_set>
 #include <optional>
+#include "obj.hpp"
+
+/////////////////////////////////////////////////////////////////
+// This header is responsible for parsing a file.
+// It extracts the key information.
+// In this case it exracts directory paths, commands.
+/////////////////////////////////////////////////////////////////
 
 
 namespace application{
-    struct copyto{
-        std::filesystem::path source;
-        std::filesystem::path destination;
-        std::unordered_set<cs> commands;
-    };
-
-
     // to use this class first call one of the constructors with a full path or a filename relative to 
     // the cwd(current working directory) then call functions in this order:
     // 1. OpenFile()
@@ -72,13 +72,8 @@ namespace application{
         // flag for whether the data has been extracted or not
         bool m_DataExtracted{false};
 
-        // This function is called from CheckData() if the flag is Directory
         // checks m_Data for valid directory entries
         // if no valid directories are found it throws an exception std::runtime_error()
         void CheckDirectories();
-
-        // This function is called from CheckData() if the flag is Text
-        // checks m_Data for valid Text
-        void CheckText();
     };
 }

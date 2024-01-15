@@ -1,5 +1,5 @@
 #pragma once
-#include "AppMacros.hpp"
+#include "appMacros.hpp"
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -9,12 +9,24 @@
 #include <mutex>
 #include <source_location>
 
+///////////////////////////////////////////////////////////////////
+// This header is responsible for logging messages to the console, logfile and output window
+// 
+// Future TODO:
+// 1. Implement Linux version of logger class
+// 2. Implement Mac version of logger class
+///////////////////////////////////////////////////////////////////
 
-// include the windows header on windows builds
+
+
 #if WINDOWS_BUILD
+    // include the windows header on windows builds
     #include <Windows.h>
-    #define App_MESSAGE(x) L##x
+
+    // messages use wide strings on windows builds
+    #define App_MESSAGE(x) L##x   
 #else
+    // messages use narrow strings on mac and linux
     #define App_MESSAGE(x) x
 #endif
 
@@ -90,17 +102,12 @@ namespace application{
 /* Linux version of Logger class */
 ///////////////////////////////////
 #if LINUX_BUILD
-
     class logger{
     public:
-        
-
-
-
+    
     };
-
 #endif
 
 
-}
+} // application namespace end brace
 

@@ -119,28 +119,28 @@ void application::FileParse::ParseSyntax()
         if(found_token.has_value()){
             switch(found_token.value()){
                 case cs::copy:{
-                    directory.commands.insert(cs::copy);
+                    directory.commands |= cs::copy;
                     while(lineStream >> token){
                         found_token = global_tokenizer.Find(token);
                         if(found_token.has_value()){
                             switch(found_token.value()){
                                 case cs::recursive:{
-                                    directory.commands.insert(cs::recursive);
+                                    directory.commands |= cs::recursive;
                                     break;
                                 }
                                 case cs::update:{
-                                    directory.commands.insert(cs::update);
+                                    directory.commands |= cs::update;
                                     break;
                                 }
                                 case cs::overwrite:{
-                                    if(directory.commands.find(cs::update)==directory.commands.end()){
-                                        directory.commands.insert(cs::overwrite);
+                                    if((directory.commands & cs::update) != cs::update){
+                                        directory.commands |= cs::overwrite;
                                     }
                                     break;
                                 }
                                 case cs::single:{
-                                    if(directory.commands.find(cs::recursive)==directory.commands.end()){
-                                        directory.commands.insert(cs::single);
+                                    if((directory.commands & cs::recursive) != cs::recursive){
+                                        directory.commands |= cs::single;
                                     }
                                     break;
                                 }
@@ -193,18 +193,18 @@ void application::FileParse::ParseSyntax()
                     break;
                 }
                 case cs::monitor:{
-                    directory.commands.insert(cs::monitor);
+                    directory.commands |= cs::monitor;
                     while(lineStream >> token){
                          found_token = global_tokenizer.Find(token);
                          if(found_token.has_value()){
                             switch(found_token.value()){
                                 case cs::sync:{
-                                    directory.commands.insert(cs::sync);
+                                    directory.commands |= cs::sync;
                                     break;
                                 }
                                 case cs::sync_add:{
-                                    if(directory.commands.find(cs::sync)==directory.commands.end()){
-                                        directory.commands.insert(cs::sync_add);
+                                    if((directory.commands & cs::sync) != cs::sync){
+                                        directory.commands |= cs::sync_add;
                                     }
                                     break;
                                 }
@@ -257,28 +257,28 @@ void application::FileParse::ParseSyntax()
                     break;
                 }
                 case cs::fast_copy:{
-                    directory.commands.insert(cs::fast_copy);
+                    directory.commands |= cs::fast_copy;
                     while(lineStream >> token){
                         found_token = global_tokenizer.Find(token);
                         if(found_token.has_value()){
                             switch(found_token.value()){
                                 case cs::recursive:{
-                                    directory.commands.insert(cs::recursive);
+                                    directory.commands |= cs::recursive;
                                     break;
                                 }
                                 case cs::update:{
-                                    directory.commands.insert(cs::update);
+                                    directory.commands |= cs::update;
                                     break;
                                 }
                                 case cs::overwrite:{
-                                    if(directory.commands.find(cs::update)==directory.commands.end()){
-                                        directory.commands.insert(cs::overwrite);
+                                    if((directory.commands & cs::update) != cs::update){
+                                        directory.commands |= cs::overwrite;
                                     }
                                     break;
                                 }
                                 case cs::single:{
-                                    if(directory.commands.find(cs::recursive)==directory.commands.end()){
-                                        directory.commands.insert(cs::single);
+                                    if((directory.commands & cs::recursive) != cs::recursive){
+                                        directory.commands |= cs::single;
                                     }
                                     break;
                                 }

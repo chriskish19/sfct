@@ -6,9 +6,16 @@
 #include <format>
 #include <iostream>
 #include <atomic>
-#include "AppMacros.hpp"
-#include <syncstream>
+#include "appMacros.hpp"
 #include <queue>
+
+//////////////////////////////////////////////////////////////////
+// This header handles messages sent to the console.
+// It uses a queue to prevent slow downs in the program when alot of messages are processed.
+// It is designed to be launched on a thread given RunMessages().
+// Use SetMessage(const std::string& m) to add a message to the queue.
+// To display the queued messages call ReleaseBuffer().
+//////////////////////////////////////////////////////////////////
 
 namespace application{
     // this class will handle update messages to the console using a seperate thread
@@ -79,4 +86,7 @@ namespace application{
 
         bool m_release{false};
     };
+
+    // global message stream object for outputing to the console
+    inline CONSOLETM m_MessageStream;
 }

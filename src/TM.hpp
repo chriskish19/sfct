@@ -4,12 +4,16 @@
 #include "ConsoleTM.hpp"
 #include <utility>
 
+////////////////////////////////////////////////////////////////////////////////////
+// This header is responsible for managing threads, its a wrapper for std::thread. 
+// It checks how many threads are available and determines if the system is slow, average or fast.
+// It then sets a maximum number of threads to use at one time.
+// It prevents high cpu usage
+// 
+// Future TODO:
+// 1. implement std::asyc so functions can return values.
+////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////
-/*Future TODO:                                                  */
-/* 1. Implement std::async so functions can return values       */
-/* 2. Change do_work() to accept function args                  */
-//////////////////////////////////////////////////////////////////
 
 namespace application{
     enum class SystemPerformance{
@@ -18,9 +22,7 @@ namespace application{
         FAST
     };
     
-
     // thread manager class
-    // a small wrapper to manage thread creation and work
     class TM{
     public:
         // default constructor
@@ -35,7 +37,7 @@ namespace application{
         // this is used to keep the number of working threads (m_Workers) continuously
         // working when one thread has finished its work a new thread is launched, the total
         // working threads will be m_Workers at any given time
-        void join_one();
+        void join_one(); 
 
         // jobs to do for the threads
         template <typename Function, typename... Args>
