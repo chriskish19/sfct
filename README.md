@@ -71,30 +71,4 @@ Add your directories to the sfct_list.txt file, save it and re-run sfct.exe you 
 4. Mac support
 5. Add GUI
 
-## Get the beta version of sfct
-There is a dev branch I work on daily and its usually compile ready and tested. But not always. 
-To try out the dev branch:
 
-```powershell
-# clone the repository
-git clone https://github.com/chriskish19/sfct.git
-
-# navigate to the directory
-cd sfct
-
-# Make a build folder
-mkdir build
-cd build
-
-# check which branch is currently selected
-git branch
-
-# switch to the dev branch
-git checkout dev
-
-# To build your IDE solution
-cmake ../
-
-# Compile the project into an executable
-cmake --build .
-```
