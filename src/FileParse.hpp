@@ -76,6 +76,6 @@ namespace application{
         // if no valid directories are found it throws an exception std::runtime_error()
         void CheckDirectories();
 
-        void CheckCommands();
+        bool ValidCommands(cs commands);
     };
 }

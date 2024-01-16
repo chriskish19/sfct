@@ -133,13 +133,13 @@ void application::FileParse::ParseSyntax()
                                     break;
                                 }
                                 case cs::overwrite:{
-                                    if((directory.commands & cs::update) != cs::update){
+                                    if((directory.commands & cs::update) == cs::none){
                                         directory.commands |= cs::overwrite;
                                     }
                                     break;
                                 }
                                 case cs::single:{
-                                    if((directory.commands & cs::recursive) != cs::recursive){
+                                    if((directory.commands & cs::recursive) == cs::none){
                                         directory.commands |= cs::single;
                                     }
                                     break;
@@ -165,7 +165,7 @@ void application::FileParse::ParseSyntax()
                                     std::getline(lineStream,line);
                                     size_t begin_pos = line.find_first_not_of(" ");
                                     size_t end_pos = line.find_last_of(';');
-                                    std::string src_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    std::string src_dir(line.begin() + begin_pos,line.begin() + end_pos);
                                     directory.source = std::filesystem::path(src_dir);
                                     break;
                                 }
@@ -173,7 +173,7 @@ void application::FileParse::ParseSyntax()
                                     std::getline(lineStream,line);
                                     size_t begin_pos = line.find_first_not_of(" ");
                                     size_t end_pos = line.find_last_of(';');
-                                    std::string dst_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    std::string dst_dir(line.begin()+begin_pos,line.begin() + end_pos);
                                     directory.destination = std::filesystem::path(dst_dir);
                                     break;
                                 }
@@ -203,7 +203,7 @@ void application::FileParse::ParseSyntax()
                                     break;
                                 }
                                 case cs::sync_add:{
-                                    if((directory.commands & cs::sync) != cs::sync){
+                                    if((directory.commands & cs::sync)==cs::none){
                                         directory.commands |= cs::sync_add;
                                     }
                                     break;
@@ -230,7 +230,7 @@ void application::FileParse::ParseSyntax()
                                     std::getline(lineStream,line);
                                     size_t begin_pos = line.find_first_not_of(" ");
                                     size_t end_pos = line.find_last_of(';');
-                                    std::string src_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    std::string src_dir(line.begin()+begin_pos,line.begin() + end_pos);
                                     directory.source = std::filesystem::path(src_dir);
                                     break;
                                 }
@@ -238,7 +238,7 @@ void application::FileParse::ParseSyntax()
                                     std::getline(lineStream,line);
                                     size_t begin_pos = line.find_first_not_of(" ");
                                     size_t end_pos = line.find_last_of(';');
-                                    std::string dst_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    std::string dst_dir(line.begin()+begin_pos,line.begin() + end_pos);
                                     directory.destination = std::filesystem::path(dst_dir);
                                     break;
                                 }
@@ -271,13 +271,13 @@ void application::FileParse::ParseSyntax()
                                     break;
                                 }
                                 case cs::overwrite:{
-                                    if((directory.commands & cs::update) != cs::update){
+                                    if((directory.commands & cs::update) == cs::none){
                                         directory.commands |= cs::overwrite;
                                     }
                                     break;
                                 }
                                 case cs::single:{
-                                    if((directory.commands & cs::recursive) != cs::recursive){
+                                    if((directory.commands & cs::recursive) == cs::none){
                                         directory.commands |= cs::single;
                                     }
                                     break;
@@ -303,7 +303,7 @@ void application::FileParse::ParseSyntax()
                                     std::getline(lineStream,line);
                                     size_t begin_pos = line.find_first_not_of(" ");
                                     size_t end_pos = line.find_last_of(';');
-                                    std::string src_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    std::string src_dir(line.begin()+begin_pos,line.begin() + end_pos);
                                     directory.source = std::filesystem::path(src_dir);
                                     break;
                                 }
@@ -311,7 +311,7 @@ void application::FileParse::ParseSyntax()
                                     std::getline(lineStream,line);
                                     size_t begin_pos = line.find_first_not_of(" ");
                                     size_t end_pos = line.find_last_of(';');
-                                    std::string dst_dir(line.begin()+begin_pos,line.end()-end_pos);
+                                    std::string dst_dir(line.begin()+begin_pos,line.begin() + end_pos);
                                     directory.destination = std::filesystem::path(dst_dir);
                                     break;
                                 }
@@ -344,11 +344,11 @@ void application::FileParse::ParseSyntax()
 
 void application::FileParse::CheckDirectories(){
     for(auto it{m_Data->begin()};it!=m_Data->end();){
-        if(!std::filesystem::exists(it->source) || !std::filesystem::exists(it->destination)){
+        if(!std::filesystem::exists(it->source) || !std::filesystem::exists(it->destination) || !ValidCommands(it->commands)){
             logger log(App_MESSAGE("Invalid entry"),Error::WARNING,it->source);
             log.to_console();
             log.to_log_file();
-            m_Data->erase(it);
+            it = m_Data->erase(it);
         }
         else{
             it++;
@@ -363,7 +363,38 @@ void application::FileParse::CheckDirectories(){
     }
 }
 
-void application::FileParse::CheckCommands()
+bool application::FileParse::ValidCommands(cs commands)
 {
+    cs copy_combo1 = cs::copy | cs::recursive | cs::update;
+    cs copy_combo2 = cs::copy | cs::recursive | cs::overwrite;
+    cs copy_combo3 = cs::copy | cs::single | cs::update;
+    cs copy_combo4 = cs::copy | cs::single | cs::overwrite;
+
+    cs monitor_combo1 = cs::monitor | cs::recursive | cs::sync | cs::update;
+    cs monitor_combo2 = cs::monitor | cs::recursive | cs::sync | cs::overwrite;
+    cs monitor_combo3 = cs::monitor | cs::single | cs::sync | cs::update;
+    cs monitor_combo4 = cs::monitor | cs::single | cs::sync | cs::overwrite;
+    cs monitor_combo5 = cs::monitor | cs::single | cs::sync_add | cs::update;
+    cs monitor_combo6 = cs::monitor | cs::single | cs::sync_add | cs::overwrite;
+    cs monitor_combo7 = cs::monitor | cs::recursive | cs::sync_add | cs::update;
+    cs monitor_combo8 = cs::monitor | cs::recursive | cs::sync_add | cs::overwrite;
+
+
+    if((commands & copy_combo1) != cs::none || 
+        (commands & copy_combo2) != cs::none ||
+        (commands & copy_combo3) != cs::none ||
+        (commands & copy_combo4) != cs::none ||
+        (commands & monitor_combo1) != cs::none ||
+        (commands & monitor_combo2) != cs::none ||
+        (commands & monitor_combo3) != cs::none ||
+        (commands & monitor_combo4) != cs::none ||
+        (commands & monitor_combo5) != cs::none ||
+        (commands & monitor_combo6) != cs::none ||
+        (commands & monitor_combo7) != cs::none ||
+        (commands & monitor_combo8) != cs::none){
+        return true;
+    }
+
+    return false;
     
 }

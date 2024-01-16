@@ -13,8 +13,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(SOURCE_FILES    src/main.cpp
                     src/TM.hpp
                     src/TM.cpp
-                    src/logger.hpp
-                    src/logger.cpp
+                    src/Logger.hpp
+                    src/Logger.cpp
                     src/FileParse.hpp
                     src/FileParse.cpp
                     src/DirectorySignal.hpp
@@ -23,11 +23,13 @@ set(SOURCE_FILES    src/main.cpp
                     src/ConsoleTM.cpp
                     src/ConsoleApp.hpp
                     src/ConsoleApp.cpp
-                    src/AppMacros.hpp
-                    src/WinHelper.hpp
+                    src/appMacros.hpp
+                    src/winHelper.hpp
                     src/FastFileCopy.hpp
                     src/FastFileCopy.cpp
-                    src/Helper.hpp)
+                    src/helper.hpp
+                    src/obj.hpp
+                    src/args.hpp)
 
 
 add_executable(sfct ${SOURCE_FILES})

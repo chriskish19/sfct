@@ -29,11 +29,11 @@ application::ConsoleApp::ConsoleApp(){
         // set co options
         dir.co = GetCopyOptions(dir.commands);
         
-        if((dir.commands & cs::monitor) == cs::monitor){
+        if((dir.commands & cs::monitor) != cs::none){
             m_monitor_dirs->push_back(dir);
         }
 
-        if((dir.commands & cs::copy) == cs::copy){
+        if((dir.commands & cs::copy) != cs::none){
             m_copy_dirs->push_back(dir);
         }
     }

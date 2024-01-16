@@ -47,7 +47,7 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
         }
         
         bool recursive{false};
-        if((dir.commands & cs::recursive)==cs::recursive){
+        if((dir.commands & cs::recursive) != cs::none){
             recursive = true;
         }
 
@@ -148,7 +148,7 @@ void application::DirectorySignal::monitor(){
                     break;
                 }
                 case FILE_ACTION_REMOVED:
-                    if((pMonitor->directory.commands & cs::sync) == cs::sync){
+                    if((pMonitor->directory.commands & cs::sync) != cs::none){
                         m_MessageStream.SetMessage(App_MESSAGE("Removing File: ") + fileName);
                         if(std::filesystem::is_regular_file(dest)){
                             if(!std::filesystem::remove(dest)){
@@ -193,17 +193,13 @@ void application::DirectorySignal::monitor(){
             m_directory_remove.pop();
         }
 
-
-
-
         if(bytesTransferred == sizeof(pMonitor->m_buffer)){
             m_MessageStream.SetMessage(App_MESSAGE("Performing a full copy/update to all directories as the monitoring buffer has overflowed"));
             FullCopy(*m_Dirs);
         }
         
-
         bool recursive{false};
-        if((pMonitor->directory.commands & cs::recursive)==cs::recursive){
+        if((pMonitor->directory.commands & cs::recursive) != cs::none){
             recursive = true;
         }
 

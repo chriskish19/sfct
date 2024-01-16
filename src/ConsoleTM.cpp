@@ -86,6 +86,6 @@ void application::wConsoleTM::ReleaseBuffer(){
     m_release = true;
 }
 
-void application::ConsoleTM::end(){
+void application::wConsoleTM::end(){
     m_Running = false;
 }

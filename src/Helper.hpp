@@ -94,28 +94,28 @@ namespace application{
     // convert commands to copy options
     inline std::filesystem::copy_options GetCopyOptions(cs commands) noexcept{
         using fs_co = std::filesystem::copy_options;
-        fs_co co;
+        fs_co co{fs_co::none};
         
-        if((commands & cs::recursive) == cs::recursive){
+        if((commands & cs::recursive) != cs::none){
             co |= fs_co::recursive;
         }
-        if((commands & cs::update) == cs::update){
+        if((commands & cs::update) != cs::none){
             co |= fs_co::update_existing;
         }
-        else if((commands & cs::overwrite) == cs::overwrite){
+        else if((commands & cs::overwrite) != cs::none){
             co |= fs_co::overwrite_existing; 
         } 
         // add more later
         return co;
     }
 
-    inline FullCopy(const std::vector<copyto> dirs){
+    inline void FullCopy(const std::vector<copyto> dirs){
         for(const auto& dir:dirs){
-            if((dir.commands & cs::recursive) == cs::recursive){
+            if((dir.commands & cs::recursive) != cs::none){
                 recursive_check(dir.source);
             }
-            else if((dir.commands & cs::single) == cs::single){
-                single_check(dir.source)
+            else if((dir.commands & cs::single) != cs::none){
+                single_check(dir.source);
             }
             std::filesystem::copy(dir.source,dir.destination,dir.co);
         }
