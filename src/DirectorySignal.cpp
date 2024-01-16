@@ -183,13 +183,20 @@ void application::DirectorySignal::monitor(){
         
         while(!m_directory_remove.empty()){
             std::filesystem::path dest_to_remove = m_directory_remove.front();
-            m_MessageStream.SetMessage(App_MESSAGE("Removing Directory: ")+ STRING(dest_to_remove));
-            if(!std::filesystem::remove(dest_to_remove)){
+            m_MessageStream.SetMessage(App_MESSAGE("Removing Directory: ") + STRING(dest_to_remove));
+            uintmax_t files_removed = std::filesystem::remove_all(dest_to_remove);
+            if(!files_removed){
                 logger log(App_MESSAGE("Failed to remove directory"),Error::WARNING,dest_to_remove);
-                log.to_console();
+                log.to_console(); 
                 log.to_log_file();
                 log.to_output();
             }
+            else{
+                m_MessageStream.SetMessage(App_MESSAGE("Directory Removed along with containing files: ") + 
+                                            STRING(dest_to_remove) + App_MESSAGE(" Total files removed: ") +
+                                            std::to_wstring(files_removed));
+            }    
+            
             m_directory_remove.pop();
         }
 

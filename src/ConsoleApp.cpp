@@ -45,8 +45,14 @@ application::ConsoleApp::ConsoleApp(){
 void application::ConsoleApp::Go(){
     std::thread MessageStreamThread(&application::CONSOLETM::RunMessages,&m_MessageStream);
     
-    // copy the directories set with copy command
-    FullCopy(*m_copy_dirs);
+    if(!m_copy_dirs->empty()){
+        m_MessageStream.SetMessage(App_MESSAGE("Preparing to copy files"));
+        m_MessageStream.ReleaseBuffer();
+
+        // copy the directories set with copy command
+        FullCopy(*m_copy_dirs);
+    }
+    
 
     // monitor directories
     m_Monitor->monitor();

@@ -109,7 +109,6 @@ void application::FileParse::CheckData(){
 
 void application::FileParse::ParseSyntax()
 {
-    copyto directory;
     std::string line;
     while(std::getline(m_File,line)){
         std::istringstream lineStream(line);
@@ -119,216 +118,24 @@ void application::FileParse::ParseSyntax()
         if(found_token.has_value()){
             switch(found_token.value()){
                 case cs::copy:{
+                    copyto directory{};
                     directory.commands |= cs::copy;
-                    while(lineStream >> token){
-                        found_token = global_tokenizer.Find(token);
-                        if(found_token.has_value()){
-                            switch(found_token.value()){
-                                case cs::recursive:{
-                                    directory.commands |= cs::recursive;
-                                    break;
-                                }
-                                case cs::update:{
-                                    directory.commands |= cs::update;
-                                    break;
-                                }
-                                case cs::overwrite:{
-                                    if((directory.commands & cs::update) == cs::none){
-                                        directory.commands |= cs::overwrite;
-                                    }
-                                    break;
-                                }
-                                case cs::single:{
-                                    if((directory.commands & cs::recursive) == cs::none){
-                                        directory.commands |= cs::single;
-                                    }
-                                    break;
-                                }
-                                default:{
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    bool end{false};
-                    while(std::getline(m_File,line) && !end){
-                        lineStream = std::istringstream(line);
-                        lineStream >> token;
-                        found_token = global_tokenizer.Find(token);
-                        if(found_token.has_value()){
-                            switch(found_token.value()){
-                                case cs::open_brace:{
-                                    continue;
-                                    break;
-                                }
-                                case cs::src:{
-                                    std::getline(lineStream,line);
-                                    size_t begin_pos = line.find_first_not_of(" ");
-                                    size_t end_pos = line.find_last_of(';');
-                                    std::string src_dir(line.begin() + begin_pos,line.begin() + end_pos);
-                                    directory.source = std::filesystem::path(src_dir);
-                                    break;
-                                }
-                                case cs::dst:{
-                                    std::getline(lineStream,line);
-                                    size_t begin_pos = line.find_first_not_of(" ");
-                                    size_t end_pos = line.find_last_of(';');
-                                    std::string dst_dir(line.begin()+begin_pos,line.begin() + end_pos);
-                                    directory.destination = std::filesystem::path(dst_dir);
-                                    break;
-                                }
-                                case cs::close_brace:{
-                                    end = true;
-                                    m_Data->push_back(directory);
-                                    directory = {};
-                                    break;
-                                }
-                                default:{
-                                    break;
-                                }
-                                
-                            }
-                        }
-                    }
+                    directory.commands |= ParseCopyArgs(lineStream);
+                    ParseDirs(directory);
                     break;
                 }
                 case cs::monitor:{
+                    copyto directory{};
                     directory.commands |= cs::monitor;
-                    while(lineStream >> token){
-                         found_token = global_tokenizer.Find(token);
-                         if(found_token.has_value()){
-                            switch(found_token.value()){
-                                case cs::sync:{
-                                    directory.commands |= cs::sync;
-                                    break;
-                                }
-                                case cs::sync_add:{
-                                    if((directory.commands & cs::sync)==cs::none){
-                                        directory.commands |= cs::sync_add;
-                                    }
-                                    break;
-                                }
-                                default:{
-                                    break;
-                                }
-                            }
-                         }
-                    }
-
-                    bool end{false};
-                    while(std::getline(m_File,line) && !end){
-                        lineStream = std::istringstream(line);
-                        lineStream >> token;
-                        found_token = global_tokenizer.Find(token);
-                        if(found_token.has_value()){
-                            switch(found_token.value()){
-                                case cs::open_brace:{
-                                    continue;
-                                    break;
-                                }
-                                case cs::src:{
-                                    std::getline(lineStream,line);
-                                    size_t begin_pos = line.find_first_not_of(" ");
-                                    size_t end_pos = line.find_last_of(';');
-                                    std::string src_dir(line.begin()+begin_pos,line.begin() + end_pos);
-                                    directory.source = std::filesystem::path(src_dir);
-                                    break;
-                                }
-                                case cs::dst:{
-                                    std::getline(lineStream,line);
-                                    size_t begin_pos = line.find_first_not_of(" ");
-                                    size_t end_pos = line.find_last_of(';');
-                                    std::string dst_dir(line.begin()+begin_pos,line.begin() + end_pos);
-                                    directory.destination = std::filesystem::path(dst_dir);
-                                    break;
-                                }
-                                case cs::close_brace:{
-                                    end = true;
-                                    m_Data->push_back(directory);
-                                    directory = {};
-                                    break;
-                                }
-                                default:{
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    directory.commands |= ParseMonitorArgs(lineStream);
+                    ParseDirs(directory);
                     break;
                 }
                 case cs::fast_copy:{
+                    copyto directory{};
                     directory.commands |= cs::fast_copy;
-                    while(lineStream >> token){
-                        found_token = global_tokenizer.Find(token);
-                        if(found_token.has_value()){
-                            switch(found_token.value()){
-                                case cs::recursive:{
-                                    directory.commands |= cs::recursive;
-                                    break;
-                                }
-                                case cs::update:{
-                                    directory.commands |= cs::update;
-                                    break;
-                                }
-                                case cs::overwrite:{
-                                    if((directory.commands & cs::update) == cs::none){
-                                        directory.commands |= cs::overwrite;
-                                    }
-                                    break;
-                                }
-                                case cs::single:{
-                                    if((directory.commands & cs::recursive) == cs::none){
-                                        directory.commands |= cs::single;
-                                    }
-                                    break;
-                                }
-                                default:{
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    bool end{false};
-                    while(std::getline(m_File,line) && !end){
-                        lineStream = std::istringstream(line);
-                        lineStream >> token;
-                        found_token = global_tokenizer.Find(token);
-                        if(found_token.has_value()){
-                            switch(found_token.value()){
-                                case cs::open_brace:{
-                                    continue;
-                                    break;
-                                }
-                                case cs::src:{
-                                    std::getline(lineStream,line);
-                                    size_t begin_pos = line.find_first_not_of(" ");
-                                    size_t end_pos = line.find_last_of(';');
-                                    std::string src_dir(line.begin()+begin_pos,line.begin() + end_pos);
-                                    directory.source = std::filesystem::path(src_dir);
-                                    break;
-                                }
-                                case cs::dst:{
-                                    std::getline(lineStream,line);
-                                    size_t begin_pos = line.find_first_not_of(" ");
-                                    size_t end_pos = line.find_last_of(';');
-                                    std::string dst_dir(line.begin()+begin_pos,line.begin() + end_pos);
-                                    directory.destination = std::filesystem::path(dst_dir);
-                                    break;
-                                }
-                                case cs::close_brace:{
-                                    end = true;
-                                    m_Data->push_back(directory);
-                                    directory = {};
-                                    break;
-                                }
-                                default:{
-                                    break;
-                                }
-                                
-                            }
-                        }
-                    }
-
+                    directory.commands |= ParseCopyArgs(lineStream);
+                    ParseDirs(directory);
                     break;
                 }
                 default:{
@@ -338,9 +145,6 @@ void application::FileParse::ParseSyntax()
         }
     }   
 }
-
-
-
 
 void application::FileParse::CheckDirectories(){
     for(auto it{m_Data->begin()};it!=m_Data->end();){
@@ -361,6 +165,8 @@ void application::FileParse::CheckDirectories(){
         log.to_log_file();
         throw std::runtime_error("");
     }
+
+    
 }
 
 bool application::FileParse::ValidCommands(cs commands)
@@ -380,21 +186,153 @@ bool application::FileParse::ValidCommands(cs commands)
     cs monitor_combo8 = cs::monitor | cs::recursive | cs::sync_add | cs::overwrite;
 
 
-    if((commands & copy_combo1) != cs::none || 
-        (commands & copy_combo2) != cs::none ||
-        (commands & copy_combo3) != cs::none ||
-        (commands & copy_combo4) != cs::none ||
-        (commands & monitor_combo1) != cs::none ||
-        (commands & monitor_combo2) != cs::none ||
-        (commands & monitor_combo3) != cs::none ||
-        (commands & monitor_combo4) != cs::none ||
-        (commands & monitor_combo5) != cs::none ||
-        (commands & monitor_combo6) != cs::none ||
-        (commands & monitor_combo7) != cs::none ||
-        (commands & monitor_combo8) != cs::none){
-        return true;
-    }
+    return commands == copy_combo1 ||
+           commands == copy_combo2 ||
+           commands == copy_combo3 ||
+           commands == copy_combo4 ||
+           commands == monitor_combo1 ||
+           commands == monitor_combo2 ||
+           commands == monitor_combo3 ||
+           commands == monitor_combo4 ||
+           commands == monitor_combo5 ||
+           commands == monitor_combo6 ||
+           commands == monitor_combo7 ||
+           commands == monitor_combo8;
+}
 
-    return false;
-    
+application::cs application::FileParse::ParseCopyArgs(std::istringstream &lineStream)
+{
+    cs commands = cs::none;
+    std::string token;
+    while(lineStream >> token){
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            switch(found_token.value()){
+                case cs::recursive:{
+                    if((commands & cs::single) == cs::none){
+                        commands |= cs::recursive;
+                    }
+                    break;
+                }
+                case cs::update:{
+                    if((commands & cs::overwrite) == cs::none){
+                        commands |= cs::update;
+                    }
+                    break;
+                }
+                case cs::overwrite:{
+                    if((commands & cs::update) == cs::none){
+                        commands |= cs::overwrite;
+                    }
+                    break;
+                }
+                case cs::single:{
+                    if((commands & cs::recursive) == cs::none){
+                        commands |= cs::single;
+                    }
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
+        }
+    }
+    return commands;
+}
+
+void application::FileParse::ParseDirs(copyto &dir)
+{
+    bool end{false};
+    std::string line,token;
+    while(std::getline(m_File,line) && !end){
+        std::istringstream lineStream(line);
+        lineStream >> token;
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            switch(found_token.value()){
+                case cs::open_brace:{
+                    continue;
+                    break;
+                }
+                case cs::src:{
+                    std::getline(lineStream,line);
+                    size_t begin_pos = line.find_first_not_of(" ");
+                    size_t end_pos = line.find_last_of(';');
+                    std::string src_dir(line.begin() + begin_pos,line.begin() + end_pos);
+                    dir.source = std::filesystem::path(src_dir);
+                    break;
+                }
+                case cs::dst:{
+                    std::getline(lineStream,line);
+                    size_t begin_pos = line.find_first_not_of(" ");
+                    size_t end_pos = line.find_last_of(';');
+                    std::string dst_dir(line.begin()+begin_pos,line.begin() + end_pos);
+                    dir.destination = std::filesystem::path(dst_dir);
+                    break;
+                }
+                case cs::close_brace:{
+                    end = true;
+                    m_Data->push_back(dir);
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
+        }
+    }
+}
+
+application::cs application::FileParse::ParseMonitorArgs(std::istringstream &lineStream)
+{
+    cs commands = cs::none;
+    std::string token;
+    while(lineStream >> token){
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            switch(found_token.value()){
+                case cs::sync:{
+                    if((commands & cs::sync_add) == cs::none){
+                        commands |= cs::sync;
+                    }
+                    break;
+                }
+                case cs::sync_add:{
+                    if((commands & cs::sync)==cs::none){
+                        commands |= cs::sync_add;
+                    }
+                    break;
+                }
+                case cs::recursive:{
+                    if((commands & cs::single) == cs::none){
+                        commands |= cs::recursive;
+                    }
+                    break;
+                }
+                case cs::single:{
+                    if((commands & cs::recursive) == cs::none){
+                        commands |= cs::single;
+                    }
+                    break;
+                }
+                case cs::overwrite:{
+                    if((commands & cs::update) == cs::none){
+                        commands |= cs::overwrite;
+                    }
+                    break;
+                }
+                case cs::update:{
+                    if((commands & cs::overwrite) == cs::none){
+                        commands |= cs::update;
+                    }
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
+        }
+    }
+    return commands;
 }

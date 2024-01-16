@@ -77,5 +77,11 @@ namespace application{
         void CheckDirectories();
 
         bool ValidCommands(cs commands);
+
+        cs ParseCopyArgs(std::istringstream& lineStream);
+
+        void ParseDirs(copyto& dir);
+
+        cs ParseMonitorArgs(std::istringstream& lineStream);
     };
 }
