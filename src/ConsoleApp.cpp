@@ -26,9 +26,6 @@ application::ConsoleApp::ConsoleApp(){
     
     // get the monitor directories and put them in m_monitor_dir
     for(auto& dir:*m_data){
-        // set co options
-        dir.co = GetCopyOptions(dir.commands);
-        
         if((dir.commands & cs::monitor) != cs::none){
             m_monitor_dirs->push_back(dir);
         }

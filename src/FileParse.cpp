@@ -121,6 +121,7 @@ void application::FileParse::ParseSyntax()
                     copyto directory{};
                     directory.commands |= cs::copy;
                     directory.commands |= ParseCopyArgs(lineStream);
+                    directory.co = GetCopyOptions(directory.commands);
                     ParseDirs(directory);
                     break;
                 }
@@ -128,6 +129,7 @@ void application::FileParse::ParseSyntax()
                     copyto directory{};
                     directory.commands |= cs::monitor;
                     directory.commands |= ParseMonitorArgs(lineStream);
+                    directory.co = GetCopyOptions(directory.commands);
                     ParseDirs(directory);
                     break;
                 }
@@ -135,6 +137,7 @@ void application::FileParse::ParseSyntax()
                     copyto directory{};
                     directory.commands |= cs::fast_copy;
                     directory.commands |= ParseCopyArgs(lineStream);
+                    directory.co = GetCopyOptions(directory.commands);
                     ParseDirs(directory);
                     break;
                 }
@@ -148,7 +151,10 @@ void application::FileParse::ParseSyntax()
 
 void application::FileParse::CheckDirectories(){
     for(auto it{m_Data->begin()};it!=m_Data->end();){
-        if(!std::filesystem::exists(it->source) || !std::filesystem::exists(it->destination) || !ValidCommands(it->commands)){
+        if(!std::filesystem::exists(it->source) || 
+        !std::filesystem::exists(it->destination) || 
+        !ValidCommands(it->commands) ||
+        it->source == it->destination){
             logger log(App_MESSAGE("Invalid entry"),Error::WARNING,it->source);
             log.to_console();
             log.to_log_file();
@@ -166,7 +172,10 @@ void application::FileParse::CheckDirectories(){
         throw std::runtime_error("");
     }
 
-    
+    // remove duplicates
+    std::sort(m_Data->begin(),m_Data->end(),copyto_comparison);
+    auto last = std::unique(m_Data->begin(), m_Data->end(), copyto_equal);
+    m_Data->erase(last, m_Data->end());
 }
 
 bool application::FileParse::ValidCommands(cs commands)

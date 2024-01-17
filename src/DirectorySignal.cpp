@@ -7,15 +7,7 @@
 
 application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto>> dirs_to_watch)
 :m_Dirs(dirs_to_watch){
-
-    if(!dirs_to_watch){
-        logger log(L"nullptr",Error::FATAL);
-        log.to_console();
-        log.to_log_file();
-        log.to_output();
-        throw std::runtime_error("nullptr");
-    }
-
+    
     if(dirs_to_watch->empty()){
         no_watch = true;
     }

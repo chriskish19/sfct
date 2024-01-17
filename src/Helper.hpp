@@ -109,7 +109,7 @@ namespace application{
         return co;
     }
 
-    inline void FullCopy(const std::vector<copyto> dirs){
+    inline void FullCopy(const std::vector<copyto>& dirs){
         for(const auto& dir:dirs){
             if((dir.commands & cs::recursive) != cs::none){
                 recursive_check(dir.source);

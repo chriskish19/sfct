@@ -8,14 +8,14 @@
 #include "Logger.hpp"
 #include <sstream>
 #include "args.hpp"
-#include <unordered_set>
 #include <optional>
 #include "obj.hpp"
+#include "Helper.hpp"
 
 /////////////////////////////////////////////////////////////////
 // This header is responsible for parsing a file.
 // It extracts the key information.
-// In this case it exracts directory paths, commands.
+// In this case it extracts directory paths, commands.
 /////////////////////////////////////////////////////////////////
 
 

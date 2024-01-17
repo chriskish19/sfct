@@ -21,4 +21,17 @@ namespace application{
         // holds the arguments in std::filesystem::copy_options format                    
         std::filesystem::copy_options co = std::filesystem::copy_options::none;           
     };
+
+    inline bool copyto_equal(const copyto& a, const copyto& b){
+        // Define what makes two copyto objects equal
+        return a.source == b.source && a.destination == b.destination && a.commands == b.commands && a.co == b.co;
+    }
+
+    inline bool copyto_comparison(const copyto& a, const copyto& b){
+        // Define ordering for copyto objects
+        if (a.source != b.source) return a.source < b.source;
+        if (a.destination != b.destination) return a.destination < b.destination;
+        if (a.commands != b.commands) return a.commands < b.commands;
+        return a.co < b.co;
+    }
 }
