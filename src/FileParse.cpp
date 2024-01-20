@@ -165,26 +165,29 @@ void application::FileParse::CheckDirectories(){
         }
     }
 
+    // remove duplicates
+    std::sort(m_Data->begin(),m_Data->end(),copyto_comparison);
+    auto last = std::unique(m_Data->begin(), m_Data->end(), copyto_equal);
+    m_Data->erase(last, m_Data->end());
+
+
     if(m_Data->empty()){
         logger log(App_MESSAGE("No Valid directories"),Error::FATAL);
         log.to_console();
         log.to_log_file();
         throw std::runtime_error("");
     }
-
-    // remove duplicates
-    std::sort(m_Data->begin(),m_Data->end(),copyto_comparison);
-    auto last = std::unique(m_Data->begin(), m_Data->end(), copyto_equal);
-    m_Data->erase(last, m_Data->end());
 }
 
 bool application::FileParse::ValidCommands(cs commands)
 {
+    // regular copy commands
     cs copy_combo1 = cs::copy | cs::recursive | cs::update;
     cs copy_combo2 = cs::copy | cs::recursive | cs::overwrite;
     cs copy_combo3 = cs::copy | cs::single | cs::update;
     cs copy_combo4 = cs::copy | cs::single | cs::overwrite;
 
+    // monitor commands
     cs monitor_combo1 = cs::monitor | cs::recursive | cs::sync | cs::update;
     cs monitor_combo2 = cs::monitor | cs::recursive | cs::sync | cs::overwrite;
     cs monitor_combo3 = cs::monitor | cs::single | cs::sync | cs::update;
@@ -194,6 +197,9 @@ bool application::FileParse::ValidCommands(cs commands)
     cs monitor_combo7 = cs::monitor | cs::recursive | cs::sync_add | cs::update;
     cs monitor_combo8 = cs::monitor | cs::recursive | cs::sync_add | cs::overwrite;
 
+    // fast copy commands
+    cs fast_copy_combo1 = cs::fast_copy | cs::recursive;
+    cs fast_copy_combo2 = cs::fast_copy | cs::single;
 
     return commands == copy_combo1 ||
            commands == copy_combo2 ||
@@ -206,7 +212,9 @@ bool application::FileParse::ValidCommands(cs commands)
            commands == monitor_combo5 ||
            commands == monitor_combo6 ||
            commands == monitor_combo7 ||
-           commands == monitor_combo8;
+           commands == monitor_combo8 ||
+           commands == fast_copy_combo1 ||
+           commands == fast_copy_combo2;
 }
 
 application::cs application::FileParse::ParseCopyArgs(std::istringstream &lineStream)

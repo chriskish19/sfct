@@ -33,10 +33,17 @@ application::ConsoleApp::ConsoleApp(){
         if((dir.commands & cs::copy) != cs::none){
             m_copy_dirs->push_back(dir);
         }
+
+        if((dir.commands & cs::fast_copy) != cs::none){
+            m_fast_copy_dirs->push_back(dir);
+        }
     }
 
     // make a monitor for directories
     m_Monitor = std::make_unique<DirectorySignal>(m_monitor_dirs);
+
+    // make a fast file copy for dirs
+    m_fastcopy = std::make_unique<FastFileCopy>(m_fast_copy_dirs);
 }
 
 void application::ConsoleApp::Go(){
@@ -50,6 +57,12 @@ void application::ConsoleApp::Go(){
         FullCopy(*m_copy_dirs);
     }
     
+    if(!m_fast_copy_dirs->empty()){
+        m_MessageStream.SetMessage(App_MESSAGE("Preparing to fast copy files"));
+        m_MessageStream.ReleaseBuffer();
+
+        m_fastcopy->copy();
+    }
 
     // monitor directories
     m_Monitor->monitor();

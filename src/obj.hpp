@@ -19,7 +19,7 @@ namespace application{
         cs commands = cs::none; 
 
         // holds the arguments in std::filesystem::copy_options format                    
-        std::filesystem::copy_options co = std::filesystem::copy_options::none;           
+        std::filesystem::copy_options co = std::filesystem::copy_options::none;          
     };
 
     inline bool copyto_equal(const copyto& a, const copyto& b){
