@@ -144,6 +144,7 @@ void application::FileParse::ParseSyntax()
                 case cs::benchmark:{
                     copyto directory{};
                     directory.commands |= cs::benchmark;
+                    directory.commands |= ParseBenchArgs(lineStream);
                     directory.co |= std::filesystem::copy_options::overwrite_existing;
                     ParseDirs(directory);
                 }
@@ -157,6 +158,23 @@ void application::FileParse::ParseSyntax()
 
 void application::FileParse::CheckDirectories(){
     for(auto it{m_Data->begin()};it!=m_Data->end();){
+        if((it->commands & cs::create) != cs::none){
+            // create the directories for benchmarking
+            if(!std::filesystem::create_directories(it->source)){
+                logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->source);
+                log.to_console();
+                log.to_log_file();
+            }
+
+            if(!std::filesystem::create_directories(it->destination)){
+                logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->destination);
+                log.to_console();
+                log.to_log_file();
+            }
+        }
+        
+        
+        
         if(!std::filesystem::exists(it->source) || 
         !std::filesystem::exists(it->destination) || 
         !ValidCommands(it->commands) ||
@@ -210,7 +228,8 @@ bool application::FileParse::ValidCommands(cs commands)
     cs fast_copy_combo4 = cs::fast_copy | cs::single | cs::overwrite;
 
     // benchmark
-    cs benchmark = cs::benchmark;
+    cs benchmark_combo1 = cs::benchmark | cs::create;
+    cs benchmark_combo2 = cs::benchmark;
 
     return commands == copy_combo1 ||
            commands == copy_combo2 ||
@@ -228,7 +247,8 @@ bool application::FileParse::ValidCommands(cs commands)
            commands == fast_copy_combo2 ||
            commands == fast_copy_combo3 ||
            commands == fast_copy_combo4 || 
-           commands == benchmark;
+           commands == benchmark_combo1 ||
+           commands == benchmark_combo2;
 }
 
 application::cs application::FileParse::ParseCopyArgs(std::istringstream &lineStream)
@@ -386,3 +406,22 @@ application::cs application::FileParse::ParseMonitorArgs(std::istringstream &lin
     return commands;
 }
 
+application::cs application::FileParse::ParseBenchArgs(std::istringstream &lineStream)
+{
+    cs commands = cs::none;
+    std::string token;
+    while(lineStream >> token){
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            switch(found_token.value()){
+                case cs::create:{
+                    commands |= cs::create;
+                }
+                default:{
+                    break;
+                }
+            }
+        }
+    }
+    return commands;
+}

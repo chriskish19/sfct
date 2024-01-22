@@ -85,5 +85,7 @@ namespace application{
         cs ParseMonitorArgs(std::istringstream& lineStream);
 
         int m_LineNumber{};
+
+        cs ParseBenchArgs(std::istringstream& lineStream);
     };
 }

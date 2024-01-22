@@ -27,7 +27,8 @@ namespace application{
         open_brace = 1 << 11,   // 2048
         close_brace = 1 << 12,  // 4096
         semi_colon = 1 << 13,   // 8192
-        benchmark = 1 << 14     // 16384
+        benchmark = 1 << 14,    // 16384
+        create = 1 << 15        // 32768
     };
     using cs = cherry_script;
 
@@ -67,7 +68,8 @@ namespace application{
                                                             {"{",cs::open_brace},
                                                             {"}",cs::close_brace},
                                                             {";",cs::semi_colon},
-                                                            {"benchmark", cs::benchmark}  };
+                                                            {"benchmark", cs::benchmark},
+                                                            {"-create", cs::create}  };
     };
 
     inline args_maps global_tokenizer;
