@@ -83,5 +83,7 @@ namespace application{
         void ParseDirs(copyto& dir);
 
         cs ParseMonitorArgs(std::istringstream& lineStream);
+
+        int m_LineNumber{};
     };
 }

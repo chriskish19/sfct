@@ -144,8 +144,8 @@ void application::FileParse::ParseSyntax()
                 case cs::benchmark:{
                     copyto directory{};
                     directory.commands |= cs::benchmark;
-                    directory.co = std::filesystem::copy_options::overwrite_existing;
-                    m_Data->push_back(directory);
+                    directory.co |= std::filesystem::copy_options::overwrite_existing;
+                    ParseDirs(directory);
                 }
                 default:{
                     break;
@@ -290,16 +290,34 @@ void application::FileParse::ParseDirs(copyto &dir)
                     std::getline(lineStream,line);
                     size_t begin_pos = line.find_first_not_of(" ");
                     size_t end_pos = line.find_last_of(';');
-                    std::string src_dir(line.begin() + begin_pos,line.begin() + end_pos);
-                    dir.source = std::filesystem::path(src_dir);
+                    if(begin_pos != std::string::npos && end_pos != std::string::npos){
+                        std::string src_dir(line.begin() + begin_pos,line.begin() + end_pos);
+                        dir.source = std::filesystem::path(src_dir);
+                    }
+                    else{
+                        logger log(App_MESSAGE("Syntax error missing ;"),Error::DEBUG);
+                        log.to_console();
+                        log.to_log_file();
+
+                        // dir.source is left blank and will be removed when the directories are checked
+                    }
                     break;
                 }
                 case cs::dst:{
                     std::getline(lineStream,line);
                     size_t begin_pos = line.find_first_not_of(" ");
                     size_t end_pos = line.find_last_of(';');
-                    std::string dst_dir(line.begin()+begin_pos,line.begin() + end_pos);
-                    dir.destination = std::filesystem::path(dst_dir);
+                    if(begin_pos != std::string::npos && end_pos != std::string::npos){
+                        std::string dst_dir(line.begin() + begin_pos,line.begin() + end_pos);
+                        dir.destination = std::filesystem::path(dst_dir);
+                    }
+                    else{
+                        logger log(App_MESSAGE("Syntax error missing ;"),Error::DEBUG);
+                        log.to_console();
+                        log.to_log_file();
+
+                        // dir.destination is left blank and will be removed when the directories are checked
+                    }
                     break;
                 }
                 case cs::close_brace:{
@@ -367,5 +385,4 @@ application::cs application::FileParse::ParseMonitorArgs(std::istringstream &lin
     }
     return commands;
 }
-
 

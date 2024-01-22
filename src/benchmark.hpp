@@ -16,7 +16,7 @@ namespace application{
         void start_clock();
         void end_clock();
         double speed(std::uintmax_t totalSize);
-        void speed_test(std::uintmax_t bytes);
+        void speed_test(const copyto& dir,std::uintmax_t bytes);
     private:
         std::chrono::steady_clock::time_point m_start,m_end;
         std::chrono::duration<double> m_duration;

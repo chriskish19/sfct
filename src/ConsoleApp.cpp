@@ -74,8 +74,10 @@ void application::ConsoleApp::Go(){
 
         benchmark bench_test;
 
-        // 1GB test
-        bench_test.speed_test(1024ull * 1024 * 1024);
+        for(const auto& dir:*m_bench_dirs){
+            bench_test.speed_test(dir,1024ull * 1024 * 1024);
+        }
+        
     }
 
     // monitor directories
