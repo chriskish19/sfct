@@ -29,7 +29,9 @@ set(SOURCE_FILES    src/main.cpp
                     src/FastFileCopy.cpp
                     src/helper.hpp
                     src/obj.hpp
-                    src/args.hpp)
+                    src/args.hpp
+                    src/benchmark.hpp
+                    src/benchmark.cpp)
 
 
 add_executable(sfct ${SOURCE_FILES})

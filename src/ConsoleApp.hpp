@@ -8,7 +8,7 @@
 #include "appMacros.hpp"
 #include "winHelper.hpp"
 #include "FastFileCopy.hpp"
-
+#include "benchmark.hpp"
 
 /////////////////////////////////////////////////////////////////
 // This header is responsible for the main object used to run the program.
@@ -46,5 +46,8 @@ namespace application{
         std::shared_ptr<std::vector<copyto>> m_fast_copy_dirs{std::make_shared<std::vector<copyto>>()}; 
 
         std::unique_ptr<FastFileCopy> m_fastcopy;  
+
+        // fast copy directories
+        std::shared_ptr<std::vector<copyto>> m_bench_dirs{std::make_shared<std::vector<copyto>>()}; 
     };
 }

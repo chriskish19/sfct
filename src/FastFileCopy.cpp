@@ -18,18 +18,16 @@ void application::FastFileCopy::copy()
 {
     for(const auto& dir:*m_dirs){
         if((dir.commands & cs::recursive) != cs::none){
-            recursive(dir);
+            std::filesystem::copy(dir.source,dir.destination,dir.co);
         }
         else if((dir.commands & cs::single) != cs::none){
-            single(dir);
+            std::filesystem::copy(dir.source,dir.destination,dir.co);
         }
     }
 }
 
 void application::FastFileCopy::recursive(const copyto& dir)
 {
-    recursive_check(dir.source);
-    
     for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
         const auto& path = entry.path();
         auto relativePath = std::filesystem::relative(path, dir.source);
@@ -44,8 +42,6 @@ void application::FastFileCopy::recursive(const copyto& dir)
 
 void application::FastFileCopy::single(const copyto &dir)
 {
-    single_check(dir.source);
-
     for(const auto& entry:std::filesystem::directory_iterator(dir.source)){
         const auto& path = entry.path();
         auto relativePath = std::filesystem::relative(path, dir.source);

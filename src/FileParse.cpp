@@ -141,6 +141,12 @@ void application::FileParse::ParseSyntax()
                     ParseDirs(directory);
                     break;
                 }
+                case cs::benchmark:{
+                    copyto directory{};
+                    directory.commands |= cs::benchmark;
+                    directory.co = std::filesystem::copy_options::overwrite_existing;
+                    m_Data->push_back(directory);
+                }
                 default:{
                     break;
                 }
@@ -198,8 +204,13 @@ bool application::FileParse::ValidCommands(cs commands)
     cs monitor_combo8 = cs::monitor | cs::recursive | cs::sync_add | cs::overwrite;
 
     // fast copy commands
-    cs fast_copy_combo1 = cs::fast_copy | cs::recursive;
-    cs fast_copy_combo2 = cs::fast_copy | cs::single;
+    cs fast_copy_combo1 = cs::fast_copy | cs::recursive | cs::update;
+    cs fast_copy_combo2 = cs::fast_copy | cs::recursive | cs::overwrite;
+    cs fast_copy_combo3 = cs::fast_copy | cs::single | cs::update;
+    cs fast_copy_combo4 = cs::fast_copy | cs::single | cs::overwrite;
+
+    // benchmark
+    cs benchmark = cs::benchmark;
 
     return commands == copy_combo1 ||
            commands == copy_combo2 ||
@@ -214,7 +225,10 @@ bool application::FileParse::ValidCommands(cs commands)
            commands == monitor_combo7 ||
            commands == monitor_combo8 ||
            commands == fast_copy_combo1 ||
-           commands == fast_copy_combo2;
+           commands == fast_copy_combo2 ||
+           commands == fast_copy_combo3 ||
+           commands == fast_copy_combo4 || 
+           commands == benchmark;
 }
 
 application::cs application::FileParse::ParseCopyArgs(std::istringstream &lineStream)
@@ -353,3 +367,5 @@ application::cs application::FileParse::ParseMonitorArgs(std::istringstream &lin
     }
     return commands;
 }
+
+

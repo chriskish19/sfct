@@ -10,6 +10,7 @@
 #define STRING std::wstring
 #define OFSTREAM std::wofstream
 #define CONSOLETM wConsoleTM
+#define TOSTRING std::to_wstring
 #else
 #define WINDOWS_BUILD 0
 #endif
@@ -18,6 +19,7 @@
 #define STRING std::string
 #define OFSTREAM std::ofstream
 #define CONSOLETM ConsoleTM
+#define TOSTRING std::to_string
 #else
 #define LINUX_BUILD 0
 #endif

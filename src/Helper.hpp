@@ -7,7 +7,8 @@
 #include <thread>
 #include "obj.hpp"
 #include "ConsoleTM.hpp"
-
+#include "logger.hpp"
+#include "AppMacros.hpp"
 
 //////////////////////////////////////////////////////////////////////////
 // This header provides helper functions needed throughout the program
@@ -121,4 +122,22 @@ namespace application{
             std::filesystem::copy(dir.source,dir.destination,dir.co);
         }
     }
+
+    // this can be run asynchronously to get a directory size in bytes
+    inline std::uintmax_t GetDirSize(const copyto& dir){
+        std::uintmax_t totalsize;
+        if((dir.commands & cs::recursive) != cs::none){
+            for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
+                totalsize += entry.file_size();
+            }
+        }
+        else if((dir.commands & cs::single) != cs::none){
+            for(const auto& entry:std::filesystem::directory_iterator(dir.source)){
+                totalsize += entry.file_size();
+            }
+        }
+        return totalsize;
+    }
+
+    inline const std::filesystem::path exe_path = std::filesystem::current_path();
 }

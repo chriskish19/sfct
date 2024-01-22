@@ -37,6 +37,10 @@ application::ConsoleApp::ConsoleApp(){
         if((dir.commands & cs::fast_copy) != cs::none){
             m_fast_copy_dirs->push_back(dir);
         }
+
+        if((dir.commands & cs::benchmark) != cs::none){
+            m_bench_dirs->push_back(dir);
+        }
     }
 
     // make a monitor for directories
@@ -62,6 +66,16 @@ void application::ConsoleApp::Go(){
         m_MessageStream.ReleaseBuffer();
 
         m_fastcopy->copy();
+    }
+
+    if(!m_bench_dirs->empty()){
+        m_MessageStream.SetMessage(App_MESSAGE("Preparing to benchmark"));
+        m_MessageStream.ReleaseBuffer();
+
+        benchmark bench_test;
+
+        // 1GB test
+        bench_test.speed_test(1024ull * 1024 * 1024);
     }
 
     // monitor directories

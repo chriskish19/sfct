@@ -27,6 +27,7 @@ namespace application{
         open_brace = 1 << 11,   // 2048
         close_brace = 1 << 12,  // 4096
         semi_colon = 1 << 13,   // 8192
+        benchmark = 1 << 14     // 16384
     };
     using cs = cherry_script;
 
@@ -65,7 +66,8 @@ namespace application{
                                                             {"dst",cs::dst},
                                                             {"{",cs::open_brace},
                                                             {"}",cs::close_brace},
-                                                            {";",cs::semi_colon}   };
+                                                            {";",cs::semi_colon},
+                                                            {"benchmark", cs::benchmark}  };
     };
 
     inline args_maps global_tokenizer;

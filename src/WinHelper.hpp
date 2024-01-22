@@ -43,7 +43,7 @@ namespace Windows{
         _setmode(_fileno(stdout), _O_U16TEXT);          
     }
 
-    bool FastCopy(LPCWSTR srcPath, LPCWSTR destPath, const DWORD chunkSize = 64 * 1024 * 1024) { // Default chunk size: 64 MB
+    inline bool FastCopy(LPCWSTR srcPath, LPCWSTR destPath, const DWORD chunkSize = 64 * 1024 * 1024) { // Default chunk size: 64 MB
         HANDLE hSource = CreateFile(srcPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
         HANDLE hDest = CreateFile(destPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 

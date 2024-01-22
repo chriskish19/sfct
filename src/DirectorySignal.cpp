@@ -126,7 +126,7 @@ void application::DirectorySignal::monitor(){
             while(!FileReady(src)){
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
-            
+
 
             // Process the file change
             switch (pNotify->Action) {
