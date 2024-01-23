@@ -47,7 +47,7 @@ fast_copy -recursive -update
     dst D:/test;
 }
 
-benchmark -create
+benchmark -create -fast
 {
     src C:/benchtest/src;
     dst C:/benchtest/dst;
@@ -102,6 +102,9 @@ Sub-directories not included only the files and folders in the directory.
 ### -4k
 Performs a benchmark to test copy speed using many small files.
 
+### -fast
+Uses the OS specific fast copy instead of std::filesystem::copy.
+
 ## Valid combinations of commands and args
 ### copy
 copy -recursive -update<br>
@@ -130,7 +133,10 @@ benchmark -create -4k<br>
 benchmark -create<br>
 benchmark -4k<br>
 benchmark<br>
-
+benchmark -create -4k -fast<br>
+benchmark -create -fast<br>
+benchmark -4k -fast<br>
+benchmark -fast<br>
 
 # Info
 ## Current Limitations
@@ -152,7 +158,7 @@ benchmark<br>
 My laptop specs:<br>
 Intel i7 9750H 2.6ghz Cpu<br>
 64GB 2666mhz Ram<br>
-crucial p3 gen3 nvme ssd 4tb<br>
+(2)crucial p3 gen3 nvme ssd 4tb<br>
 
 ### Unreal Engine source code benchmark
 Average speed to fast copy UnrealEngine source code.<br>
@@ -163,3 +169,6 @@ Speed in MB/s: 290.021765<br>
 Average speed to fast copy Battlefield 1 game files.<br> 
 Total size 81.4 GB and 942 Files.<br>
 Speed in MB/s: 731.275685<br>
+
+### Speed may vary
+The speed will change depending on OS caching, if you copy the same directory twice it will be faster the second time. If copying from say drive x: to drive y: speed may be faster depending on the ssd and system. I get speeds up to 2GB+/s when copying from my D: drive to my C: drive. But when copying on the same drive average speed maxes out around 700MB/s.

@@ -29,7 +29,8 @@ namespace application{
         semi_colon = 1 << 13,   // 8192
         benchmark = 1 << 14,    // 16384
         create = 1 << 15,       // 32768
-        four_k = 1 << 16
+        four_k = 1 << 16,
+        fast = 1 << 17
     };
     using cs = cherry_script;
 
@@ -71,7 +72,8 @@ namespace application{
                                                             {";",cs::semi_colon},
                                                             {"benchmark", cs::benchmark},
                                                             {"-create", cs::create},
-                                                            {"-4k",cs::four_k} };
+                                                            {"-4k",cs::four_k},
+                                                            {"fast",cs::fast} };
     };
 
     inline args_maps global_tokenizer;

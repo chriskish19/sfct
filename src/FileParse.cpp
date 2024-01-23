@@ -238,6 +238,12 @@ bool application::FileParse::ValidCommands(cs commands)
     cs benchmark_combo2 = cs::benchmark | cs::create;
     cs benchmark_combo3 = cs::benchmark | cs::four_k;
     cs benchmark_combo4 = cs::benchmark;
+    cs benchmark_combo5 = cs::benchmark | cs::create | cs::fast;
+    cs benchmark_combo6 = cs::benchmark | cs::create | cs::four_k | cs::fast;
+    cs benchmark_combo7 = cs::benchmark | cs::four_k | cs::fast;
+    cs benchmark_combo8 = cs::benchmark | cs::fast;
+
+
 
     return commands == copy_combo1 ||
            commands == copy_combo2 ||
@@ -258,7 +264,11 @@ bool application::FileParse::ValidCommands(cs commands)
            commands == benchmark_combo1 ||
            commands == benchmark_combo2 ||
            commands == benchmark_combo3 ||
-           commands == benchmark_combo4;
+           commands == benchmark_combo4 ||
+           commands == benchmark_combo5 ||
+           commands == benchmark_combo6 ||
+           commands == benchmark_combo7 ||
+           commands == benchmark_combo8;
 }
 
 application::cs application::FileParse::ParseCopyArgs(std::istringstream &lineStream)
@@ -429,6 +439,9 @@ application::cs application::FileParse::ParseBenchArgs(std::istringstream &lineS
                 }
                 case cs::four_k:{
                     commands |= cs::four_k;
+                }
+                case cs::fast:{
+                    commands |= cs::fast;
                 }
                 default:{
                     break;

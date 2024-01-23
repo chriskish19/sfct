@@ -40,8 +40,15 @@ void application::benchmark::speed_test(const copyto& dir,std::uintmax_t bytes)
     benchmark test;
     test.start_clock();
 
-    // now try to copy the file
-    std::filesystem::copy(dir.source,dir.destination,dir.co);
+    if((dir.commands & cs::fast) != cs::none){
+        std::filesystem::path srcfilepath(dir.source/filename);
+        std::filesystem::path dstfilepath(dir.destination/filename);
+        Windows::FastCopy(srcfilepath.c_str(),dstfilepath.c_str());
+    }
+    else{
+        std::filesystem::copy(dir.source,dir.destination,dir.co);
+    }
+    
 
     // stop the timer
     test.end_clock();
@@ -72,9 +79,13 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
 {
     std::uintmax_t bytes_per_file = filesCount / bytes;
     
+    // keep track of all the files created
+    std::vector<STRING> filenames;
+
     // create many small files
     for(std::uintmax_t i{};i<filesCount;i++){
         STRING filename = App_MESSAGE("benchmark_file") + TOSTRING(i) + App_MESSAGE(".dat");
+        filenames.push_back(filename);
         std::fstream bench_file;
         bench_file.open(dir.source/filename,std::ios::out | std::ios::binary);
         std::vector<char> data(bytes_per_file);
@@ -98,15 +109,19 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
     m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(speed));
     m_MessageStream.ReleaseBuffer();
 
-    // clean up files
-    if(!std::filesystem::remove_all(dir.source)){
-        logger log(App_MESSAGE("Failed to remove all files"),Error::DEBUG,dir.source);
-        log.to_console();
-        log.to_log_file();
+    // slower but safer than using remove_all
+    for(const auto& filename:filenames){
+        // clean up files
+        if(!std::filesystem::remove(dir.source/filename)){
+            logger log(App_MESSAGE("Failed to remove file: "),Error::DEBUG,dir.source/filename);
+            log.to_console();
+            log.to_log_file();
+        }
+        if(!std::filesystem::remove(dir.destination/filename)){
+            logger log(App_MESSAGE("Failed to remove file: "),Error::DEBUG,dir.destination/filename);
+            log.to_console();
+            log.to_log_file();
+        }
     }
-    if(!std::filesystem::remove_all(dir.destination)){
-        logger log(App_MESSAGE("Failed to remove all files"),Error::DEBUG,dir.destination);
-        log.to_console();
-        log.to_log_file();
-    }
+    
 }
