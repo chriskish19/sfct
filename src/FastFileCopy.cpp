@@ -74,13 +74,29 @@ std::uintmax_t application::FastFileCopy::recursive(const copyto& dir)
         auto relativePath = std::filesystem::relative(path, dir.source);
         if (entry.is_directory()) {
             std::filesystem::create_directories(dir.destination / relativePath);
-        } else if (entry.is_regular_file()) {
-            std::filesystem::path dest_path(dir.destination / relativePath);
-            workers.do_work(&Windows::FastCopy,path.c_str(),dest_path.c_str());
-            workers.join_one();
+        } else if (entry.is_regular_file() && entry.file_size() != 0) {
+            heap_paths* paths = new heap_paths(path,dir.destination / relativePath);
+            m_pPaths.push_back(paths);
+            m_workers.do_work(&Windows::FastCopy,paths->m_src->c_str(),paths->m_dst->c_str());
+            if(m_workers.join_one()){
+                heap_paths* first = m_pPaths.front();
+                if(first){
+                    delete first;
+                }
+                m_pPaths.erase(m_pPaths.begin());
+            }
         }
     }
-    workers.join_all();
+    m_workers.join_all();
+
+    // clean up
+    for(const auto path : m_pPaths){
+        if(path){
+            delete path;
+        }     
+    }
+    m_pPaths.clear();
+
     return totalsize;
 }
 

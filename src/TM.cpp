@@ -52,10 +52,12 @@ void application::TM::SetWorkers(){
     }
 }
 
-void application::TM::join_one(){
+bool application::TM::join_one(){
     // only allow m_Workers threads to run at a time
     if (m_Threads.size() >= m_Workers && m_Threads.front().joinable()) {
         m_Threads.front().join();  // Join the oldest thread
         m_Threads.erase(m_Threads.begin());  // Remove it from the vector
+        return true;
     }
+    return false;
 }

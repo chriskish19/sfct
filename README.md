@@ -57,7 +57,7 @@ Add your directories to the sfct_list.txt file, save it and re-run sfct.exe you 
 
 # Info
 ## Current Limitations
-1. Single threaded copying(its still really fast at copying it maxes out my gen3 ssd +2GB/s)
+1. ~~Single threaded copying(its still really fast at copying it maxes out my gen3 ssd +2GB/s)~~
 2. ~~No control over copying flags~~
 3. No GUI
 4. Windows Only
@@ -66,7 +66,7 @@ Add your directories to the sfct_list.txt file, save it and re-run sfct.exe you 
 
 ## Future Plans
 1. ~~Add more control over syncing and copying(sftc_list.txt will have more commands and arguments)~~
-2. Implement multithreaded copying
+2. ~~Implement multithreaded copying~~
 3. Linux support
 4. Mac support
 5. Add GUI
@@ -84,7 +84,9 @@ PS C:\Users\chris\projects\sfct\build\Debug> .\sfct
 Preparing to fast copy files
 -Speed in MB/s: 290.021765
 
-Average speed to fast copy Battlefield 1 game files total size 
+## BattleField 1 Game files benchmark
+Average speed to fast copy Battlefield 1 game files total size 81.4 GB and 942 Files.
 PS C:\Users\chris\projects\sfct\build\Debug> .\sfct
 [INFO][2024-01-22 22:40:42.0452485] File: C:\Users\chris\projects\sfct\src\FileParse.cpp Line: 51 Function: bool __cdecl application::FileParse::OpenFile(void) Message: Succesfully opened sfct_list.txt
 Preparing to fast copy files
+\Speed in MB/s: 731.275685

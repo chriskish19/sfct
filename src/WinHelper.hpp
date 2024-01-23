@@ -69,8 +69,8 @@ namespace Windows{
         }
 
         // Set file pointer to the desired size
-        DWORD dwPtr = SetFilePointer(hDest, static_cast<LONG>(fileSize.QuadPart), NULL, FILE_BEGIN);
-        if (dwPtr == INVALID_SET_FILE_POINTER) {
+        
+        if (!SetFilePointerEx(hDest, fileSize, NULL, FILE_BEGIN)) {
             application::logger log(application::Error::DEBUG);
             log.to_console();
             log.to_log_file();

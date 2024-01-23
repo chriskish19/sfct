@@ -234,8 +234,10 @@ bool application::FileParse::ValidCommands(cs commands)
     cs fast_copy_combo4 = cs::fast_copy | cs::single | cs::overwrite;
 
     // benchmark
-    cs benchmark_combo1 = cs::benchmark | cs::create;
-    cs benchmark_combo2 = cs::benchmark;
+    cs benchmark_combo1 = cs::benchmark | cs::create | cs::four_k;
+    cs benchmark_combo2 = cs::benchmark | cs::create;
+    cs benchmark_combo3 = cs::benchmark | cs::four_k;
+    cs benchmark_combo4 = cs::benchmark;
 
     return commands == copy_combo1 ||
            commands == copy_combo2 ||
@@ -254,7 +256,9 @@ bool application::FileParse::ValidCommands(cs commands)
            commands == fast_copy_combo3 ||
            commands == fast_copy_combo4 || 
            commands == benchmark_combo1 ||
-           commands == benchmark_combo2;
+           commands == benchmark_combo2 ||
+           commands == benchmark_combo3 ||
+           commands == benchmark_combo4;
 }
 
 application::cs application::FileParse::ParseCopyArgs(std::istringstream &lineStream)
@@ -422,6 +426,9 @@ application::cs application::FileParse::ParseBenchArgs(std::istringstream &lineS
             switch(found_token.value()){
                 case cs::create:{
                     commands |= cs::create;
+                }
+                case cs::four_k:{
+                    commands |= cs::four_k;
                 }
                 default:{
                     break;

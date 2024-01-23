@@ -37,7 +37,7 @@ namespace application{
         // this is used to keep the number of working threads (m_Workers) continuously
         // working when one thread has finished its work a new thread is launched, the total
         // working threads will be m_Workers at any given time
-        void join_one(); 
+        bool join_one(); 
 
         // jobs to do for the threads
         template <typename Function, typename... Args>

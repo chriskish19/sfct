@@ -28,7 +28,9 @@ namespace application{
 
         std::shared_ptr<std::vector<copyto>> m_dirs;
 
-        TM workers;
+        TM m_workers;
+
+        std::vector<heap_paths*> m_pPaths;
     };
 #endif
 }
