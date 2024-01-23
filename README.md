@@ -60,7 +60,7 @@ monitor -recursive -update -sync
 }
 ```
 
-There is no limit to the number of directories, but each will use 10MB of memory for monitoring so watch that if your adding 100 directories it will use 1GB of memory.
+There is no limit to the number of directories. Each monitored directory will use 10MB of memory for monitoring so watch that if your adding 100 directories to monitor it will use 1GB of memory.
 
 Add your directories to the sfct_list.txt file, save it and re-run sfct.exe you should see a message in the console that says "Succesfully opened sfct_list.txt".
 
@@ -145,7 +145,12 @@ benchmark -fast<br>
 3. No GUI
 4. Windows Only
 5. ~~No control over syncing(currently updates existing files)~~
-
+6. Lacks robust error handling which is why I only release debug versions.
+7. Needs a terminal window to stay running.
+8. Cannot copy a cloud drive folder, program crashes.
+9. Checks if a file is available by pooling fstream.
+10. No checks to avoid sub-directory recursive monitoring. Currently depends on the user not to double monitor.
+11. Unpolished program still in the early stages of development. 
 
 ## Future Plans
 1. ~~Add more control over syncing and copying(sftc_list.txt will have more commands and arguments)~~
@@ -153,6 +158,8 @@ benchmark -fast<br>
 3. Linux support
 4. Mac support
 5. Add GUI
+6. Address current limitations.
+7. Add more features.
 
 ## Benchmarks
 My laptop specs:<br>
@@ -160,13 +167,13 @@ Intel i7 9750H 2.6ghz Cpu<br>
 64GB 2666mhz Ram<br>
 (2)crucial p3 gen3 nvme ssd 4tb<br>
 
-### Unreal Engine source code benchmark
-Average speed to fast copy UnrealEngine source code.<br>
+### Unreal Engine source code
+Average speed to fast copy UnrealEngine source code on the same drive.<br>
 Total size 27gb+ and 161,469 Files.<br>
 Speed in MB/s: 290.021765<br>
 
-### BattleField 1 Game files benchmark
-Average speed to fast copy Battlefield 1 game files.<br> 
+### BattleField 1 Game files
+Average speed to fast copy Battlefield 1 game files on the same drive.<br> 
 Total size 81.4 GB and 942 Files.<br>
 Speed in MB/s: 731.275685<br>
 
