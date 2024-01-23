@@ -9,6 +9,7 @@
 #include "ConsoleTM.hpp"
 #include "logger.hpp"
 #include "AppMacros.hpp"
+#include "benchmark.hpp"
 
 //////////////////////////////////////////////////////////////////////////
 // This header provides helper functions needed throughout the program
@@ -35,12 +36,14 @@ namespace application{
 
     // checks all files in a single directory(non recursive) if they are available
     // sends info to the message stream
-    inline void single_check(const std::filesystem::path& src){
+    inline std::uintmax_t single_check(const std::filesystem::path& src){
+        std::uintmax_t totalsize{};
+
         if(!std::filesystem::exists(src)){
             logger log(App_MESSAGE("invalid path"),Error::DEBUG,src);
             log.to_console();
             log.to_log_file();
-            return;
+            return totalsize;
         }
         
         m_MessageStream.SetMessage(App_MESSAGE("Checking files"));
@@ -50,6 +53,8 @@ namespace application{
         std::filesystem::directory_iterator dit_end;
 
         while(dit != dit_end){
+            totalsize += dit->file_size();
+
             // loop through the directory
             m_MessageStream.SetMessage(App_MESSAGE("Waiting for file to become available: ") + STRING(dit->path().filename()));
             while(!FileReady(dit->path())){
@@ -61,16 +66,20 @@ namespace application{
         }
 
         m_MessageStream.ReleaseBuffer();
+
+        return totalsize;
     }
 
     // checks all files in a directory tree recursively if they are available
     // sends info to the message stream
-    inline void recursive_check(const std::filesystem::path& src){
+    // returns the total size of the directory in bytes
+    inline std::uintmax_t recursive_check(const std::filesystem::path& src){
+        std::uintmax_t totalsize{};
         if(!std::filesystem::exists(src)){
             logger log(App_MESSAGE("invalid path"),Error::DEBUG,src);
             log.to_console();
             log.to_log_file();
-            return;
+            return totalsize;
         }
         
         m_MessageStream.SetMessage(App_MESSAGE("Checking files"));
@@ -80,6 +89,8 @@ namespace application{
         std::filesystem::recursive_directory_iterator rdit(src);
         std::filesystem::recursive_directory_iterator rdit_end;
         while(rdit != rdit_end){
+           totalsize += rdit->file_size();
+           
             // loop through the directory
             m_MessageStream.SetMessage(App_MESSAGE("Waiting for file to become available: ") + STRING(rdit->path().filename()));
             while(!FileReady(rdit->path())){
@@ -91,6 +102,8 @@ namespace application{
         }
 
         m_MessageStream.ReleaseBuffer();
+
+        return totalsize;
     }
 
     // convert commands to copy options
@@ -113,13 +126,22 @@ namespace application{
 
     inline void FullCopy(const std::vector<copyto>& dirs){
         for(const auto& dir:dirs){
+            std::uintmax_t totalsize{};
             if((dir.commands & cs::recursive) != cs::none){
-                recursive_check(dir.source);
+                totalsize = recursive_check(dir.source);
             }
             else if((dir.commands & cs::single) != cs::none){
-                single_check(dir.source);
+                totalsize = single_check(dir.source);
             }
+            
+            benchmark speed;
+            speed.start_clock();
             std::filesystem::copy(dir.source,dir.destination,dir.co);
+            speed.end_clock();
+            double rate = speed.speed(totalsize);
+
+            m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(rate));
+            m_MessageStream.ReleaseBuffer();
         }
     }
 
@@ -139,5 +161,40 @@ namespace application{
         return totalsize;
     }
 
-    inline const std::filesystem::path exe_path = std::filesystem::current_path();
+    inline double GetAverageFileSize(const copyto& dir){
+        std::uintmax_t totalsize{},fileCount{};
+        if((dir.commands & cs::recursive) != cs::none){
+            for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
+                totalsize += entry.file_size();
+                fileCount++;
+            }
+        }
+        else if((dir.commands & cs::single) != cs::none){
+            for(const auto& entry:std::filesystem::directory_iterator(dir.source)){
+                totalsize += entry.file_size();
+                fileCount++;
+            }
+        }
+        double avg_size = static_cast<double>(totalsize / fileCount);
+        // average size in bytes
+        return avg_size;
+    }
+
+    inline directory_info GetDI(const copyto& dir){
+        directory_info counts{};
+        if((dir.commands & cs::recursive) != cs::none){
+            for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
+                counts.TotalSize += entry.file_size();
+                counts.FileCount++;
+            }
+        }
+        else if((dir.commands & cs::single) != cs::none){
+            for(const auto& entry:std::filesystem::directory_iterator(dir.source)){
+                counts.TotalSize += entry.file_size();
+                counts.FileCount++;
+            }
+        }
+        counts.AvgFileSize = static_cast<double>(counts.TotalSize / counts.FileCount);
+        return counts;
+    }
 }

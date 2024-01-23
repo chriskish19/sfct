@@ -17,32 +17,78 @@ application::FastFileCopy::FastFileCopy(std::shared_ptr<std::vector<copyto>> dir
 void application::FastFileCopy::copy()
 {
     for(const auto& dir:*m_dirs){
-        if((dir.commands & cs::recursive) != cs::none){
+        directory_info counts = GetDI(dir);
+        
+        // less than 1mb 
+        if(counts.AvgFileSize < (1024 * 1024)){
+            // use std::filesystem::copy its faster than mapping
+            benchmark speed;
+            speed.start_clock();
             std::filesystem::copy(dir.source,dir.destination,dir.co);
+            speed.end_clock();
+
+            double rate = speed.speed(counts.TotalSize);
+
+            m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(rate));
+            m_MessageStream.ReleaseBuffer();
         }
-        else if((dir.commands & cs::single) != cs::none){
-            std::filesystem::copy(dir.source,dir.destination,dir.co);
+        else{
+            // use Windows::FastCopy
+            if((dir.commands & cs::recursive) != cs::none){
+                std::uintmax_t totalsize{};
+                benchmark speed;
+                speed.start_clock();
+                totalsize = recursive(dir);
+                speed.end_clock();
+
+                double rate = speed.speed(totalsize);
+
+                m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(rate));
+                m_MessageStream.ReleaseBuffer();
+            }
+            else if((dir.commands & cs::single) != cs::none){
+                std::uintmax_t totalsize{};
+                benchmark speed;
+                speed.start_clock();
+                totalsize = single(dir);
+                speed.end_clock();
+
+                double rate = speed.speed(totalsize);
+
+                m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(rate));
+                m_MessageStream.ReleaseBuffer();
+            }
         }
+
+
+        
     }
 }
 
-void application::FastFileCopy::recursive(const copyto& dir)
+std::uintmax_t application::FastFileCopy::recursive(const copyto& dir)
 {
+    std::uintmax_t totalsize{};
     for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
+        totalsize += entry.file_size();
         const auto& path = entry.path();
         auto relativePath = std::filesystem::relative(path, dir.source);
         if (entry.is_directory()) {
             std::filesystem::create_directories(dir.destination / relativePath);
         } else if (entry.is_regular_file()) {
             std::filesystem::path dest_path(dir.destination / relativePath);
-            Windows::FastCopy(path.c_str(), dest_path.c_str());
+            workers.do_work(&Windows::FastCopy,path.c_str(),dest_path.c_str());
+            workers.join_one();
         }
     }
+    workers.join_all();
+    return totalsize;
 }
 
-void application::FastFileCopy::single(const copyto &dir)
+std::uintmax_t application::FastFileCopy::single(const copyto &dir)
 {
+    std::uintmax_t totalsize{};
     for(const auto& entry:std::filesystem::directory_iterator(dir.source)){
+        totalsize += entry.file_size();
         const auto& path = entry.path();
         auto relativePath = std::filesystem::relative(path, dir.source);
         if(entry.is_directory()){
@@ -52,6 +98,7 @@ void application::FastFileCopy::single(const copyto &dir)
             Windows::FastCopy(path.c_str(),dir.destination.c_str());
         }
     }
+    return totalsize;
 }
 
 #endif

@@ -7,6 +7,7 @@
 #include "WinHelper.hpp"
 #include <filesystem>
 #include "Helper.hpp"
+#include "TM.hpp"
 
 /////////////////////////////////////////////////////////////////////////////
 /* This class will be OS specfic for more control over the copying process */
@@ -22,10 +23,12 @@ namespace application{
 
         void copy();
     private:
-        void recursive(const copyto& dir);
-        void single(const copyto& dir);
+        std::uintmax_t recursive(const copyto& dir);
+        std::uintmax_t single(const copyto& dir);
 
         std::shared_ptr<std::vector<copyto>> m_dirs;
+
+        TM workers;
     };
 #endif
 }

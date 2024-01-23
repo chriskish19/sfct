@@ -159,18 +159,24 @@ void application::FileParse::ParseSyntax()
 void application::FileParse::CheckDirectories(){
     for(auto it{m_Data->begin()};it!=m_Data->end();){
         if((it->commands & cs::create) != cs::none){
-            // create the directories for benchmarking
-            if(!std::filesystem::create_directories(it->source)){
-                logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->source);
-                log.to_console();
-                log.to_log_file();
-            }
 
-            if(!std::filesystem::create_directories(it->destination)){
-                logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->destination);
-                log.to_console();
-                log.to_log_file();
+            if(!std::filesystem::exists(it->source)){
+                // create the directories for benchmarking
+                if(!std::filesystem::create_directories(it->source)){
+                    logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->source);
+                    log.to_console();
+                    log.to_log_file();
+                }
             }
+            
+            if(!std::filesystem::exists(it->destination)){
+                if(!std::filesystem::create_directories(it->destination)){
+                    logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->destination);
+                    log.to_console();
+                    log.to_log_file();
+                }
+            }
+            
         }
         
         

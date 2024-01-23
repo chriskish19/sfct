@@ -34,4 +34,10 @@ namespace application{
         if (a.commands != b.commands) return a.commands < b.commands;
         return a.co < b.co;
     }
+
+    struct directory_info{
+        std::uintmax_t TotalSize;
+        std::uintmax_t FileCount;
+        double AvgFileSize;
+    };
 }

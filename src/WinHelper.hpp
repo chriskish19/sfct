@@ -43,60 +43,91 @@ namespace Windows{
         _setmode(_fileno(stdout), _O_U16TEXT);          
     }
 
-    inline bool FastCopy(LPCWSTR srcPath, LPCWSTR destPath, const DWORD chunkSize = 64 * 1024 * 1024) { // Default chunk size: 64 MB
+    inline bool FastCopy(LPCWSTR srcPath, LPCWSTR destPath) {
         HANDLE hSource = CreateFile(srcPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-        HANDLE hDest = CreateFile(destPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        HANDLE hDest = CreateFile(destPath, GENERIC_WRITE | GENERIC_READ, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
         if (hSource == INVALID_HANDLE_VALUE || hDest == INVALID_HANDLE_VALUE) {
-            CloseHandle(hSource);
-            CloseHandle(hDest);
+            if (hSource != INVALID_HANDLE_VALUE) CloseHandle(hSource);
+            if (hDest != INVALID_HANDLE_VALUE) CloseHandle(hDest);
+            application::logger log(application::Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
             return false;
         }
 
         LARGE_INTEGER fileSize;
         if (!GetFileSizeEx(hSource, &fileSize)) {
+            application::logger log(application::Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
             CloseHandle(hSource);
             CloseHandle(hDest);
             return false;
         }
 
-        LARGE_INTEGER offset = {0};
+        // Set file pointer to the desired size
+        DWORD dwPtr = SetFilePointer(hDest, static_cast<LONG>(fileSize.QuadPart), NULL, FILE_BEGIN);
+        if (dwPtr == INVALID_SET_FILE_POINTER) {
+            application::logger log(application::Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
+        }
+
+        // Set the end of file
+        if (!SetEndOfFile(hDest)) {
+            application::logger log(application::Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
+        }
 
         HANDLE hSourceMapping = CreateFileMapping(hSource, nullptr, PAGE_READONLY, 0, 0, nullptr);
         HANDLE hDestMapping = CreateFileMapping(hDest, nullptr, PAGE_READWRITE, 0, 0, nullptr);
 
         if (!hSourceMapping || !hDestMapping) {
-            CloseHandle(hSourceMapping);
-            CloseHandle(hDestMapping);
+            if (hSourceMapping) CloseHandle(hSourceMapping);
+            if (hDestMapping) CloseHandle(hDestMapping);
+            CloseHandle(hSource);
+            CloseHandle(hDest);
+            application::logger log(application::Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
             return false;
         }
 
-        while (offset.QuadPart < fileSize.QuadPart) {
-            DWORD bytesToMap = (DWORD)min((LONGLONG)chunkSize, fileSize.QuadPart - offset.QuadPart);
+        LPVOID pSource = MapViewOfFile(hSourceMapping, FILE_MAP_READ, 0, 0, 0);
+        LPVOID pDest = MapViewOfFile(hDestMapping, FILE_MAP_WRITE, 0, 0, 0);
 
-            LPVOID pSource = MapViewOfFile(hSourceMapping, FILE_MAP_READ, offset.HighPart, offset.LowPart, bytesToMap);
-            LPVOID pDest = MapViewOfFile(hDestMapping, FILE_MAP_WRITE, offset.HighPart, offset.LowPart, bytesToMap);
-
-            if (!pSource || !pDest) {
-                UnmapViewOfFile(pSource);
-                UnmapViewOfFile(pDest);
-                break;
-            }
-
-            memcpy(pDest, pSource, bytesToMap);
-
-            UnmapViewOfFile(pSource);
-            UnmapViewOfFile(pDest);
-
-            offset.QuadPart += bytesToMap;
+        if (!pSource || !pDest) {
+            if (pSource) UnmapViewOfFile(pSource);
+            if (pDest) UnmapViewOfFile(pDest);
+            CloseHandle(hSourceMapping);
+            CloseHandle(hDestMapping);
+            CloseHandle(hSource);
+            CloseHandle(hDest);
+            application::logger log(application::Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
+            return false;
         }
 
+        memcpy(pDest, pSource, fileSize.QuadPart);
+
+        UnmapViewOfFile(pSource);
+        UnmapViewOfFile(pDest);
         CloseHandle(hSourceMapping);
         CloseHandle(hDestMapping);
         CloseHandle(hSource);
         CloseHandle(hDest);
 
-        return offset.QuadPart == fileSize.QuadPart;
+        return true;
     }
+
 }
 #endif
