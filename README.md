@@ -1,5 +1,5 @@
 # Simple Folder Copy Tool
-Keeps directories synced, by monitoring when files are added and then copies those files to a destination directory. Works similar to a cloud drive but locally.
+Directory monitoring, file syncing, fast file copy, and benchmarking. Using a script to specify commands and arguments for each source and destination directory.
 
 # Build From Source Code
 You will need installed on your system:
@@ -73,7 +73,7 @@ Does not check if the files are available. Performs a copy using OS specific fas
 If the average file size is above a threashold OS specific FastCopy is used and it is multithreaded. The amount of threads used is determined by the TM class, 8 is the max.
 
 ### monitor
-Monitors a directory for changes, when changes occur the function wakes up and performs the arguments specified. Typically recursive, update, and sync.
+Monitors a directory for changes, when changes occur the program wakes up and performs the arguments specified. Typically recursive, update, and sync.
 
 ### benchmark
 Performs a speed test of the copy operation, currently std::filesystem::copy is used. When -4k arg is supplied a large number of small files are created and copied. If -create arg is supplied the directories will be created.
@@ -148,7 +148,7 @@ benchmark -fast<br>
 6. Lacks robust error handling which is why I only release debug versions.
 7. Needs a terminal window to stay running.
 8. Cannot copy a cloud drive folder, program crashes.
-9. Checks if a file is available by pooling fstream.
+9. Checks if a file is available by pooling fstream and if the file is locked the program will pause indefinitely until the file becomes available.
 10. No checks to avoid sub-directory recursive monitoring. Currently depends on the user not to double monitor.
 11. Unpolished program still in the early stages of development. 
 
@@ -160,6 +160,7 @@ benchmark -fast<br>
 5. Add GUI
 6. Address current limitations.
 7. Add more features.
+8. Packaged installer.
 
 ## Benchmarks
 My laptop specs:<br>
