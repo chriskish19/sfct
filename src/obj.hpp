@@ -43,20 +43,9 @@ namespace application{
 
     struct heap_paths{
         heap_paths(const std::filesystem::path& src,const std::filesystem::path& dst)
-        :m_src(new std::filesystem::path(src)),
-        m_dst(new std::filesystem::path(dst)){}
+        :m_src(src),m_dst(dst){}
 
-        const std::filesystem::path* m_src;
-        const std::filesystem::path* m_dst;
-
-        ~heap_paths(){
-            if(m_src){
-                delete m_src;
-            }
-
-            if(m_dst){
-                delete m_dst;
-            }
-        }
+        const std::filesystem::path m_src;
+        const std::filesystem::path m_dst;
     };
 }
