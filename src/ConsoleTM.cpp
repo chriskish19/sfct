@@ -54,7 +54,6 @@ void application::ConsoleTM::end(){
 /////////////////////////////////////////////////
 
 void application::wConsoleTM::to_console(){
-    
     if(m_release){
         std::lock_guard<std::mutex> local_lock(m_Message_mtx);
         while(!m_MessageQueue.empty()){
