@@ -62,22 +62,28 @@ void application::benchmark::speed_test(const copyto& dir,std::uintmax_t bytes)
     m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(speed));
     m_MessageStream.ReleaseBuffer();
 
-    // clean up file
-    if(!std::filesystem::remove(dir.source/filename)){
-        logger log(App_MESSAGE("Failed to remove file"),Error::DEBUG,dir.source/filename);
-        log.to_console();
-        log.to_log_file();
+    if(std::filesystem::exists(dir.source/filename)){
+        // clean up file
+        if(!std::filesystem::remove(dir.source/filename)){
+            logger log(App_MESSAGE("Failed to remove file"),Error::DEBUG,dir.source/filename);
+            log.to_console();
+            log.to_log_file();
+        }
     }
-    if(!std::filesystem::remove(dir.destination/filename)){
-        logger log(App_MESSAGE("Failed to remove file"),Error::DEBUG,dir.destination/filename);
-        log.to_console();
-        log.to_log_file();
+    
+    if(std::filesystem::exists(dir.destination/filename)){
+        if(!std::filesystem::remove(dir.destination/filename)){
+            logger log(App_MESSAGE("Failed to remove file"),Error::DEBUG,dir.destination/filename);
+            log.to_console();
+            log.to_log_file();
+        }
     }
+    
 }
 
 void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t filesCount, std::uintmax_t bytes)
 {
-    std::uintmax_t bytes_per_file = filesCount / bytes;
+    std::uintmax_t bytes_per_file = bytes / filesCount;
     
     // keep track of all the files created
     std::vector<STRING> filenames;
@@ -91,14 +97,19 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
         std::vector<char> data(bytes_per_file);
         std::fill(data.begin(), data.end(), '0');
         bench_file.write(data.data(), data.size());
+        bench_file.close();
     }
 
     // start the clock
     benchmark test;
     test.start_clock();
 
-    // now try to copy the file
-    std::filesystem::copy(dir.source,dir.destination,dir.co);
+    if((dir.commands & cs::fast) != cs::none){
+        Windows::MTFastCopy(dir);
+    }
+    else{
+        std::filesystem::copy(dir.source,dir.destination,dir.co);
+    }
 
     // stop the timer
     test.end_clock();
@@ -112,15 +123,20 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
     // slower but safer than using remove_all
     for(const auto& filename:filenames){
         // clean up files
-        if(!std::filesystem::remove(dir.source/filename)){
-            logger log(App_MESSAGE("Failed to remove file: "),Error::DEBUG,dir.source/filename);
-            log.to_console();
-            log.to_log_file();
+        if(std::filesystem::exists(dir.source/filename)){
+            if(!std::filesystem::remove(dir.source/filename)){
+                logger log(App_MESSAGE("Failed to remove file: "),Error::DEBUG,dir.source/filename);
+                log.to_console();
+                log.to_log_file();
+            }
         }
-        if(!std::filesystem::remove(dir.destination/filename)){
-            logger log(App_MESSAGE("Failed to remove file: "),Error::DEBUG,dir.destination/filename);
-            log.to_console();
-            log.to_log_file();
+        
+        if(std::filesystem::exists(dir.destination/filename)){
+            if(!std::filesystem::remove(dir.destination/filename)){
+                logger log(App_MESSAGE("Failed to remove file: "),Error::DEBUG,dir.destination/filename);
+                log.to_console();
+                log.to_log_file();
+            }
         }
     }
     

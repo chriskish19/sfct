@@ -52,7 +52,12 @@ namespace application{
         std::queue<std::string> m_MessageQueue;
 
         // true releases the queue
-        bool m_release{false};
+        std::atomic<bool> m_release{false};
+
+        // for releasing message queue when end() is called
+        std::mutex m_main_thread_guard;
+		std::unique_lock<std::mutex> m_main_thread_lock;
+		std::condition_variable m_main_thread_cv;
     };
 
 
@@ -89,7 +94,12 @@ namespace application{
         std::queue<std::wstring> m_MessageQueue;
 
         // true releases the queue
-        bool m_release{false};
+        std::atomic<bool> m_release{false};
+
+        // for releasing message queue when end() is called
+        std::mutex m_main_thread_guard;
+		std::unique_lock<std::mutex> m_main_thread_lock;
+		std::condition_variable m_main_thread_cv;
     };
 
     // global message stream object for outputing to the console

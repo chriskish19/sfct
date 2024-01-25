@@ -436,12 +436,15 @@ application::cs application::FileParse::ParseBenchArgs(std::istringstream &lineS
             switch(found_token.value()){
                 case cs::create:{
                     commands |= cs::create;
+                    break;
                 }
                 case cs::four_k:{
                     commands |= cs::four_k;
+                    break;
                 }
                 case cs::fast:{
                     commands |= cs::fast;
+                    break;
                 }
                 default:{
                     break;

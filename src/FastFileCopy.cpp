@@ -75,25 +75,21 @@ std::uintmax_t application::FastFileCopy::recursive(const copyto& dir)
         if (entry.is_directory()) {
             std::filesystem::create_directories(dir.destination / relativePath);
         } else if (entry.is_regular_file() && entry.file_size() != 0) {
-            heap_paths* paths = new heap_paths(path,dir.destination / relativePath);
-            m_pPaths.push_back(paths);
-            m_workers.do_work(&Windows::FastCopy,paths->m_src.c_str(),paths->m_dst.c_str());
+            paths* _paths = new paths(path,dir.destination / relativePath);
+            m_pPaths.push_back(_paths);
+            m_workers.do_work(&Windows::FastCopy,_paths->m_src.c_str(),_paths->m_dst.c_str());
             if(m_workers.join_one()){
-                heap_paths* first = m_pPaths.front();
-                if(first){
-                    delete first;
-                }
+                paths* p_path = m_pPaths.front();
+                if(p_path) delete p_path;
                 m_pPaths.erase(m_pPaths.begin());
             }
         }
     }
     m_workers.join_all();
 
-    // clean up
-    for(const auto path : m_pPaths){
-        if(path){
-            delete path;
-        }     
+    // cleanup
+    for(const auto path:m_pPaths){
+        if(path) delete path;
     }
     m_pPaths.clear();
 
@@ -110,10 +106,25 @@ std::uintmax_t application::FastFileCopy::single(const copyto &dir)
         if(entry.is_directory()){
             std::filesystem::create_directory(dir.destination/relativePath);
         }
-        else if(entry.is_regular_file()){
-            Windows::FastCopy(path.c_str(),dir.destination.c_str());
+        else if (entry.is_regular_file() && entry.file_size() != 0) {
+            paths* _paths = new paths(path,dir.destination / relativePath);
+            m_pPaths.push_back(_paths);
+            m_workers.do_work(&Windows::FastCopy,_paths->m_src.c_str(),_paths->m_dst.c_str());
+            if(m_workers.join_one()){
+                paths* p_path = m_pPaths.front();
+                if(p_path) delete p_path;
+                m_pPaths.erase(m_pPaths.begin());
+            }
         }
     }
+    m_workers.join_all();
+
+    // cleanup
+    for(const auto path:m_pPaths){
+        if(path) delete path;
+    }
+    m_pPaths.clear();
+    
     return totalsize;
 }
 

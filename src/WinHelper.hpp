@@ -2,6 +2,9 @@
 #include "logger.hpp"
 #include <fcntl.h>
 #include <io.h>
+#include "obj.hpp"
+#include <vector>
+#include "TM.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////
 // This header contains windows specific functions
@@ -127,6 +130,71 @@ namespace Windows{
         CloseHandle(hDest);
 
         return true;
+    }
+
+    inline std::uintmax_t MTFastCopy(const application::copyto& dir){
+        if((dir.commands & application::cs::recursive) != application::cs::none){
+            std::uintmax_t totalsize{};
+            std::vector<application::paths*> pPaths;
+            application::TM workers;
+
+            for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
+                totalsize += entry.file_size();
+                const auto& path = entry.path();
+                auto relativePath = std::filesystem::relative(path, dir.source);
+                if (entry.is_directory()) {
+                    std::filesystem::create_directories(dir.destination / relativePath);
+                } else if (entry.is_regular_file() && entry.file_size() != 0) {
+                    application::paths* _paths = new application::paths(path,dir.destination / relativePath);
+                    pPaths.push_back(_paths);
+                    workers.do_work(&Windows::FastCopy,_paths->m_src.c_str(),_paths->m_dst.c_str());
+                    if(workers.join_one()){
+                        application::paths* p_path = pPaths.front();
+                        if(p_path) delete p_path;
+                        pPaths.erase(pPaths.begin());
+                    }
+                }
+            }
+            workers.join_all();
+
+            // cleanup
+            for(const auto path:pPaths){
+                if(path) delete path;
+            }
+
+            return totalsize;
+        }
+        else{
+            std::uintmax_t totalsize{};
+            std::vector<application::paths*> pPaths;
+            application::TM workers;
+
+            for(const auto& entry:std::filesystem::directory_iterator(dir.source)){
+                totalsize += entry.file_size();
+                const auto& path = entry.path();
+                auto relativePath = std::filesystem::relative(path, dir.source);
+                if (entry.is_directory()) {
+                    std::filesystem::create_directories(dir.destination / relativePath);
+                } else if (entry.is_regular_file() && entry.file_size() != 0) {
+                    application::paths* _paths = new application::paths(path,dir.destination / relativePath);
+                    pPaths.push_back(_paths);
+                    workers.do_work(&Windows::FastCopy,_paths->m_src.c_str(),_paths->m_dst.c_str());
+                    if(workers.join_one()){
+                        application::paths* p_path = pPaths.front();
+                        if(p_path) delete p_path;
+                        pPaths.erase(pPaths.begin());
+                    }
+                }
+            }
+            workers.join_all();
+
+            // cleanup
+            for(const auto path:pPaths){
+                if(path) delete path;
+            }
+
+            return totalsize;
+        }
     }
 
 }

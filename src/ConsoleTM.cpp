@@ -12,6 +12,7 @@ void application::ConsoleTM::to_console(){
             m_MessageQueue.pop();
         }
         m_release = false;
+        m_main_thread_cv.notify_one();
     }
     else{
         std::cout << "\r" <<  m_AnimationChars[m_AnimationIndex++];
@@ -40,6 +41,10 @@ void application::ConsoleTM::ReleaseBuffer(){
 }
 
 void application::ConsoleTM::end(){
+    ReleaseBuffer();
+    m_main_thread_lock = std::unique_lock<std::mutex>(m_main_thread_guard);
+    m_main_thread_cv.wait(m_main_thread_lock, [this] {return !m_release; });
+
     m_Running = false;
 }
 
@@ -58,6 +63,7 @@ void application::wConsoleTM::to_console(){
             m_MessageQueue.pop();
         }
         m_release = false;
+        m_main_thread_cv.notify_one();
     }
     else{
         // animate the output
@@ -87,5 +93,9 @@ void application::wConsoleTM::ReleaseBuffer(){
 }
 
 void application::wConsoleTM::end(){
+    ReleaseBuffer();
+    m_main_thread_lock = std::unique_lock<std::mutex>(m_main_thread_guard);
+    m_main_thread_cv.wait(m_main_thread_lock, [this] {return !m_release; });
+
     m_Running = false;
 }

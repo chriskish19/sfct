@@ -41,9 +41,11 @@ namespace application{
         double AvgFileSize;
     };
 
-    struct heap_paths{
-        heap_paths(const std::filesystem::path& src,const std::filesystem::path& dst)
-        :m_src(src),m_dst(dst){}
+    
+    struct paths{
+        paths(const std::filesystem::path& src,const std::filesystem::path& dst)
+        :m_src(src),
+        m_dst(dst){}
 
         const std::filesystem::path m_src;
         const std::filesystem::path m_dst;

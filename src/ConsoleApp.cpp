@@ -90,6 +90,8 @@ void application::ConsoleApp::Go(){
     // monitor directories
     m_Monitor->monitor();
 
+    m_MessageStream.SetMessage(App_MESSAGE("Exiting"));
+
     // end the message stream
     m_MessageStream.end();
 
