@@ -6,9 +6,16 @@
 #include <format>
 #include <iostream>
 #include <atomic>
-#include "AppMacros.hpp"
-#include <syncstream>
+#include "appMacros.hpp"
 #include <queue>
+
+//////////////////////////////////////////////////////////////////
+// This header handles messages sent to the console.
+// It uses a queue to prevent slow downs in the program when alot of messages are processed.
+// It is designed to be launched on a thread given RunMessages().
+// Use SetMessage(const std::string& m) to add a message to the queue.
+// To display the queued messages call ReleaseBuffer().
+//////////////////////////////////////////////////////////////////
 
 namespace application{
     // this class will handle update messages to the console using a seperate thread
@@ -22,10 +29,11 @@ namespace application{
         // changes m_Message to m
         void SetMessage(const std::string& m);
 
-        // get a shared_ptr to m_Running if needed else where in the program
-        const std::shared_ptr<std::atomic<bool>> GetSPRunning(){return m_Running;}
-
+        // causes the queue the output all messages
         void ReleaseBuffer();
+
+        // ends the message stream
+        void end();
     private:
         // output m_Message to the console
         void to_console();
@@ -37,12 +45,19 @@ namespace application{
         char m_AnimationChars[4] = {'/', '-', '\\', '|'};
         int m_AnimationIndex = 0;
 
-        // a thread safe boolean shared_ptr to close the message loop if needed
-        std::shared_ptr<std::atomic<bool>> m_Running{std::make_shared<std::atomic<bool>>(true)};
+        // a thread safe boolean to close the message loop if needed
+        std::atomic<bool> m_Running{true};
 
+        // queue of messages 
         std::queue<std::string> m_MessageQueue;
 
-        bool m_release{false};
+        // true releases the queue
+        std::atomic<bool> m_release{false};
+
+        // for releasing message queue when end() is called
+        std::mutex m_main_thread_guard;
+		std::unique_lock<std::mutex> m_main_thread_lock;
+		std::condition_variable m_main_thread_cv;
     };
 
 
@@ -56,11 +71,11 @@ namespace application{
         // adds a message to the queue
         void SetMessage(const std::wstring& m);
 
-        // get a shared_ptr to m_Running if needed else where in the program
-        const std::shared_ptr<std::atomic<bool>> GetSPRunning(){return m_Running;}
-
-        
+        // causes the queue the output all messages
         void ReleaseBuffer();
+
+        // ends the message stream
+        void end();
     private:
         // output m_Message to the console
         void to_console();
@@ -73,10 +88,20 @@ namespace application{
         int m_AnimationIndex = 0;
 
         // a thread safe boolean shared_ptr to close the message loop if needed
-        std::shared_ptr<std::atomic<bool>> m_Running{std::make_shared<std::atomic<bool>>(true)};
+        std::atomic<bool> m_Running{true};
 
+        // queue of messages 
         std::queue<std::wstring> m_MessageQueue;
 
-        bool m_release{false};
+        // true releases the queue
+        std::atomic<bool> m_release{false};
+
+        // for releasing message queue when end() is called
+        std::mutex m_main_thread_guard;
+		std::unique_lock<std::mutex> m_main_thread_lock;
+		std::condition_variable m_main_thread_cv;
     };
+
+    // global message stream object for outputing to the console
+    inline CONSOLETM m_MessageStream;
 }

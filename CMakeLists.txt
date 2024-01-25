@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 # Create a project named sfct
-project(sfct VERSION 1.0.0.0)
+project(sfct VERSION 1.0.0.2)
 
 # Set the variable CMAKE_CXX_STANDARD to c++20
 # and the variable CMAKE_CXX_STANDARD_REQUIRED to True
@@ -13,8 +13,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(SOURCE_FILES    src/main.cpp
                     src/TM.hpp
                     src/TM.cpp
-                    src/logger.hpp
-                    src/logger.cpp
+                    src/Logger.hpp
+                    src/Logger.cpp
                     src/FileParse.hpp
                     src/FileParse.cpp
                     src/DirectorySignal.hpp
@@ -23,11 +23,15 @@ set(SOURCE_FILES    src/main.cpp
                     src/ConsoleTM.cpp
                     src/ConsoleApp.hpp
                     src/ConsoleApp.cpp
-                    src/AppMacros.hpp
-                    src/WinHelper.hpp
+                    src/appMacros.hpp
+                    src/winHelper.hpp
                     src/FastFileCopy.hpp
                     src/FastFileCopy.cpp
-                    src/Helper.hpp)
+                    src/helper.hpp
+                    src/obj.hpp
+                    src/args.hpp
+                    src/benchmark.hpp
+                    src/benchmark.cpp)
 
 
 add_executable(sfct ${SOURCE_FILES})

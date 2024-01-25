@@ -5,31 +5,21 @@
 #include <vector>
 #include <memory>
 #include <filesystem>
-#include "logger.hpp"
+#include "Logger.hpp"
 #include <sstream>
+#include "args.hpp"
+#include <optional>
+#include "obj.hpp"
+#include "Helper.hpp"
 
 /////////////////////////////////////////////////////////////////
-/* Future TODO:                                                */
-/* 1. Template this class to accept any form of data           */
-/* 2. Add more types of data to DataType enum class flags      */
+// This header is responsible for parsing a file.
+// It extracts the key information.
+// In this case it extracts directory paths, commands.
 /////////////////////////////////////////////////////////////////
 
 
 namespace application{
-    enum class DataType{
-        Directory,
-        Text
-        // add more for future use of this class in building other cli tools
-    };
-      
-    struct copyto{
-        std::string source;
-        std::string destination;
-        std::filesystem::path fs_source;
-        std::filesystem::path fs_destination;
-        std::filesystem::directory_entry src_entry;
-    };
-
     // to use this class first call one of the constructors with a full path or a filename relative to 
     // the cwd(current working directory) then call functions in this order:
     // 1. OpenFile()
@@ -46,8 +36,7 @@ namespace application{
         FileParse(const std::string& filename);
 
         // parse the file into m_Data
-        // const std::string& keyword: the keyword to match in the file for each line to be parsed
-        void ExtractData(const std::string& keyword);
+        void ExtractData();
         
         // opens m_File
         // if the path is valid but opening the file fails std::runtime_error exception is thrown
@@ -59,13 +48,15 @@ namespace application{
         void SetFilePath(const std::filesystem::path& new_path);
 
         // checks for valid data
-        void CheckData(DataType t);
+        void CheckData();
 
         // data will need to be used elsewhere in the program
         // TODO: template this class to handle any type of data for future use in making cli programs
         const std::shared_ptr<std::vector<copyto>> GetSPdata(){return m_Data;}
 
     private:
+        void ParseSyntax();
+
         // the path to the current file being parsed
         std::filesystem::path m_FilePath;
 
@@ -81,13 +72,20 @@ namespace application{
         // flag for whether the data has been extracted or not
         bool m_DataExtracted{false};
 
-        // This function is called from CheckData() if the flag is Directory
         // checks m_Data for valid directory entries
         // if no valid directories are found it throws an exception std::runtime_error()
         void CheckDirectories();
 
-        // This function is called from CheckData() if the flag is Text
-        // checks m_Data for valid Text
-        void CheckText();
+        bool ValidCommands(cs commands);
+
+        cs ParseCopyArgs(std::istringstream& lineStream);
+
+        void ParseDirs(copyto& dir);
+
+        cs ParseMonitorArgs(std::istringstream& lineStream);
+
+        int m_LineNumber{};
+
+        cs ParseBenchArgs(std::istringstream& lineStream);
     };
 }

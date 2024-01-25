@@ -1,26 +1,27 @@
 #include "DirectorySignal.hpp"
 
-
 //////////////////////////////////////////////////////////
 /* Windows version of diretory signal class definitions */
 //////////////////////////////////////////////////////////
-
-
 #if WINDOWS_BUILD
+
 application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto>> dirs_to_watch)
 :m_Dirs(dirs_to_watch){
-
+    
     if(!dirs_to_watch){
-        logger log(L"nullptr",Error::FATAL);
+        logger log(App_MESSAGE("nullptr"),Error::FATAL);
         log.to_console();
         log.to_log_file();
-        log.to_output();
-        throw std::runtime_error("nullptr");
+        throw std::runtime_error("");
+    }
+    
+    if(dirs_to_watch->empty()){
+        no_watch = true;
     }
 
     for(const auto &dir:*dirs_to_watch){
         HANDLE hDir = CreateFile(
-            dir.fs_source.c_str(), FILE_LIST_DIRECTORY,
+            dir.source.c_str(), FILE_LIST_DIRECTORY,
             FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
             NULL, OPEN_EXISTING,
             FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
@@ -34,8 +35,8 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
             continue;
         }
 
-        DS_resources* monitor = new DS_resources{hDir, {}, {},{dir.fs_source},{dir.fs_destination}};
-        // monitor.m_buffer.resize(4096);
+        DS_resources* monitor = new DS_resources{hDir, {}, {}, {{dir.source},{dir.destination},{dir.commands},{dir.co}}};
+        
         
         if(!CreateIoCompletionPort(hDir, m_hCompletionPort, (ULONG_PTR)monitor, 0)){
             logger log(Error::WARNING);
@@ -44,12 +45,16 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
             log.to_output();
         }
         
-        
+        bool recursive{false};
+        if((dir.commands & cs::recursive) != cs::none){
+            recursive = true;
+        }
+
         if(!ReadDirectoryChangesW(
             hDir, 
             &monitor->m_buffer, 
             sizeof(monitor->m_buffer), 
-            TRUE,
+            recursive,
             m_NotifyFilter,
             NULL, 
             &monitor->m_ol, 
@@ -76,6 +81,10 @@ application::DirectorySignal::~DirectorySignal(){
 }
 
 void application::DirectorySignal::monitor(){
+    // no monitor directories set so exit the monitor function
+    if(no_watch) return;
+    
+
     // Process notifications
     DWORD bytesTransferred;
     DS_resources* pMonitor;
@@ -94,17 +103,14 @@ void application::DirectorySignal::monitor(){
             // Extract the file name
             std::wstring fileName(pNotify->FileName, pNotify->FileNameLength / sizeof(WCHAR));
             
-            std::filesystem::path src(pMonitor->src_path/fileName);
-            std::filesystem::path dest(pMonitor->dest_path/fileName);
+            std::filesystem::path src(pMonitor->directory.source/fileName);
+            std::filesystem::path dest(pMonitor->directory.destination/fileName);
 
-            std::filesystem::path dest_dir(pMonitor->dest_path/fileName);
-
-
+            std::filesystem::path dest_dir(pMonitor->directory.destination/fileName);
             dest_dir.remove_filename();
 
-            
             if(!std::filesystem::exists(dest_dir)){
-                if(std::filesystem::create_directories(dest_dir)){
+                if(!std::filesystem::create_directories(dest_dir)){
                     logger log(App_MESSAGE("Failed to create directories"),Error::WARNING,dest_dir);
                     log.to_console();
                     log.to_log_file();
@@ -112,39 +118,49 @@ void application::DirectorySignal::monitor(){
                 }
             }
             
-
             // unfortunately there is no way to know if the file has completed the copy into the source
-            // directory from file explorer.exe or the terminal in windows so I use a pool checker
+            // directory from explorer.exe or the terminal in windows so I use a pool checker
             // which is not ideal but no other way exists
-            if(std::filesystem::is_regular_file(src)){
-                std::fstream file;
-                while(!file.is_open()){
-                    m_MessageStream.SetMessage(App_MESSAGE("Waiting for added files"));
-                    file.open(src, std::ifstream::in | std::ifstream::binary);
-                    if(!file.is_open()){
-                        std::this_thread::sleep_for(std::chrono::seconds(5));
-                    }
-                }
-                file.close();
+            // im looking into using NTFS change journals
+            m_MessageStream.SetMessage(App_MESSAGE("Waiting for added file: ") + fileName);
+            while(!FileReady(src)){
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
-            
 
-            m_MessageStream.SetMessage(App_MESSAGE("Copying File: ") + fileName);
 
             // Process the file change
             switch (pNotify->Action) {
                 case FILE_ACTION_MODIFIED:
                 case FILE_ACTION_ADDED:{
+                    m_MessageStream.SetMessage(App_MESSAGE("Copying File: ") + fileName);
                     if(std::filesystem::is_regular_file(src)){
-                        std::filesystem::copy_file(src,dest,m_co);
+                        std::filesystem::copy_file(src,dest,pMonitor->directory.co);
                     }
                     else if(std::filesystem::is_directory(src)){
-                        std::filesystem::create_directory(dest);
+                        if(!std::filesystem::create_directory(dest)){
+                            logger log(App_MESSAGE("Failed to create directories"),Error::WARNING,dest_dir);
+                            log.to_console();
+                            log.to_log_file();
+                            log.to_output();
+                        }
                     }
                     break;
                 }
                 case FILE_ACTION_REMOVED:
-                    // Handle file removed
+                    if((pMonitor->directory.commands & cs::sync) != cs::none){
+                        m_MessageStream.SetMessage(App_MESSAGE("Removing File: ") + fileName);
+                        if(std::filesystem::is_regular_file(dest)){
+                            if(!std::filesystem::remove(dest)){
+                                logger log(App_MESSAGE("Failed to remove file"),Error::WARNING,dest);
+                                log.to_console();
+                                log.to_log_file();
+                                log.to_output();
+                            }
+                        }
+                        else if(std::filesystem::is_directory(dest)){
+                            m_directory_remove.emplace(dest);
+                        }
+                    }
                     break;
                 case FILE_ACTION_RENAMED_OLD_NAME:
                     // for future
@@ -164,17 +180,41 @@ void application::DirectorySignal::monitor(){
         }while(true); 
 
         
+        while(!m_directory_remove.empty()){
+            std::filesystem::path dest_to_remove = m_directory_remove.front();
+            m_MessageStream.SetMessage(App_MESSAGE("Removing Directory: ") + STRING(dest_to_remove));
+            uintmax_t files_removed = std::filesystem::remove_all(dest_to_remove);
+            if(!files_removed){
+                logger log(App_MESSAGE("Failed to remove directory"),Error::WARNING,dest_to_remove);
+                log.to_console(); 
+                log.to_log_file();
+                log.to_output();
+            }
+            else{
+                m_MessageStream.SetMessage(App_MESSAGE("Directory Removed along with containing files: ") + 
+                                            STRING(dest_to_remove) + App_MESSAGE(" Total files removed: ") +
+                                            std::to_wstring(files_removed));
+            }    
+            
+            m_directory_remove.pop();
+        }
+
         if(bytesTransferred == sizeof(pMonitor->m_buffer)){
             m_MessageStream.SetMessage(App_MESSAGE("Performing a full copy/update to all directories as the monitoring buffer has overflowed"));
-            application::FullCopy(m_Dirs);
+            FullCopy(*m_Dirs);
         }
         
+        bool recursive{false};
+        if((pMonitor->directory.commands & cs::recursive) != cs::none){
+            recursive = true;
+        }
+
 
         if(!ReadDirectoryChangesW(
             pMonitor->m_hDir, 
             &pMonitor->m_buffer, 
             sizeof(pMonitor->m_buffer), 
-            TRUE,
+            recursive, // watch subtree
             m_NotifyFilter,
             NULL, 
             &pMonitor->m_ol, 
@@ -193,13 +233,8 @@ void application::DirectorySignal::monitor(){
 
 
 
-
 /////////////////////////////////////////////////////////////
 /* Linux version of the directory signal class definitions */
 /////////////////////////////////////////////////////////////
-
 #if LINUX_BUILD
-
-
-
 #endif

@@ -1,20 +1,16 @@
 #include "ConsoleApp.hpp"
 #include <stdexcept>
 
+// Main entry point for the application
 int main(){
     try{
-		application::ConsoleApp sfct;
-        sfct.Go();
+		using namespace application;
+		std::unique_ptr<ConsoleApp> sfct{std::make_unique<ConsoleApp>()};
+		sfct->Go();
 	}
 	catch (const std::filesystem::filesystem_error& e) {
         // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << '\n';
-        if (e.code() == std::errc::no_such_file_or_directory) {
-            std::cerr << "Source or destination does not exist.\n";
-        } else if (e.code() == std::errc::file_exists) {
-            std::cerr << "Destination file exists and overwrite not specified.\n";
-        }
-        // Add more specific error handling as needed
 	}
 	catch(const std::runtime_error& e){
 		// the error message

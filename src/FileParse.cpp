@@ -5,7 +5,7 @@ application::FileParse::FileParse(const std::filesystem::path& path):m_FilePath(
     m_FileExists = std::filesystem::exists(m_FilePath);
 }
 
-void application::FileParse::ExtractData(const std::string& keyword){
+void application::FileParse::ExtractData(){
     if(!m_File.is_open()){
         logger log(App_MESSAGE("You need to Open the file before extracting the data, ExtractData will return to the caller without executing further"),Error::DEBUG);
         log.to_console();
@@ -21,60 +21,7 @@ void application::FileParse::ExtractData(const std::string& keyword){
         return;
     }
 
-    copyto directory;
-    std::string line;
-    bool src_set{false},dst_set{false};
-
-    while(std::getline(m_File,line)){
-        std::istringstream lineStream(line);
-        std::string token;
-        lineStream >> token;
-        if(token == keyword){
-            continue;
-        }
-        else if(token == "{"){
-            continue;
-        }
-        else if(token == "src"){
-            std::getline(lineStream,line);
-            
-            // remove leading whitespace
-            size_t begin_pos = line.find_first_not_of(" ");
-            std::string new_line(line.begin()+begin_pos,line.end());
-
-            size_t last_pos = new_line.find_last_of(';');
-            if(last_pos!=std::string::npos){
-                new_line.erase(new_line.begin()+last_pos);
-                directory.source = new_line;
-                src_set = true;
-            }
-        }
-        else if(token == "dst"){
-            std::getline(lineStream,line);
-            
-            // remove leading whitespace
-            size_t begin_pos = line.find_first_not_of(" ");
-            std::string new_line(line.begin()+begin_pos,line.end());
-
-            size_t last_pos = new_line.find_last_of(';');
-            if(last_pos!=std::string::npos){
-                new_line.erase(new_line.begin()+last_pos);
-                directory.destination = new_line;
-                dst_set = true;
-            }
-        }
-        else if(token == "}"){
-            continue;
-        }
-
-        if(src_set && dst_set){
-            m_Data->push_back(directory);
-            directory = {};
-            src_set = false;
-            dst_set = false;
-        }
-    }
-
+    ParseSyntax();
 
     // this function should only be called once per object unless a new valid path is set with 
     // SetFilePath() 
@@ -149,7 +96,7 @@ void application::FileParse::SetFilePath(const std::filesystem::path& new_path){
     
 }
 
-void application::FileParse::CheckData(DataType t){
+void application::FileParse::CheckData(){
     if(!m_DataExtracted){
         logger log(App_MESSAGE("Data has not been extracted, you need to call ExtractData() before calling CheckData()"),Error::DEBUG);
         log.to_console();
@@ -157,89 +104,353 @@ void application::FileParse::CheckData(DataType t){
         return;
     }
     
-    
-    switch(t){
-        case DataType::Directory:{
-            CheckDirectories();
-            break;
-        }
-        case DataType::Text:{
-            CheckText();
-            break;
-        }
-        default:{return;}
-    }
-    return;
+    CheckDirectories();
 }
 
-void application::FileParse::CheckText(){
-    return; // blank for now
+void application::FileParse::ParseSyntax()
+{
+    std::string line;
+    while(std::getline(m_File,line)){
+        std::istringstream lineStream(line);
+        std::string token;
+        lineStream >> token;
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            switch(found_token.value()){
+                case cs::copy:{
+                    copyto directory{};
+                    directory.commands |= cs::copy;
+                    directory.commands |= ParseCopyArgs(lineStream);
+                    directory.co = GetCopyOptions(directory.commands);
+                    ParseDirs(directory);
+                    break;
+                }
+                case cs::monitor:{
+                    copyto directory{};
+                    directory.commands |= cs::monitor;
+                    directory.commands |= ParseMonitorArgs(lineStream);
+                    directory.co = GetCopyOptions(directory.commands);
+                    ParseDirs(directory);
+                    break;
+                }
+                case cs::fast_copy:{
+                    copyto directory{};
+                    directory.commands |= cs::fast_copy;
+                    directory.commands |= ParseCopyArgs(lineStream);
+                    directory.co = GetCopyOptions(directory.commands);
+                    ParseDirs(directory);
+                    break;
+                }
+                case cs::benchmark:{
+                    copyto directory{};
+                    directory.commands |= cs::benchmark;
+                    directory.commands |= ParseBenchArgs(lineStream);
+                    directory.co |= std::filesystem::copy_options::overwrite_existing;
+                    ParseDirs(directory);
+                }
+                default:{
+                    break;
+                }
+            }
+        }
+    }   
 }
-
 
 void application::FileParse::CheckDirectories(){
-    // check that the directories are valid
-    // if the source entry is not valid mark the entry to be removed
-    // if the destination does not exist it will be created
-    for(size_t i{};i<m_Data->size();){
-        if(!std::filesystem::exists(m_Data->at(i).source)){
-            logger log(App_MESSAGE("entry is invalid and will not be used"),Error::WARNING,std::filesystem::path(m_Data->at(i).source));
+    for(auto it{m_Data->begin()};it!=m_Data->end();){
+        if((it->commands & cs::create) != cs::none){
+
+            if(!std::filesystem::exists(it->source)){
+                // create the directories for benchmarking
+                if(!std::filesystem::create_directories(it->source)){
+                    logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->source);
+                    log.to_console();
+                    log.to_log_file();
+                }
+            }
+            
+            if(!std::filesystem::exists(it->destination)){
+                if(!std::filesystem::create_directories(it->destination)){
+                    logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->destination);
+                    log.to_console();
+                    log.to_log_file();
+                }
+            }
+            
+        }
+        
+        
+        
+        if(!std::filesystem::exists(it->source) || 
+        !std::filesystem::exists(it->destination) || 
+        !ValidCommands(it->commands) ||
+        it->source == it->destination){
+            logger log(App_MESSAGE("Invalid entry"),Error::WARNING,it->source);
             log.to_console();
             log.to_log_file();
-            log.to_output();
-
-            // erase the entry
-            // Do not increment i, as the next element has shifted to the current position
-            m_Data->erase(m_Data->begin() + i);
+            it = m_Data->erase(it);
         }
         else{
-            // Only increment i if an element was not erased
-            i++;
+            it++;
         }
     }
-    
-    // check that the destination exists and if it does not, attempt to create it
-    for(size_t i{};i<m_Data->size();i++){
-        if(!std::filesystem::exists(m_Data->at(i).destination)){
-            if(!std::filesystem::create_directories(m_Data->at(i).destination)){
-                logger log(App_MESSAGE("Error: failed to create directories, destination is an invalid path"),Error::WARNING,std::filesystem::path(m_Data->at(i).destination));
-                log.to_console();
-                log.to_log_file();
-                log.to_output();
-                
-                // mark the directory as invalid
-                m_Data->at(i).destination = "INVALID";
-                m_Data->at(i).source = "INVALID";
+
+    // remove duplicates
+    std::sort(m_Data->begin(),m_Data->end(),copyto_comparison);
+    auto last = std::unique(m_Data->begin(), m_Data->end(), copyto_equal);
+    m_Data->erase(last, m_Data->end());
+
+
+    if(m_Data->empty()){
+        logger log(App_MESSAGE("No Valid directories"),Error::FATAL);
+        log.to_console();
+        log.to_log_file();
+        throw std::runtime_error("");
+    }
+}
+
+bool application::FileParse::ValidCommands(cs commands)
+{
+    // regular copy commands
+    cs copy_combo1 = cs::copy | cs::recursive | cs::update;
+    cs copy_combo2 = cs::copy | cs::recursive | cs::overwrite;
+    cs copy_combo3 = cs::copy | cs::single | cs::update;
+    cs copy_combo4 = cs::copy | cs::single | cs::overwrite;
+
+    // monitor commands
+    cs monitor_combo1 = cs::monitor | cs::recursive | cs::sync | cs::update;
+    cs monitor_combo2 = cs::monitor | cs::recursive | cs::sync | cs::overwrite;
+    cs monitor_combo3 = cs::monitor | cs::single | cs::sync | cs::update;
+    cs monitor_combo4 = cs::monitor | cs::single | cs::sync | cs::overwrite;
+    cs monitor_combo5 = cs::monitor | cs::single | cs::sync_add | cs::update;
+    cs monitor_combo6 = cs::monitor | cs::single | cs::sync_add | cs::overwrite;
+    cs monitor_combo7 = cs::monitor | cs::recursive | cs::sync_add | cs::update;
+    cs monitor_combo8 = cs::monitor | cs::recursive | cs::sync_add | cs::overwrite;
+
+    // fast copy commands
+    cs fast_copy_combo1 = cs::fast_copy | cs::recursive | cs::update;
+    cs fast_copy_combo2 = cs::fast_copy | cs::recursive | cs::overwrite;
+    cs fast_copy_combo3 = cs::fast_copy | cs::single | cs::update;
+    cs fast_copy_combo4 = cs::fast_copy | cs::single | cs::overwrite;
+
+    // benchmark
+    cs benchmark_combo1 = cs::benchmark | cs::create | cs::four_k;
+    cs benchmark_combo2 = cs::benchmark | cs::create;
+    cs benchmark_combo3 = cs::benchmark | cs::four_k;
+    cs benchmark_combo4 = cs::benchmark;
+    cs benchmark_combo5 = cs::benchmark | cs::create | cs::fast;
+    cs benchmark_combo6 = cs::benchmark | cs::create | cs::four_k | cs::fast;
+    cs benchmark_combo7 = cs::benchmark | cs::four_k | cs::fast;
+    cs benchmark_combo8 = cs::benchmark | cs::fast;
+
+
+
+    return commands == copy_combo1 ||
+           commands == copy_combo2 ||
+           commands == copy_combo3 ||
+           commands == copy_combo4 ||
+           commands == monitor_combo1 ||
+           commands == monitor_combo2 ||
+           commands == monitor_combo3 ||
+           commands == monitor_combo4 ||
+           commands == monitor_combo5 ||
+           commands == monitor_combo6 ||
+           commands == monitor_combo7 ||
+           commands == monitor_combo8 ||
+           commands == fast_copy_combo1 ||
+           commands == fast_copy_combo2 ||
+           commands == fast_copy_combo3 ||
+           commands == fast_copy_combo4 || 
+           commands == benchmark_combo1 ||
+           commands == benchmark_combo2 ||
+           commands == benchmark_combo3 ||
+           commands == benchmark_combo4 ||
+           commands == benchmark_combo5 ||
+           commands == benchmark_combo6 ||
+           commands == benchmark_combo7 ||
+           commands == benchmark_combo8;
+}
+
+application::cs application::FileParse::ParseCopyArgs(std::istringstream &lineStream)
+{
+    cs commands = cs::none;
+    std::string token;
+    while(lineStream >> token){
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            switch(found_token.value()){
+                case cs::recursive:{
+                    if((commands & cs::single) == cs::none){
+                        commands |= cs::recursive;
+                    }
+                    break;
+                }
+                case cs::update:{
+                    if((commands & cs::overwrite) == cs::none){
+                        commands |= cs::update;
+                    }
+                    break;
+                }
+                case cs::overwrite:{
+                    if((commands & cs::update) == cs::none){
+                        commands |= cs::overwrite;
+                    }
+                    break;
+                }
+                case cs::single:{
+                    if((commands & cs::recursive) == cs::none){
+                        commands |= cs::single;
+                    }
+                    break;
+                }
+                default:{
+                    break;
+                }
             }
         }
     }
+    return commands;
+}
 
-    // erase the invalid directories
-    for(size_t i{};i<m_Data->size();){
-        if(m_Data->at(i).destination == "INVALID"){
-            m_Data->erase(m_Data->begin()+i);
+void application::FileParse::ParseDirs(copyto &dir)
+{
+    bool end{false};
+    std::string line,token;
+    while(std::getline(m_File,line) && !end){
+        std::istringstream lineStream(line);
+        lineStream >> token;
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            switch(found_token.value()){
+                case cs::open_brace:{
+                    continue;
+                    break;
+                }
+                case cs::src:{
+                    std::getline(lineStream,line);
+                    size_t begin_pos = line.find_first_not_of(" ");
+                    size_t end_pos = line.find_last_of(';');
+                    if(begin_pos != std::string::npos && end_pos != std::string::npos){
+                        std::string src_dir(line.begin() + begin_pos,line.begin() + end_pos);
+                        dir.source = std::filesystem::path(src_dir);
+                    }
+                    else{
+                        logger log(App_MESSAGE("Syntax error missing ;"),Error::DEBUG);
+                        log.to_console();
+                        log.to_log_file();
+
+                        // dir.source is left blank and will be removed when the directories are checked
+                    }
+                    break;
+                }
+                case cs::dst:{
+                    std::getline(lineStream,line);
+                    size_t begin_pos = line.find_first_not_of(" ");
+                    size_t end_pos = line.find_last_of(';');
+                    if(begin_pos != std::string::npos && end_pos != std::string::npos){
+                        std::string dst_dir(line.begin() + begin_pos,line.begin() + end_pos);
+                        dir.destination = std::filesystem::path(dst_dir);
+                    }
+                    else{
+                        logger log(App_MESSAGE("Syntax error missing ;"),Error::DEBUG);
+                        log.to_console();
+                        log.to_log_file();
+
+                        // dir.destination is left blank and will be removed when the directories are checked
+                    }
+                    break;
+                }
+                case cs::close_brace:{
+                    end = true;
+                    m_Data->push_back(dir);
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
         }
-        else{
-            i++;
+    }
+}
+
+application::cs application::FileParse::ParseMonitorArgs(std::istringstream &lineStream)
+{
+    cs commands = cs::none;
+    std::string token;
+    while(lineStream >> token){
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            switch(found_token.value()){
+                case cs::sync:{
+                    if((commands & cs::sync_add) == cs::none){
+                        commands |= cs::sync;
+                    }
+                    break;
+                }
+                case cs::sync_add:{
+                    if((commands & cs::sync)==cs::none){
+                        commands |= cs::sync_add;
+                    }
+                    break;
+                }
+                case cs::recursive:{
+                    if((commands & cs::single) == cs::none){
+                        commands |= cs::recursive;
+                    }
+                    break;
+                }
+                case cs::single:{
+                    if((commands & cs::recursive) == cs::none){
+                        commands |= cs::single;
+                    }
+                    break;
+                }
+                case cs::overwrite:{
+                    if((commands & cs::update) == cs::none){
+                        commands |= cs::overwrite;
+                    }
+                    break;
+                }
+                case cs::update:{
+                    if((commands & cs::overwrite) == cs::none){
+                        commands |= cs::update;
+                    }
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
         }
     }
+    return commands;
+}
 
-    // check that m_Data has entries
-    if(m_Data->empty()){
-        logger log(App_MESSAGE("No valid directory entries in file"),Error::FATAL,m_FilePath);
-        log.to_console();
-        log.to_log_file();
-        throw std::runtime_error("No valid directories found, program will now exit");
+application::cs application::FileParse::ParseBenchArgs(std::istringstream &lineStream)
+{
+    cs commands = cs::none;
+    std::string token;
+    while(lineStream >> token){
+        auto found_token = global_tokenizer.Find(token);
+        if(found_token.has_value()){
+            switch(found_token.value()){
+                case cs::create:{
+                    commands |= cs::create;
+                    break;
+                }
+                case cs::four_k:{
+                    commands |= cs::four_k;
+                    break;
+                }
+                case cs::fast:{
+                    commands |= cs::fast;
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
+        }
     }
-
-
-    // initialize fs_source and fs_destination in the m_Data vector
-    // using the std::string's source and destination
-    // std::filesystem works best with its native path type
-    for(size_t i{};i<m_Data->size();i++){
-        std::filesystem::path src_init(m_Data->at(i).source);
-        std::filesystem::path dest_init(m_Data->at(i).destination);
-        m_Data->at(i).fs_source = src_init;
-        m_Data->at(i).fs_destination = dest_init;
-    }
+    return commands;
 }
