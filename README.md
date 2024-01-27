@@ -76,7 +76,7 @@ If the average file size is above a threashold OS specific FastCopy is used and 
 Monitors a directory for changes, when changes occur the program wakes up and performs the arguments specified. Typically recursive, update, and sync.
 
 ### benchmark
-Performs a speed test of the copy operation, currently std::filesystem::copy is used. When -4k arg is supplied a large number of small files are created and copied. If -create arg is supplied the directories will be created.
+Performs a speed test of the copy operation, currently defaults to use std::filesystem::copy unless -fast arg is supplied then OS specific function is used and it is multithreaded. When -4k arg is supplied a large number of small files are created and copied. If -create arg is supplied the directories will be created.
 
 ### -recursive
 Sub-directories are included.
@@ -142,8 +142,8 @@ benchmark -fast<br>
 ## Current Limitations
 1. ~~Single threaded copying(its still really fast at copying it maxes out my gen3 ssd +2GB/s)~~
 2. ~~No control over copying flags~~
-3. No GUI
-4. Windows Only
+3. No GUI.
+4. Windows Only.
 5. ~~No control over syncing(currently updates existing files)~~
 6. Lacks robust error handling which is why I only release debug versions.
 7. Needs a terminal window to stay running.
@@ -155,9 +155,9 @@ benchmark -fast<br>
 ## Future Plans
 1. ~~Add more control over syncing and copying(sftc_list.txt will have more commands and arguments)~~
 2. ~~Implement multithreaded copying~~
-3. Linux support
-4. Mac support
-5. Add GUI
+3. Linux support.
+4. Mac support.
+5. Add GUI.
 6. Address current limitations.
 7. Add more features.
 8. Packaged installer.

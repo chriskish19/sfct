@@ -118,23 +118,26 @@ void application::DirectorySignal::monitor(){
                 }
             }
             
-            // unfortunately there is no way to know if the file has completed the copy into the source
-            // directory from explorer.exe or the terminal in windows so I use a pool checker
-            // which is not ideal but no other way exists
-            // im looking into using NTFS change journals
-            m_MessageStream.SetMessage(App_MESSAGE("Waiting for added file: ") + fileName);
-            while(!FileReady(src)){
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-
-
+            
             // Process the file change
             switch (pNotify->Action) {
                 case FILE_ACTION_MODIFIED:
                 case FILE_ACTION_ADDED:{
+                    // unfortunately there is no way to know if the file has completed the copy into the source
+                    // directory from the terminal in windows or another program so I use a pool checker
+                    // which is not ideal but no other way exists
+                    // im looking into using NTFS change journals
+                    m_MessageStream.SetMessage(App_MESSAGE("Checking for availability: ") + fileName);
+                    while(!FileReady(src)){
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+
+
                     m_MessageStream.SetMessage(App_MESSAGE("Copying File: ") + fileName);
                     if(std::filesystem::is_regular_file(src)){
-                        std::filesystem::copy_file(src,dest,pMonitor->directory.co);
+                        if(!std::filesystem::copy_file(src,dest,pMonitor->directory.co)){
+                            m_MessageStream.SetMessage(App_MESSAGE("Skipping File: ") + fileName);
+                        }
                     }
                     else if(std::filesystem::is_directory(src)){
                         if(!std::filesystem::create_directory(dest)){
@@ -148,8 +151,8 @@ void application::DirectorySignal::monitor(){
                 }
                 case FILE_ACTION_REMOVED:
                     if((pMonitor->directory.commands & cs::sync) != cs::none){
-                        m_MessageStream.SetMessage(App_MESSAGE("Removing File: ") + fileName);
-                        if(std::filesystem::is_regular_file(dest)){
+                        if(std::filesystem::is_regular_file(dest) && std::filesystem::exists(dest)){
+                            m_MessageStream.SetMessage(App_MESSAGE("Removing File: ") + fileName);
                             if(!std::filesystem::remove(dest)){
                                 logger log(App_MESSAGE("Failed to remove file"),Error::WARNING,dest);
                                 log.to_console();
@@ -182,20 +185,22 @@ void application::DirectorySignal::monitor(){
         
         while(!m_directory_remove.empty()){
             std::filesystem::path dest_to_remove = m_directory_remove.front();
-            m_MessageStream.SetMessage(App_MESSAGE("Removing Directory: ") + STRING(dest_to_remove));
-            uintmax_t files_removed = std::filesystem::remove_all(dest_to_remove);
-            if(!files_removed){
-                logger log(App_MESSAGE("Failed to remove directory"),Error::WARNING,dest_to_remove);
-                log.to_console(); 
-                log.to_log_file();
-                log.to_output();
+            if(std::filesystem::exists(dest_to_remove)){
+                m_MessageStream.SetMessage(App_MESSAGE("Removing Directory: ") + STRING(dest_to_remove));
+                uintmax_t files_removed = std::filesystem::remove_all(dest_to_remove);
+                if(!files_removed){
+                    logger log(App_MESSAGE("Failed to remove directory"),Error::WARNING,dest_to_remove);
+                    log.to_console(); 
+                    log.to_log_file();
+                    log.to_output();
+                }
+                else{
+                    m_MessageStream.SetMessage(App_MESSAGE("Directory Removed along with containing files: ") + 
+                                                STRING(dest_to_remove) + App_MESSAGE(" Total files removed: ") +
+                                                std::to_wstring(files_removed));
+                }   
             }
-            else{
-                m_MessageStream.SetMessage(App_MESSAGE("Directory Removed along with containing files: ") + 
-                                            STRING(dest_to_remove) + App_MESSAGE(" Total files removed: ") +
-                                            std::to_wstring(files_removed));
-            }    
-            
+           
             m_directory_remove.pop();
         }
 

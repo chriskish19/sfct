@@ -47,6 +47,9 @@ target_link_options(sfct PRIVATE
 if(WIN32)
     # Define UNICODE for Windows builds
     add_definitions(-DUNICODE -D_UNICODE)
+
+    # link the manifest to the project
+    target_sources(sfct PRIVATE win32/sfct.exe.manifest)
 endif()
 
 

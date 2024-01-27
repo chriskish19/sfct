@@ -5,6 +5,8 @@
 #include "obj.hpp"
 #include <vector>
 #include "TM.hpp"
+#include <optional>
+#include <unordered_map>
 
 /////////////////////////////////////////////////////////////////////////////////
 // This header contains windows specific functions
@@ -197,5 +199,63 @@ namespace Windows{
         }
     }
 
+    inline std::optional<std::shared_ptr<std::unordered_map<std::filesystem::path,std::filesystem::path>>> GetClipBoardFilePaths(){
+        if (!OpenClipboard(nullptr)) {
+            application::logger log(application::Error::WARNING);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
+            return std::nullopt;
+        }
+
+        HANDLE hData = GetClipboardData(CF_HDROP);
+        if (hData == nullptr) {
+            application::logger log(application::Error::INFO);
+            log.to_log_file();
+            CloseClipboard();
+            return std::nullopt;
+        }
+
+        HDROP hDrop = static_cast<HDROP>(GlobalLock(hData));
+        if (hDrop == nullptr) {
+            application::logger log(application::Error::WARNING);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
+            CloseClipboard();
+            return std::nullopt;
+        }
+
+        UINT nFiles = DragQueryFile(hDrop, 0xFFFFFFFF, nullptr, 0);
+        if(nFiles>0){
+            std::shared_ptr<std::unordered_map<std::filesystem::path,std::filesystem::path>> pPaths_mp{std::make_shared<std::unordered_map<std::filesystem::path,std::filesystem::path>>()};
+            for (UINT i = 0; i < nFiles; ++i) {
+                // Get the required buffer size for each file path
+                UINT bufferSize = DragQueryFile(hDrop, i, nullptr, 0) + 1; // +1 for null terminator
+
+                // Allocate a buffer for the file path
+                WCHAR* tmp_path = new WCHAR[bufferSize];
+
+                // Retrieve the file path
+                if (DragQueryFile(hDrop, i, tmp_path, bufferSize)) {
+                    std::filesystem::path filepath(tmp_path);
+                    pPaths_mp->emplace(filepath.filename(),filepath);
+                }
+
+                if(tmp_path) delete tmp_path;
+            }
+            GlobalUnlock(hData);
+            DragFinish(hDrop);
+            CloseClipboard();
+            return pPaths_mp;
+        }
+        
+        GlobalUnlock(hData);
+        DragFinish(hDrop);
+        CloseClipboard();
+        return std::nullopt;
+    } 
+
+      
 }
 #endif

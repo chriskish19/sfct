@@ -69,9 +69,6 @@ void application::logger::to_log_file() const{
         log.to_console();
         log.to_output();
     }
-
-    // important for log files where the latest information should be preserved in case the program crashes or is terminated before exiting normally.
-    logFile.flush();
 }
 
 void application::logger::initErrorType() {
