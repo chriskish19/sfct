@@ -102,22 +102,11 @@ void application::DirectorySignal::monitor(){
         do{
             // Extract the file name
             std::wstring fileName(pNotify->FileName, pNotify->FileNameLength / sizeof(WCHAR));
-            
             std::filesystem::path src(pMonitor->directory.source/fileName);
             std::filesystem::path dest(pMonitor->directory.destination/fileName);
-
             std::filesystem::path dest_dir(pMonitor->directory.destination/fileName);
             dest_dir.remove_filename();
-
-            if(!std::filesystem::exists(dest_dir)){
-                if(!std::filesystem::create_directories(dest_dir)){
-                    logger log(App_MESSAGE("Failed to create directories"),Error::WARNING,dest_dir);
-                    log.to_console();
-                    log.to_log_file();
-                    log.to_output();
-                }
-            }
-            
+            CDirectory(dest_dir);
             
             // Process the file change
             switch (pNotify->Action) {
@@ -205,8 +194,13 @@ void application::DirectorySignal::monitor(){
         }
 
         if(bytesTransferred == sizeof(pMonitor->m_buffer)){
-            m_MessageStream.SetMessage(App_MESSAGE("Performing a full copy/update to all directories as the monitoring buffer has overflowed"));
-            FullCopy(*m_Dirs);
+            m_MessageStream.SetMessage(App_MESSAGE("Performing a full copy/update to the directory as the monitoring buffer has overflowed"));
+            if(!CopyDir(pMonitor->directory)){
+                logger log(App_MESSAGE("Failed to copy directory"),Error::WARNING,pMonitor->directory.source);
+                log.to_console();
+                log.to_log_file();
+                log.to_output();
+            }
         }
         
         bool recursive{false};

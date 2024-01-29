@@ -77,11 +77,11 @@ void application::ConsoleApp::Go(){
         for(const auto& dir:*m_bench_dirs){
             if((dir.commands & cs::four_k) != cs::none){
                 // 10,000 files and a total of 1GB
-                bench_test.speed_test_4k(dir,10000,1024ull*1024*1024);
+                bench_test.speed_test_4k(dir,FourKFileNumber,FourKTestSize);
             }
             else{
                 // 1GB test
-                bench_test.speed_test(dir,1024ull * 1024 * 1024);
+                bench_test.speed_test(dir,TestSize);
             }
         }
         

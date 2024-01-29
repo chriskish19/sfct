@@ -180,6 +180,7 @@ namespace application{
         return avg_size;
     }
 
+    // returns a directory_info object that has files count, total size and average size
     inline directory_info GetDI(const copyto& dir){
         directory_info counts{};
         if((dir.commands & cs::recursive) != cs::none){
@@ -196,5 +197,62 @@ namespace application{
         }
         counts.AvgFileSize = static_cast<double>(counts.TotalSize / counts.FileCount);
         return counts;
+    }
+
+    // checks if the directory exists and if it doesnt it attempts to create the directory
+    inline void CDirectory(const std::filesystem::path& dir) {
+        std::filesystem::path directoryPath = dir;
+
+        // If the path has a filename, use the parent directory
+        if (dir.has_filename()) {
+            directoryPath = dir.parent_path();
+        }
+
+        if (!std::filesystem::is_directory(directoryPath) && !std::filesystem::create_directories(directoryPath)) {
+            logger log(App_MESSAGE("Failed to create directories"), Error::WARNING, directoryPath);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
+        }
+    }
+
+    inline bool CheckDirectory(const std::filesystem::path& dir){
+        if(!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir)){
+            logger log(App_MESSAGE("Not a valid directory"),Error::WARNING,dir);
+            log.to_console();
+            log.to_log_file();
+            log.to_output();
+            return false;
+        }
+        return true;
+    }
+
+
+    // copy a directory
+    // when finished the speed is displayed to the message stream
+    inline bool CopyDir(const copyto& dir){
+        // check that it is a valid directory
+        if(!CheckDirectory(dir.source) || !CheckDirectory(dir.destination)){
+            return false;
+        }
+        
+        std::uintmax_t totalsize{};
+        if((dir.commands & cs::recursive) != cs::none){
+            totalsize = recursive_check(dir.source);
+        }
+        else if((dir.commands & cs::single) != cs::none){
+            totalsize = single_check(dir.source);
+        }
+        
+        benchmark speed;
+        speed.start_clock();
+        std::filesystem::copy(dir.source,dir.destination,dir.co);
+        speed.end_clock();
+        double rate = speed.speed(totalsize);
+
+        m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(rate));
+        m_MessageStream.ReleaseBuffer();
+
+        return true;
     }
 }

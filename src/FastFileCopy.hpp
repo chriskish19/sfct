@@ -22,11 +22,7 @@ namespace application{
         FastFileCopy(std::shared_ptr<std::vector<copyto>> dirs);
         void copy();
     private:
-        std::uintmax_t recursive(const copyto& dir);
-        std::uintmax_t single(const copyto& dir);
         std::shared_ptr<std::vector<copyto>> m_dirs;
-        TM m_workers;
-        std::vector<paths*> m_pPaths;
     };
 #endif
 }

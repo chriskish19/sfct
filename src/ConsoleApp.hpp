@@ -9,6 +9,7 @@
 #include "winHelper.hpp"
 #include "FastFileCopy.hpp"
 #include "benchmark.hpp"
+#include "constants.hpp"
 
 /////////////////////////////////////////////////////////////////
 // This header is responsible for the main object used to run the program.

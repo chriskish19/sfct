@@ -7,6 +7,7 @@
 #include "TM.hpp"
 #include <optional>
 #include <unordered_map>
+#include "constants.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////
 // This header contains windows specific functions
@@ -48,9 +49,14 @@ namespace Windows{
         _setmode(_fileno(stdout), _O_U16TEXT);          
     }
 
-    inline bool FastCopy(LPCWSTR srcPath, LPCWSTR destPath) {
-        HANDLE hSource = CreateFile(srcPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-        HANDLE hDest = CreateFile(destPath, GENERIC_WRITE | GENERIC_READ, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    // wrapper for std::filesystem::copy to be used multithreaded so paths are kept alive and i dont have to allocate with new
+    inline bool FileCopy(const std::filesystem::path src,const std::filesystem::path dst,std::filesystem::copy_options co){
+        return std::filesystem::copy_file(src,dst,co);
+    }
+
+    inline bool FastCopy(const std::filesystem::path src, const std::filesystem::path dst) {
+        HANDLE hSource = CreateFile(src.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        HANDLE hDest = CreateFile(dst.c_str(), GENERIC_WRITE | GENERIC_READ, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
         if (hSource == INVALID_HANDLE_VALUE || hDest == INVALID_HANDLE_VALUE) {
             if (hSource != INVALID_HANDLE_VALUE) CloseHandle(hSource);
@@ -137,64 +143,50 @@ namespace Windows{
     inline std::uintmax_t MTFastCopy(const application::copyto& dir){
         if((dir.commands & application::cs::recursive) != application::cs::none){
             std::uintmax_t totalsize{};
-            std::vector<application::paths*> pPaths;
             application::TM workers;
 
             for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
-                totalsize += entry.file_size();
-                const auto& path = entry.path();
-                auto relativePath = std::filesystem::relative(path, dir.source);
+                std::uintmax_t filesize = entry.file_size();
+                totalsize += filesize;
+                const auto& src_path = entry.path();
+                auto relativePath = std::filesystem::relative(src_path, dir.source);
+                auto actual_dst = dir.destination / relativePath;
                 if (entry.is_directory()) {
-                    std::filesystem::create_directories(dir.destination / relativePath);
-                } else if (entry.is_regular_file() && entry.file_size() != 0) {
-                    application::paths* _paths = new application::paths(path,dir.destination / relativePath);
-                    pPaths.push_back(_paths);
-                    workers.do_work(&Windows::FastCopy,_paths->m_src.c_str(),_paths->m_dst.c_str());
-                    if(workers.join_one()){
-                        application::paths* p_path = pPaths.front();
-                        if(p_path) delete p_path;
-                        pPaths.erase(pPaths.begin());
-                    }
+                    std::filesystem::create_directories(actual_dst);
+                } else if (entry.is_regular_file() && filesize > MinFileSize && filesize < MaxFileSize) {
+                    // if file size is greater than 1MB and less than 1GB
+                    workers.do_work(&Windows::FastCopy,src_path,actual_dst);
+                } else if(entry.is_regular_file()){
+                    // if file size is 0 to 1MB or 1GB and above
+                    workers.do_work(&Windows::FileCopy,src_path,actual_dst,dir.co);
                 }
+                workers.join_one();
             }
             workers.join_all();
-
-            // cleanup
-            for(const auto path:pPaths){
-                if(path) delete path;
-            }
-
             return totalsize;
         }
         else{
             std::uintmax_t totalsize{};
-            std::vector<application::paths*> pPaths;
             application::TM workers;
 
             for(const auto& entry:std::filesystem::directory_iterator(dir.source)){
-                totalsize += entry.file_size();
-                const auto& path = entry.path();
-                auto relativePath = std::filesystem::relative(path, dir.source);
+                std::uintmax_t filesize = entry.file_size();
+                totalsize += filesize;
+                const auto& src_path = entry.path();
+                auto relativePath = std::filesystem::relative(src_path, dir.source);
+                auto actual_dst = dir.destination / relativePath;
                 if (entry.is_directory()) {
-                    std::filesystem::create_directories(dir.destination / relativePath);
-                } else if (entry.is_regular_file() && entry.file_size() != 0) {
-                    application::paths* _paths = new application::paths(path,dir.destination / relativePath);
-                    pPaths.push_back(_paths);
-                    workers.do_work(&Windows::FastCopy,_paths->m_src.c_str(),_paths->m_dst.c_str());
-                    if(workers.join_one()){
-                        application::paths* p_path = pPaths.front();
-                        if(p_path) delete p_path;
-                        pPaths.erase(pPaths.begin());
-                    }
+                    std::filesystem::create_directories(actual_dst);
+                } else if (entry.is_regular_file() && filesize > MinFileSize && filesize < MaxFileSize) {
+                    // if file size is greater than 1MB and less than 1GB
+                    workers.do_work(&Windows::FastCopy,src_path,actual_dst);
+                } else if(entry.is_regular_file()){
+                    // if file size is 0 to 1MB or 1GB and above
+                    workers.do_work(&Windows::FileCopy,src_path,actual_dst,dir.co);
                 }
+                workers.join_one();
             }
             workers.join_all();
-
-            // cleanup
-            for(const auto path:pPaths){
-                if(path) delete path;
-            }
-
             return totalsize;
         }
     }
