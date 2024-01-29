@@ -13,3 +13,6 @@ inline constexpr std::uintmax_t FourKFileNumber = 10000; // 10,000
 
 // standard test size used in speed test
 inline constexpr std::uintmax_t TestSize = 1024ull * 1024 * 1024; // 1GB
+
+// monitor buffer size
+inline constexpr std::uintmax_t MonitorBuffer = 1024ull * 1024 * 10; // 10MB

@@ -6,6 +6,7 @@
 #include "ConsoleTM.hpp"
 #include "helper.hpp"
 #include <queue>
+#include "constants.hpp"
 
 /////////////////////////////////////////////////////////////////////
 // This header is responsible for monitoring directories for changes
@@ -23,7 +24,7 @@
 namespace application{
     struct DS_resources {
         HANDLE m_hDir;
-        BYTE m_buffer[10485760]; // 10MB buffer, do not allocate this on the stack
+        BYTE m_buffer[MonitorBuffer]; // 10MB buffer, do not allocate this on the stack
         OVERLAPPED m_ol;
         copyto directory;
     }; 
@@ -42,6 +43,21 @@ namespace application{
         std::shared_ptr<std::vector<copyto>> m_Dirs;
         bool no_watch{false};
         std::queue<std::filesystem::path> m_directory_remove;   // directories set for deletion
+        
+        // loop through the queue and delete directories
+        void EmptyQueue(); 
+
+        // check if the monitored directory buffer has overflowed
+        bool Overflow(DWORD bytes_returned,DS_resources* p_monitor);
+
+        // calls ReadDirectoryChanges
+        void UpdateWatcher(DS_resources* p_monitor);
+
+        // checks for recursive flag
+        bool RecursiveFlagCheck(cs command);
+
+        // go through all the notifications form the watched directory
+        void ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION* pNotify,DS_resources* pMonitor);
     };
 }
 #endif
