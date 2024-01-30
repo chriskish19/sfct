@@ -255,4 +255,104 @@ namespace application{
 
         return true;
     }
+
+    // this function is expensive but useful, it returns a set of directories that are different between two directories non recursive.
+    // if comparing d1 C:/test and d2 D:/test it will return the unique entrys directories or files ect.
+    // say for example C:/test/truth.mp3 and D:/test/lie.mp3 both C:/test/truth.mp3 and D:/test/lie.mp3 paths will be in the returned set
+    // another example C:/test/truth.mp3 and D:/test/truth.mp3 neither will be in the returned set because both entries exist in the d1 and d2.
+    inline std::optional<std::shared_ptr<std::unordered_set<std::filesystem::path>>> DirectoryDifferenceSingle(const std::filesystem::path& d1, const std::filesystem::path& d2){
+        if(!CheckDirectory(d1) || !CheckDirectory(d2)){
+            return std::nullopt;
+        }
+
+        std::unordered_set<std::filesystem::path> d1paths,d2paths,unique_paths;
+
+        for(const auto& entry:std::filesystem::directory_iterator(d1)){
+            auto relativePath = std::filesystem::relative(entry.path(),d1);
+            d1paths.emplace(relativePath);
+        }
+
+        for(const auto& entry:std::filesystem::directory_iterator(d2)){
+            auto relativePath = std::filesystem::relative(entry.path(),d2);
+            if(d1paths.find(relativePath) == d1paths.end()){
+                unique_paths.emplace(entry.path());
+                d2paths.emplace(relativePath);
+            }
+        }
+
+        for(const auto& entry:std::filesystem::directory_iterator(d1)){
+            auto relativePath = std::filesystem::relative(entry.path(),d1);
+            if(d2paths.find(relativePath)==d2paths.end()){
+                unique_paths.emplace(entry.path());
+            }
+        }
+
+
+        if(unique_paths.empty()){
+            return std::nullopt;
+        }
+
+        return std::make_shared<std::unordered_set<std::filesystem::path>>(unique_paths);
+    } 
+
+    // this function is really expensive depending on the directory size ,its the recursive version
+    // see above DirectoryDifferenceSingle() for explaination
+    inline std::optional<std::shared_ptr<std::unordered_set<std::filesystem::path>>> DirectoryDifferenceRecursive(const std::filesystem::path& d1, const std::filesystem::path& d2){
+        if(!CheckDirectory(d1) || !CheckDirectory(d2)){
+            return std::nullopt;
+        }
+
+        std::unordered_set<std::filesystem::path> d1paths,d2paths,unique_paths;
+
+        for(const auto& entry:std::filesystem::recursive_directory_iterator(d1)){
+            auto relativePath = std::filesystem::relative(entry.path(),d1);
+            d1paths.emplace(relativePath);
+        }
+
+        for(const auto& entry:std::filesystem::recursive_directory_iterator(d2)){
+            auto relativePath = std::filesystem::relative(entry.path(),d2);
+            if(d1paths.find(relativePath) == d1paths.end()){
+                unique_paths.emplace(entry.path());
+                d2paths.emplace(relativePath);
+            }
+        }
+
+        for(const auto& entry:std::filesystem::recursive_directory_iterator(d1)){
+            auto relativePath = std::filesystem::relative(entry.path(),d1);
+            if(d2paths.find(relativePath)==d2paths.end()){
+                unique_paths.emplace(entry.path());
+            }
+        }
+
+
+        if(unique_paths.empty()){
+            return std::nullopt;
+        }
+
+        return std::make_shared<std::unordered_set<std::filesystem::path>>(unique_paths);
+    } 
+
+    // given two paths find if sub_of_dir is a subtree of dir
+    // doesnt check if the paths are valid on the system
+    // its a string checking function
+    inline bool FindDirectoryPaths(const std::filesystem::path& dir,const std::filesystem::path& sub_of_dir){
+        STRING s_dir(dir);
+        STRING s_sub_of_dir(sub_of_dir);
+
+        size_t found_pos = s_sub_of_dir.find(dir);
+        return found_pos != std::string::npos;
+    }
+
+    inline void CopyEntryCreate(const std::filesystem::path& src,const std::filesystem::path& dst){
+        if(std::filesystem::is_regular_file(src)){
+
+        }
+        else if(std::filesystem::is_directory(src)){
+
+        }
+        else if(std::filesystem::is_symlink(src)){
+
+        }
+        
+    }
 }

@@ -40,14 +40,4 @@ namespace application{
         std::uintmax_t FileCount;
         double AvgFileSize;
     };
-
-    
-    struct paths{
-        paths(const std::filesystem::path& src,const std::filesystem::path& dst)
-        :m_src(src),
-        m_dst(dst){}
-
-        const std::filesystem::path m_src;
-        const std::filesystem::path m_dst;
-    };
 }
