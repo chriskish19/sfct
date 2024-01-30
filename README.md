@@ -27,8 +27,8 @@ cmake --build .
 ```
 
 # Getting Started
-## Get the latest release
-Download the latest release from the releases page.
+## No releases
+See Build from source code.
 
 ## Setup
 Run sfct.exe for the first time and it will create an sfct_list.txt file in the current directory. This is where you specify the directories you want synced, copied or benchmarked.
@@ -145,12 +145,12 @@ benchmark -fast<br>
 3. No GUI
 4. Windows Only
 5. ~~No control over syncing(currently updates existing files)~~
-6. Lacks robust error handling which is why I only release debug versions.
+6. Lacks robust error handling.
 7. Needs a terminal window to stay running.
 8. Cannot copy a cloud drive folder, program crashes.
 9. Checks if a file is available by pooling fstream and if the file is locked the program will pause indefinitely until the file becomes available.
 10. No checks to avoid sub-directory recursive monitoring. Currently depends on the user not to double monitor.
-11. Unpolished program still in the early stages of development. 
+11. Unpolished program still in the early stages of development.  
 
 ## Future Plans
 1. ~~Add more control over syncing and copying(sftc_list.txt will have more commands and arguments)~~
