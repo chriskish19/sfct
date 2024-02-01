@@ -5,8 +5,17 @@
 /* Windows version of logger class definitions */
 /////////////////////////////////////////////////
 #if WINDOWS_BUILD
-application::logger::logger(const std::wstring& s, Error type, const std::source_location& location)
-:m_location(location),m_type(type){
+application::logger::logger(const std::error_code &ec, Error type, const std::filesystem::path &filepath, const std::source_location &location)
+    : m_location(location), m_type(type)
+{
+    initLogger();
+    std::wstring s_error_message(ec.message().begin(),ec.message().end());
+    mMessage += s_error_message;
+}
+
+application::logger::logger(const std::wstring &s, Error type, const std::source_location &location)
+    : m_location(location), m_type(type)
+{
     initLogger();
     mMessage += L" Message: " + s;
 }

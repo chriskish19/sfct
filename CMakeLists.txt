@@ -32,7 +32,9 @@ set(SOURCE_FILES    src/main.cpp
                     src/args.hpp
                     src/benchmark.hpp
                     src/benchmark.cpp
-                    src/constants.hpp)
+                    src/constants.hpp
+                    src/sfct_api.hpp
+                    src/sfct_api.cpp)
 
 
 add_executable(sfct ${SOURCE_FILES})

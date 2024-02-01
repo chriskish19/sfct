@@ -10,6 +10,10 @@
 #include "logger.hpp"
 #include "AppMacros.hpp"
 #include "benchmark.hpp"
+#include <unordered_set>
+#include <string>
+#include <optional>
+
 
 //////////////////////////////////////////////////////////////////////////
 // This header provides helper functions needed throughout the program
@@ -341,18 +345,5 @@ namespace application{
 
         size_t found_pos = s_sub_of_dir.find(dir);
         return found_pos != std::string::npos;
-    }
-
-    inline void CopyEntryCreate(const std::filesystem::path& src,const std::filesystem::path& dst){
-        if(std::filesystem::is_regular_file(src)){
-
-        }
-        else if(std::filesystem::is_directory(src)){
-
-        }
-        else if(std::filesystem::is_symlink(src)){
-
-        }
-        
     }
 }

@@ -172,9 +172,7 @@ bool application::DirectorySignal::Overflow(DWORD bytes_returned, DS_resources* 
             // now we can check if the files are avaliable
             // and copy them or delete them
             for(const auto& path:*p_dir_changes.value()){
-                while(!FileReady(path)){
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-                }
+                sfct_api::FileCheck(path);
 
                 if(FindDirectoryPaths(src,path)){
                     // copy

@@ -8,6 +8,8 @@
 #include <queue>
 #include "constants.hpp"
 #include <unordered_set>
+#include "sfct_api.hpp"
+
 
 /////////////////////////////////////////////////////////////////////
 // This header is responsible for monitoring directories for changes
