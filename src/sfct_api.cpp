@@ -51,6 +51,72 @@ bool sfct_api::CDirectory(path src)
     return true;
 }
 
+std::optional<sfct_api::fs::path> sfct_api::GetRelativeFilePath(path file,path base)
+{
+    // if file is not a file, log it and return nothing
+    if(!fs::is_regular_file(file)){
+        application::logger log(App_MESSAGE("Not a valid file"),application::Error::WARNING,file);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+
+    // if base is not present and is not a directory on the system, log it and return nothing
+    if(!fs::is_directory(base)){
+        application::logger log(App_MESSAGE("Not a valid directory on system"),application::Error::WARNING,base);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+
+    fs::path relative_path;
+
+    // 'root_path()' gives the root directory or drive on Windows, e.g., "C:/" or "/"
+    // 'relative_path()' gives the part of the path relative to the root directory
+    // Combining them without the root gives a path relative to the root directory
+    if (file.has_root_path()) {
+        relative_path = file.relative_path();
+    } else {
+        // The path is already relative
+        relative_path = file;
+    }
+
+    return base/relative_path;
+}
+
+std::optional<sfct_api::fs::path> sfct_api::GetRelativePath(path entry, path base)
+{
+    // if entry is not present on the system, log it and return nothing
+    if(!fs::exists(entry)){
+        application::logger log(App_MESSAGE("Not a valid system path"),application::Error::WARNING,entry);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+
+    // if base is not present and is not a directory on the system, log it and return nothing
+    if(!fs::is_directory(base)){
+        application::logger log(App_MESSAGE("Not a valid directory on system"),application::Error::WARNING,base);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+
+    fs::path relative_path;
+
+    // 'root_path()' gives the root directory or drive on Windows, e.g., "C:/" or "/"
+    // 'relative_path()' gives the part of the path relative to the root directory
+    // Combining them without the root gives a path relative to the root directory
+    if (entry.has_root_path()) {
+        relative_path = entry.relative_path();
+    } else {
+        // The path is already relative
+        relative_path = entry;
+    }
+
+    return base/relative_path;
+}
+
 std::optional<sfct_api::fs::path> sfct_api::CreateFileRelativePath(path src, path dst)
 {
     // if src does not exist return nothing
@@ -71,19 +137,13 @@ std::optional<sfct_api::fs::path> sfct_api::CreateFileRelativePath(path src, pat
     }
 
     // get the relative path
-    // relative path can fail if src_dir and dst_dir have no common paths
-    std::error_code ec;
-    fs::path relativePath = fs::relative(src_dir,dst_dir,ec);
-    
-    if(ec){
-        application::logger log(ec,application::Error::WARNING,src_dir);
-        log.to_console();
-        log.to_log_file();
+    std::optional<fs::path> relativePath = GetRelativePath(src_dir,dst_dir);
+    if(!relativePath.has_value()){
         return std::nullopt;
     }
 
     // the file destination directory with the directory new tree from src
-    fs::path file_dst = dst_dir/relativePath;
+    fs::path file_dst = dst_dir/relativePath.value();
 
     // if it fails to create the relative directory return nothing
     if(!CDirectory(file_dst)){
@@ -145,4 +205,93 @@ bool sfct_api::CreateDirectoryTree(path src, path dst)
     // function may succeed but it could be the case that some or all directories failed to be created
     // the errors will be in the log file or console
     return true;
+}
+
+std::optional<double_t> sfct_api::FileGetTransferRate(path src)
+{
+    // if the src path is not a file log it and return nothing
+    if(!fs::is_regular_file(src)){
+        application::logger log(App_MESSAGE("Not a file"),application::Error::WARNING,src);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+    
+    // setup a benchmark to test the speed
+    application::benchmark test;
+
+    // for logging errors
+    std::error_code ec_1,ec_2;
+
+    // begin timer
+    test.start_clock();
+
+    // get the initial file size
+    std::uintmax_t filesize = fs::file_size(src,ec_1);
+
+    // wait 10ms for the transfer
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // get the change in file size
+    std::uintmax_t deltafilesize = fs::file_size(src,ec_2)-filesize;
+
+    // end timer
+    test.end_clock();
+
+    // get the rate in MB/s
+    double_t rate = test.speed(deltafilesize);
+
+    // if there was an error log it
+    // return nothing
+    if(ec_1){
+        application::logger log(ec_1,application::Error::WARNING,src);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+
+    // if there was an error log it
+    // return nothing
+    if(ec_2){
+        application::logger log(ec_2,application::Error::WARNING,src);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+
+    // if the file size didnt change
+    // return nothing to indicate the file is not being transfered
+    if(rate == 0.0){
+        return std::nullopt;
+    }
+
+    // if no errors and rate has a value not equal to zero
+    // return the transfer rate in MB/s
+    return rate;
+}
+
+std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api::GetDifferenceBetweenDirectoriesSingle(path d1, path d2)
+{
+    if(!fs::is_directory(d1)){
+        application::logger log(App_MESSAGE("Invalid directory"),application::Error::WARNING,d1);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+    
+    if(!fs::is_directory(d2)){
+        application::logger log(App_MESSAGE("Invalid directory"),application::Error::WARNING,d2);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+
+    std::unordered_set<fs::path> unique_paths,d1_paths,d2_paths;
+
+    for(const auto& entry:fs::directory_iterator(d1)){
+        std::optional<fs::path> relative_path = GetRelativePath(entry.path(),d2);
+        if(relative_path.has_value()){
+            d1_paths.emplace(relative_path.value());
+        }
+    }
 }

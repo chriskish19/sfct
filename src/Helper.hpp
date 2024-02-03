@@ -142,7 +142,7 @@ namespace application{
             speed.start_clock();
             std::filesystem::copy(dir.source,dir.destination,dir.co);
             speed.end_clock();
-            double rate = speed.speed(totalsize);
+            double_t rate = speed.speed(totalsize);
 
             m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(rate));
             m_MessageStream.ReleaseBuffer();
@@ -165,7 +165,7 @@ namespace application{
         return totalsize;
     }
 
-    inline double GetAverageFileSize(const copyto& dir){
+    inline double_t GetAverageFileSize(const copyto& dir){
         std::uintmax_t totalsize{},fileCount{};
         if((dir.commands & cs::recursive) != cs::none){
             for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
@@ -179,7 +179,7 @@ namespace application{
                 fileCount++;
             }
         }
-        double avg_size = static_cast<double>(totalsize / fileCount);
+        double_t avg_size = static_cast<double_t>(totalsize / fileCount);
         // average size in bytes
         return avg_size;
     }
@@ -199,7 +199,7 @@ namespace application{
                 counts.FileCount++;
             }
         }
-        counts.AvgFileSize = static_cast<double>(counts.TotalSize / counts.FileCount);
+        counts.AvgFileSize = static_cast<double_t>(counts.TotalSize / counts.FileCount);
         return counts;
     }
 
@@ -252,7 +252,7 @@ namespace application{
         speed.start_clock();
         std::filesystem::copy(dir.source,dir.destination,dir.co);
         speed.end_clock();
-        double rate = speed.speed(totalsize);
+        double_t rate = speed.speed(totalsize);
 
         m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(rate));
         m_MessageStream.ReleaseBuffer();

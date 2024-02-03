@@ -20,7 +20,7 @@ void application::FastFileCopy::copy()
         speed.start_clock();
         totalsize = Windows::MTFastCopy(dir);
         speed.end_clock();
-        double rate = speed.speed(totalsize);
+        double_t rate = speed.speed(totalsize);
         m_MessageStream.SetMessage(STRING(dir.source) + App_MESSAGE("- Speed in MB/s: ") + TOSTRING(rate));
         m_MessageStream.ReleaseBuffer();
     }

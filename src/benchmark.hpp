@@ -17,11 +17,11 @@ namespace application{
     public:
         void start_clock();
         void end_clock();
-        double speed(std::uintmax_t totalSize);
+        double_t speed(std::uintmax_t totalSize);
         void speed_test(const copyto& dir,std::uintmax_t bytes);
         void speed_test_4k(const copyto& dir,std::uintmax_t filesCount,std::uintmax_t bytes);
     private:
         std::chrono::steady_clock::time_point m_start,m_end;
-        std::chrono::duration<double> m_duration;
+        std::chrono::duration<double_t> m_duration;
     };
 }

@@ -10,11 +10,15 @@ void application::benchmark::end_clock()
     m_end = std::chrono::high_resolution_clock::now();
 }
 
-double application::benchmark::speed(std::uintmax_t totalSize)
+double_t application::benchmark::speed(std::uintmax_t totalSize)
 {
+    if(totalSize == 0ull){
+        return 0.0;
+    } 
+        
     m_duration = m_end - m_start;
-    double seconds = m_duration.count();
-    double speed = totalSize / seconds; // Bytes per second
+    double_t seconds = m_duration.count();
+    double_t speed = totalSize / seconds; // Bytes per second
     return speed / 1024 / 1024; // MB/s
 }
 
@@ -57,7 +61,7 @@ void application::benchmark::speed_test(const copyto& dir,std::uintmax_t bytes)
     std::uintmax_t bench_file_size = std::filesystem::file_size(dir.source/filename);
 
     // speed in MB/s
-    double speed = test.speed(bench_file_size);
+    double_t speed = test.speed(bench_file_size);
 
     m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(speed));
     m_MessageStream.ReleaseBuffer();
@@ -115,7 +119,7 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
     test.end_clock();
 
     // speed in MB/s
-    double speed = test.speed(bytes);
+    double_t speed = test.speed(bytes);
 
     m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(speed));
     m_MessageStream.ReleaseBuffer();

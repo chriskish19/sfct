@@ -38,6 +38,6 @@ namespace application{
     struct directory_info{
         std::uintmax_t TotalSize;
         std::uintmax_t FileCount;
-        double AvgFileSize;
+        double_t AvgFileSize;
     };
 }
