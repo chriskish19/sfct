@@ -1,6 +1,6 @@
 #include "sfct_api.hpp"
 
-bool sfct_api::IsFileAvailable(path filepath)
+bool sfct_api::is_file_available(path filepath)
 {
     if(std::filesystem::is_regular_file(filepath)){
         std::fstream file;
@@ -12,19 +12,19 @@ bool sfct_api::IsFileAvailable(path filepath)
         return false;
     }
     else{
-        // is a directory or something else
+        // is a directory, something else or not a valid path
         return true;
     }
 }
 
-void sfct_api::FileCheck(path filepath)
+void sfct_api::file_check(path filepath)
 {
-    while(!IsFileAvailable(filepath)){
+    while(!is_file_available(filepath)){
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
-bool sfct_api::CheckDirectory(path dir)
+bool sfct_api::check_directory(path dir)
 {
     if(!fs::is_directory(dir)){
         application::logger log(App_MESSAGE("Invalid Directory"),application::Error::WARNING,dir);
@@ -35,7 +35,7 @@ bool sfct_api::CheckDirectory(path dir)
     return true;
 }
 
-bool sfct_api::CDirectory(path src)
+bool sfct_api::create_directory(path src)
 {
     fs::path dir = src;
     if(dir.has_filename()){
@@ -51,7 +51,7 @@ bool sfct_api::CDirectory(path src)
     return true;
 }
 
-std::optional<sfct_api::fs::path> sfct_api::GetRelativeFilePath(path file,path base)
+std::optional<sfct_api::fs::path> sfct_api::get_relative_file_path(path file,path base)
 {
     // if file is not a file, log it and return nothing
     if(!fs::is_regular_file(file)){
@@ -69,22 +69,10 @@ std::optional<sfct_api::fs::path> sfct_api::GetRelativeFilePath(path file,path b
         return std::nullopt;
     }
 
-    fs::path relative_path;
-
-    // 'root_path()' gives the root directory or drive on Windows, e.g., "C:/" or "/"
-    // 'relative_path()' gives the part of the path relative to the root directory
-    // Combining them without the root gives a path relative to the root directory
-    if (file.has_root_path()) {
-        relative_path = file.relative_path();
-    } else {
-        // The path is already relative
-        relative_path = file;
-    }
-
-    return base/relative_path;
+    return ext::get_relative_path(file,base);
 }
 
-std::optional<sfct_api::fs::path> sfct_api::GetRelativePath(path entry, path base)
+std::optional<sfct_api::fs::path> sfct_api::get_relative_path(path entry, path base)
 {
     // if entry is not present on the system, log it and return nothing
     if(!fs::exists(entry)){
@@ -102,22 +90,10 @@ std::optional<sfct_api::fs::path> sfct_api::GetRelativePath(path entry, path bas
         return std::nullopt;
     }
 
-    fs::path relative_path;
-
-    // 'root_path()' gives the root directory or drive on Windows, e.g., "C:/" or "/"
-    // 'relative_path()' gives the part of the path relative to the root directory
-    // Combining them without the root gives a path relative to the root directory
-    if (entry.has_root_path()) {
-        relative_path = entry.relative_path();
-    } else {
-        // The path is already relative
-        relative_path = entry;
-    }
-
-    return base/relative_path;
+    return ext::get_relative_path(entry,base);
 }
 
-std::optional<sfct_api::fs::path> sfct_api::CreateFileRelativePath(path src, path dst)
+std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, path dst)
 {
     // if src does not exist return nothing
     if(!fs::exists(src)){
@@ -136,26 +112,10 @@ std::optional<sfct_api::fs::path> sfct_api::CreateFileRelativePath(path src, pat
         dst_dir.remove_filename();
     }
 
-    // get the relative path
-    std::optional<fs::path> relativePath = GetRelativePath(src_dir,dst_dir);
-    if(!relativePath.has_value()){
-        return std::nullopt;
-    }
-
-    // the file destination directory with the directory new tree from src
-    fs::path file_dst = dst_dir/relativePath.value();
-
-    // if it fails to create the relative directory return nothing
-    if(!CDirectory(file_dst)){
-        return std::nullopt;
-    } 
-
-    // if everything works out and their is no errors return the new path
-    // useful for copying to a new directory tree  
-    return file_dst;
+    return ext::create_file_relative_path(src_dir,dst_dir);
 }
 
-bool sfct_api::CopyFileCreatePath(path src, path dst, fs::copy_options co)
+bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co)
 {
     // src must exist and be a regular file to be copyable
     if(!fs::exists(src) || !fs::is_regular_file(src)){
@@ -163,32 +123,17 @@ bool sfct_api::CopyFileCreatePath(path src, path dst, fs::copy_options co)
     }
     
     // create the directories needed for the copy operation
-    std::optional<fs::path> new_dst = CreateFileRelativePath(src,dst);
+    std::optional<fs::path> new_dst = ext::create_file_relative_path(src,dst);
     
-    // in case copy operation fails we can log the error 
-    std::error_code ec;
-    
-    // if CreateFileRelativePath succeeds attempt to copy the file
+    // if create_file_relative_path succeeds attempt to copy the file
     if(new_dst.has_value()){
-        fs::copy_file(src,new_dst.value(),co,ec);
+        return ext::copy_file(src,new_dst.value(),co);
     }
-    else{
-        return false;
-    }
-
-    // if ec has value log the error and return false
-    if(ec){
-        application::logger log(ec,application::Error::WARNING,src);
-        log.to_console();
-        log.to_log_file();
-        return false;
-    }
-
-    // passed all checks and successfully copied the file
-    return true;
+    
+    return false;
 }
 
-bool sfct_api::CreateDirectoryTree(path src, path dst)
+bool sfct_api::create_directory_tree(path src, path dst)
 {
     // src must be a directory and exist.
     // dst must be a directory and exist.
@@ -197,9 +142,9 @@ bool sfct_api::CreateDirectoryTree(path src, path dst)
     }
 
     // this may need to be further optimized in the future
-    // CreateFileRelativePath is not a slow function but many calls add up depending on src directory size
+    // create_file_relative_path is not a slow function but many calls add up depending on src directory size
     for(const auto& entry: fs::recursive_directory_iterator(src)){
-        CreateFileRelativePath(entry.path(),dst);
+        ext::create_file_relative_path(entry.path(),dst);
     }
 
     // function may succeed but it could be the case that some or all directories failed to be created
@@ -207,7 +152,7 @@ bool sfct_api::CreateDirectoryTree(path src, path dst)
     return true;
 }
 
-std::optional<double_t> sfct_api::FileGetTransferRate(path src)
+std::optional<double_t> sfct_api::file_get_transfer_rate(path src)
 {
     // if the src path is not a file log it and return nothing
     if(!fs::is_regular_file(src)){
@@ -220,44 +165,34 @@ std::optional<double_t> sfct_api::FileGetTransferRate(path src)
     // setup a benchmark to test the speed
     application::benchmark test;
 
-    // for logging errors
-    std::error_code ec_1,ec_2;
-
     // begin timer
     test.start_clock();
 
     // get the initial file size
-    std::uintmax_t filesize = fs::file_size(src,ec_1);
+    std::optional<std::uintmax_t> filesize = ext::get_file_size(src);
+
+    // if no value returned return nothing
+    if(!filesize.has_value()) 
+        return std::nullopt;
 
     // wait 10ms for the transfer
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     // get the change in file size
-    std::uintmax_t deltafilesize = fs::file_size(src,ec_2)-filesize;
+    std::optional<std::uintmax_t> newfilesize = ext::get_file_size(src);
+    
+    // if no value returned return nothing
+    if(!newfilesize.has_value()) 
+        return std::nullopt;
+    
+    // get the change in file size
+    std::uintmax_t deltafilesize = newfilesize.value() - filesize.value();
 
     // end timer
     test.end_clock();
 
     // get the rate in MB/s
     double_t rate = test.speed(deltafilesize);
-
-    // if there was an error log it
-    // return nothing
-    if(ec_1){
-        application::logger log(ec_1,application::Error::WARNING,src);
-        log.to_console();
-        log.to_log_file();
-        return std::nullopt;
-    }
-
-    // if there was an error log it
-    // return nothing
-    if(ec_2){
-        application::logger log(ec_2,application::Error::WARNING,src);
-        log.to_console();
-        log.to_log_file();
-        return std::nullopt;
-    }
 
     // if the file size didnt change
     // return nothing to indicate the file is not being transfered
@@ -270,7 +205,7 @@ std::optional<double_t> sfct_api::FileGetTransferRate(path src)
     return rate;
 }
 
-std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api::GetDifferenceBetweenDirectoriesSingle(path d1, path d2)
+std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api::get_directory_differences_single(path d1, path d2)
 {
     if(!fs::is_directory(d1)){
         application::logger log(App_MESSAGE("Invalid directory"),application::Error::WARNING,d1);
@@ -289,9 +224,127 @@ std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api:
     std::unordered_set<fs::path> unique_paths,d1_paths,d2_paths;
 
     for(const auto& entry:fs::directory_iterator(d1)){
-        std::optional<fs::path> relative_path = GetRelativePath(entry.path(),d2);
+        std::optional<fs::path> relative_path = ext::get_relative_path(entry.path(),d2);
         if(relative_path.has_value()){
             d1_paths.emplace(relative_path.value());
         }
     }
+
+
 }
+
+std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
+{
+    application::path_ext _p = private_get_relative_path(entry,base);
+    if(_p.e){
+        application::logger log(_p.e,application::Error::WARNING,entry);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+    return _p.p;
+}
+
+std::optional<std::uintmax_t> sfct_api::ext::get_file_size(path entry)
+{
+    application::file_size_ext _fse = private_get_file_size(entry);
+    if(_fse.e){
+        application::logger log(_fse.e,application::Error::WARNING,entry);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+    return _fse.size;
+}
+
+bool sfct_api::ext::copy_file(path src, path dst, fs::copy_options co)
+{
+    application::copy_file_ext _cfe = private_copy_file(src,dst,co);
+    if(_cfe.e){
+        application::logger log(_cfe.e,application::Error::WARNING,src);
+        log.to_console();
+        log.to_log_file();
+        return false;
+    }
+    return true;
+}
+
+sfct_api::fs::path sfct_api::ext::combine_path_tree(path entry, path base)
+{
+    fs::path _entry;
+    if(entry.has_root_path()){
+        // remove root path
+        _entry = entry.relative_path();
+    }
+    else{
+        _entry = entry;
+    }
+    return base/_entry;
+
+}
+
+std::optional<sfct_api::fs::path> sfct_api::ext::create_file_relative_path(path src, path dst)
+{
+    fs::path file_dst;
+
+    // if the root paths equal, get the relative path
+    if(src.root_path() == dst.root_path()){
+        // get the relative path
+        std::optional<fs::path> relativePath = ext::get_relative_path(src,dst);
+        if(!relativePath.has_value()){
+            return std::nullopt;
+        }
+        file_dst = dst/relativePath.value();
+    }
+    else{
+        file_dst = ext::combine_path_tree(src,dst);
+    }
+
+    
+    // if it fails to create the relative directory return nothing
+    if(!ext::create_directory(file_dst).has_value()){
+        return std::nullopt;
+    } 
+
+    // if everything works out and their is no errors return the new path
+    // useful for copying to a new directory tree  
+    return file_dst;
+}
+
+std::optional<bool> sfct_api::ext::create_directory(path dir)
+{
+    std::error_code e;
+    if(fs::create_directories(dir,e)){
+        return true;
+    }
+
+    if(e){
+        application::logger log(e,application::Error::WARNING,dir);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+    return false;
+}
+
+application::path_ext sfct_api::ext::private_get_relative_path(path entry, path base)
+{
+    application::path_ext _p;
+    _p.p = fs::relative(entry,base,_p.e);
+    return _p;
+}
+
+application::file_size_ext sfct_api::ext::private_get_file_size(path entry)
+{
+    application::file_size_ext _fse;
+    _fse.size = fs::file_size(entry,_fse.e);
+    return _fse;
+}
+
+application::copy_file_ext sfct_api::ext::private_copy_file(path src, path dst, fs::copy_options co)
+{
+    application::copy_file_ext _cfe;
+    _cfe.rv = fs::copy_file(src,dst,co,_cfe.e);
+    return _cfe;
+}
+

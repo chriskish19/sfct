@@ -40,4 +40,22 @@ namespace application{
         std::uintmax_t FileCount;
         double_t AvgFileSize;
     };
+
+    struct path_ext{
+        std::filesystem::path p;
+        std::error_code e;
+    };
+
+    struct file_size_ext{
+        std::uintmax_t size;
+        std::error_code e;
+    };
+
+    struct copy_file_ext{
+        // returned value from the function std::filesystem::copy_file()
+        bool rv;
+
+        // error code from the function std::filesystem::copy_file() 
+        std::error_code e;
+    };
 }
