@@ -205,34 +205,6 @@ std::optional<double_t> sfct_api::file_get_transfer_rate(path src)
     return rate;
 }
 
-std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api::get_directory_differences_single(path d1, path d2)
-{
-    if(!fs::is_directory(d1)){
-        application::logger log(App_MESSAGE("Invalid directory"),application::Error::WARNING,d1);
-        log.to_console();
-        log.to_log_file();
-        return std::nullopt;
-    }
-    
-    if(!fs::is_directory(d2)){
-        application::logger log(App_MESSAGE("Invalid directory"),application::Error::WARNING,d2);
-        log.to_console();
-        log.to_log_file();
-        return std::nullopt;
-    }
-
-    std::unordered_set<fs::path> unique_paths,d1_paths,d2_paths;
-
-    for(const auto& entry:fs::directory_iterator(d1)){
-        std::optional<fs::path> relative_path = ext::get_relative_path(entry.path(),d2);
-        if(relative_path.has_value()){
-            d1_paths.emplace(relative_path.value());
-        }
-    }
-
-
-}
-
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
 {
     application::path_ext _p = private_get_relative_path(entry,base);

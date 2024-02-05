@@ -161,10 +161,4 @@ namespace sfct_api{
     /// returns nothing if errors occurred
     /// returns nothing if there was no change in file size and rate is 0.0
     std::optional<double_t> file_get_transfer_rate(path src);
-
-    /// @brief 
-    /// @param d1 
-    /// @param d2 
-    /// @return 
-    std::optional<std::shared_ptr<std::unordered_set<fs::path>>> get_directory_differences_single(path d1,path d2);
 }

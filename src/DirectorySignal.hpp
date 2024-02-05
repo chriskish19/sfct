@@ -27,7 +27,7 @@
 namespace application{
     struct DS_resources {
         HANDLE m_hDir;
-        BYTE m_buffer[MonitorBuffer]; // 10MB buffer, do not allocate this on the stack
+        BYTE m_buffer[MonitorBuffer]; // 10MB buffer, do not allocate this on the stack, value defined in constants.hpp
         OVERLAPPED m_ol;
         copyto directory;
     }; 
@@ -61,14 +61,6 @@ namespace application{
 
         // go through all the notifications from the watched directory
         void ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION* pNotify,DS_resources* pMonitor);
-
-        // if the monitor buffer overflows because of too many additions to the directory or deletions
-        // we iterate the directory and fill a set with the paths in the directory non recursive
-        std::unordered_set<std::filesystem::path> m_ovflo_paths;
-
-        // the file paths initially in the dst directory before monitoring begins
-        // the key is the dst path the value is all the files and directories in the dst
-        std::unordered_map<std::filesystem::path,std::unordered_set<std::filesystem::path>> m_dst_init_mp;
     };
 }
 #endif

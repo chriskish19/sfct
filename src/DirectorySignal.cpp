@@ -20,21 +20,6 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
     }
 
     for(const auto &dir:*dirs_to_watch){
-        if(RecursiveFlagCheck(dir.commands)){
-            std::unordered_set<std::filesystem::path> paths;
-            for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.destination)){
-                paths.emplace(entry.path());
-            }
-            m_dst_init_mp.emplace(dir.destination,paths);
-        }
-        else{
-            std::unordered_set<std::filesystem::path> paths;
-            for(const auto& entry:std::filesystem::directory_iterator(dir.destination)){
-                paths.emplace(entry.path());
-            }
-            m_dst_init_mp.emplace(dir.destination,paths);
-        }
-        
         HANDLE hDir = CreateFile(
             dir.source.c_str(), FILE_LIST_DIRECTORY,
             FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -89,17 +74,7 @@ void application::DirectorySignal::monitor(){
     m_MessageStream.ReleaseBuffer();
     
     while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
-        if(!pMonitor){
-            logger log(Error::FATAL);
-            log.to_console();
-            log.to_log_file();
-            log.to_output();
-            throw std::runtime_error("");
-        }
-        
-        if(Overflow(bytesTransferred,pMonitor)){
-            continue;
-        }
+        Overflow(bytesTransferred,pMonitor);
         
         // Process change notification in pMonitor->buffer
         // Pointer to the first notification
@@ -140,61 +115,6 @@ bool application::DirectorySignal::Overflow(DWORD bytes_returned, DS_resources* 
 {
     if(bytes_returned == MonitorBuffer){
         m_MessageStream.SetMessage(App_MESSAGE("The monitoring buffer has overflowed"));
-        
-        std::optional<std::shared_ptr<std::unordered_set<std::filesystem::path>>> p_dir_changes;
-
-        std::filesystem::path src(p_monitor->directory.source);
-        std::filesystem::path dst(p_monitor->directory.destination);
-        std::filesystem::copy_options co = p_monitor->directory.co;
-
-        if(RecursiveFlagCheck(p_monitor->directory.commands)){
-            p_dir_changes = DirectoryDifferenceRecursive(src,dst);
-        }
-        else{
-            p_dir_changes = DirectoryDifferenceSingle(src,dst);
-        }
-
-        if(p_dir_changes.has_value()){
-            // for now we ignore dst differences due to the fact of deleting files could be problematic if a directory is specified and it has alot of files already in it
-            // I want sync to work only when it is monitoring src, any prevoius files in the dst directory are ignored and left alone
-            auto found = m_dst_init_mp.find(dst);
-            if(found != m_dst_init_mp.end()){
-                // inital files and entries in dst
-                // we want to ignore all intial files
-                for(const auto& entry:found->second){
-                    auto found_entry = p_dir_changes.value()->find(entry);
-                    if(found_entry != p_dir_changes.value()->end()){
-                        p_dir_changes.value()->erase(found_entry);
-                    }
-                }
-            }
-
-            // now we can check if the files are avaliable
-            // and copy them or delete them
-            for(const auto& path:*p_dir_changes.value()){
-                sfct_api::file_check(path);
-
-                if(FindDirectoryPaths(src,path)){
-                    // copy
-                    if(std::filesystem::is_regular_file(path)){
-                        auto relativePath = std::filesystem::relative(path,src);
-                        std::filesystem::path dst_file_path(dst/relativePath);
-                        std::filesystem::copy_file(path,dst_file_path,co);
-                    }
-                    else if(std::filesystem::is_directory(path)){
-                        
-                    }
-                    
-                }
-                else if(FindDirectoryPaths(dst,path)){
-                    // delete
-                    std::filesystem::remove(path);
-                }
-            }
-
-
-        }
-
         return true;
     }
     return false;
