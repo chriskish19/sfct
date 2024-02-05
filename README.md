@@ -28,7 +28,7 @@ cmake --build .
 
 # Getting Started
 ## No releases
-See Build from source code.
+Currently the program is not ready for use, it does work somewhat but their is alot of issues to fix and the whole code base needs to be redesigned. I am working on the issues in the dev branch. That being said if you still wish to try sfct in the main branch. See Build from source code.
 
 ## Setup
 Run sfct.exe for the first time and it will create an sfct_list.txt file in the current directory. This is where you specify the directories you want synced, copied or benchmarked.
