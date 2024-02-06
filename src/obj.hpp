@@ -77,4 +77,9 @@ namespace application{
         std::filesystem::file_status fs;
         file_queue_status fqs;
     };
+
+    struct remove_file_ext{
+        bool rv;
+        std::error_code e;
+    };
 }

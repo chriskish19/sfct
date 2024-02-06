@@ -43,7 +43,7 @@ namespace application{
             
         }
 
-        void add_to_queue(data_t entry){
+        void add_to_queue(const data_t& entry){
             std::lock_guard<std::mutex> local_lock(m_queue_buffer_mtx);
             m_queue_buffer.emplace(entry);
             m_start = std::chrono::high_resolution_clock::now();
@@ -74,18 +74,121 @@ namespace application{
         void process_file_queue_info(const file_queue_info& entry){
             switch(entry.fqs){
                 case file_queue_status::file_added:{
-                    sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
+                    switch(entry.fs.type()){
+                        case std::filesystem::file_type::none:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::not_found:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::regular:
+                            sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
+                            break;
+                        case std::filesystem::file_type::directory:
+                            sfct_api::create_directory_paths(entry.dst);
+                            break;
+                        case std::filesystem::file_type::symlink:
+                            
+                            break;
+                        case std::filesystem::file_type::block:
+                            
+                            break;
+                        case std::filesystem::file_type::character:
+                            
+                            break;
+                        case std::filesystem::file_type::fifo:
+                            
+                            break;
+                        case std::filesystem::file_type::socket:
+                            
+                            break;
+                        case std::filesystem::file_type::unknown:
+
+                            break;
+                        default:
+                            
+                            break;
+                    }
                     break;
                 }
                 case file_queue_status::file_updated:{
-                    
+                    switch(entry.fs.type()){
+                        case std::filesystem::file_type::none:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::not_found:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::regular:
+                            sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
+                            break;
+                        case std::filesystem::file_type::directory:
+                            
+                            break;
+                        case std::filesystem::file_type::symlink:
+                            
+                            break;
+                        case std::filesystem::file_type::block:
+                            
+                            break;
+                        case std::filesystem::file_type::character:
+                            
+                            break;
+                        case std::filesystem::file_type::fifo:
+                            
+                            break;
+                        case std::filesystem::file_type::socket:
+                            
+                            break;
+                        case std::filesystem::file_type::unknown:
+
+                            break;
+                        default:
+                            
+                            break;
+                    }
                     break;
                 }
                 case file_queue_status::file_removed:{
-                    
+                    switch(entry.fs.type()){
+                        case std::filesystem::file_type::none:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::not_found:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::regular:
+                            
+                            break;
+                        case std::filesystem::file_type::directory:
+                            
+                            break;
+                        case std::filesystem::file_type::symlink:
+                            
+                            break;
+                        case std::filesystem::file_type::block:
+                            
+                            break;
+                        case std::filesystem::file_type::character:
+                            
+                            break;
+                        case std::filesystem::file_type::fifo:
+                            
+                            break;
+                        case std::filesystem::file_type::socket:
+                            
+                            break;
+                        case std::filesystem::file_type::unknown:
+
+                            break;
+                        default:
+                            
+                            break;
+                    }
                     break;
                 }
             }
         }
+
     };
 }

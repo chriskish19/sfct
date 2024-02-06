@@ -35,20 +35,23 @@ bool sfct_api::check_directory(path dir)
     return true;
 }
 
-bool sfct_api::create_directory(path src)
+bool sfct_api::create_directory_paths(path src)
 {
+    if(fs::exists(src)){
+        return false;
+    }
+    
     fs::path dir = src;
     if(dir.has_filename()){
         dir.remove_filename();
     }
 
-    if(!fs::is_directory(dir) && !fs::create_directories(dir)){
-        application::logger log(App_MESSAGE("Failed to create directories"),application::Error::WARNING,dir);
-        log.to_console();
-        log.to_log_file();
-        return false;
+    std::optional<bool> succeded = ext::create_directory_paths(dir);
+
+    if(succeded.has_value()){
+        return succeded.value();
     }
-    return true;
+    return false;
 }
 
 std::optional<sfct_api::fs::path> sfct_api::get_relative_file_path(path file,path base)
@@ -120,7 +123,7 @@ std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, 
     return ext::create_file_relative_path(src_dir,dst_dir,src_base);
 }
 
-bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co)
+bool sfct_api::copy_file_create_relative_path(path src, path dst, fs::copy_options co)
 {
     // src must exist and be a regular file to be copyable
     if(!fs::exists(src) || !fs::is_regular_file(src)){
@@ -210,6 +213,48 @@ std::optional<double_t> sfct_api::file_get_transfer_rate(path src)
     return rate;
 }
 
+bool sfct_api::copy_file(path src, path dst, fs::copy_options co)
+{
+    if(!fs::is_regular_file(src)){
+        application::logger log(App_MESSAGE("Not a valid file path"),application::Error::WARNING,src);
+        log.to_console();
+        log.to_log_file();
+        return false;
+    }
+
+    if(!fs::is_directory(dst)){
+        application::logger log(App_MESSAGE("Not a valid directory path"),application::Error::WARNING,dst);
+        log.to_console();
+        log.to_log_file();
+        return false;
+    }
+
+    return ext::copy_file(src,dst,co);
+}
+
+bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co)
+{
+    fs::path dst_dir = dst;
+    if(dst_dir.has_filename()){
+        dst_dir.remove_filename();
+    }
+    
+    // src must exist and be a regular file to be copyable
+    if(!fs::is_regular_file(src)){
+        return false;
+    }
+    
+    // create the directories needed for the copy operation
+    std::optional<bool> succeded = ext::create_directory_paths(dst_dir);
+    
+    // if create_file_relative_path succeeds attempt to copy the file
+    if(succeded.has_value()){
+        return ext::copy_file(src,dst,co);
+    }
+    
+    return false;
+}
+
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
 {
     application::path_ext _p = private_get_relative_path(entry,base);
@@ -285,7 +330,7 @@ std::optional<sfct_api::fs::path> sfct_api::ext::create_file_relative_path(path 
     }
     
     // if it fails to create the relative directory return nothing
-    if(!ext::create_directory(file_dst).has_value()){
+    if(!ext::create_directory_paths(file_dst).has_value()){
         return std::nullopt;
     } 
 
@@ -294,7 +339,7 @@ std::optional<sfct_api::fs::path> sfct_api::ext::create_file_relative_path(path 
     return file_dst;
 }
 
-std::optional<bool> sfct_api::ext::create_directory(path dir)
+std::optional<bool> sfct_api::ext::create_directory_paths(path dir)
 {
     std::error_code e;
     if(fs::create_directories(dir,e)){
@@ -313,10 +358,48 @@ std::optional<bool> sfct_api::ext::create_directory(path dir)
 sfct_api::fs::path sfct_api::ext::get_last_folder(path entry)
 {
     // Get the parent path of the entry
-    sfct_api::fs::path parent_path = entry.parent_path();
+    fs::path parent_path = entry.parent_path();
     
     // Now get the last component of the parent path, which is the immediate directory name
     return parent_path.filename();
+}
+
+bool sfct_api::ext::remove_file(path file)
+{
+    application::remove_file_ext _rfe = private_remove_file(file);
+    if(_rfe.e){
+        application::logger log(_rfe.e,application::Error::WARNING,file);
+        log.to_console();
+        log.to_log_file();
+        return false;
+    }
+    return _rfe.rv;
+}
+
+bool sfct_api::ext::remove_all(path dir)
+{
+    application::remove_file_ext _rfe = private_remove_all(dir);
+    if(_rfe.e){
+        application::logger log(_rfe.e,application::Error::WARNING,dir);
+        log.to_console();
+        log.to_log_file();
+        return false;
+    }
+    return _rfe.rv;
+}
+
+application::remove_file_ext sfct_api::ext::private_remove_all(path dir)
+{
+    application::remove_file_ext _rfe;
+    _rfe.rv = fs::remove_all(dir,_rfe.e);
+    return _rfe;
+}
+
+application::remove_file_ext sfct_api::ext::private_remove_file(path file)
+{
+    application::remove_file_ext _rfe;
+    _rfe.rv = fs::remove(file,_rfe.e);
+    return _rfe;
 }
 
 application::path_ext sfct_api::ext::private_get_relative_path(path entry, path base)

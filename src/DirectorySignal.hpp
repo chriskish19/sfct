@@ -9,6 +9,7 @@
 #include "constants.hpp"
 #include <unordered_set>
 #include "sfct_api.hpp"
+#include "queue_system.hpp"
 
 
 /////////////////////////////////////////////////////////////////////
@@ -61,6 +62,8 @@ namespace application{
 
         // go through all the notifications from the watched directory
         void ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION* pNotify,DS_resources* pMonitor);
+
+        queue_system<file_queue_info> m_queue_processer;
     };
 }
 #endif

@@ -72,13 +72,33 @@ namespace sfct_api{
             /// @brief 
             /// @param dir 
             /// @return 
-            static std::optional<bool> create_directory(path dir);
+            static std::optional<bool> create_directory_paths(path dir);
 
             /// @brief 
             /// @param entry 
             /// @return 
             static fs::path get_last_folder(path entry);
+
+            /// @brief 
+            /// @param file 
+            /// @return 
+            static bool remove_file(path file);
+
+            /// @brief 
+            /// @param dir 
+            /// @return 
+            static bool remove_all(path dir);
         private:
+            /// @brief 
+            /// @param dir 
+            /// @return 
+            static application::remove_file_ext private_remove_all(path dir);
+            
+            /// @brief 
+            /// @param file 
+            /// @return 
+            static application::remove_file_ext private_remove_file(path file);
+
             /// @brief wrapper for std::filesystem::relative(entry,base)
             /// @param entry: any path 
             /// @param base: any path
@@ -115,8 +135,8 @@ namespace sfct_api{
 
     /// @brief if the source path doesnt exist the directory is created 
     /// @param src source path: can be a file entry or directory
-    /// @return boolean. True for sucessful creation. If the directory already exists it returns true. Returns false if the directory fails to be created.
-    bool create_directory(path src);
+    /// @return 
+    bool create_directory_paths(path src);
 
     /// @brief 
     /// @param file: must be a valid file on the system
@@ -132,7 +152,7 @@ namespace sfct_api{
 
     /// @brief Use this function when you have a src file path and want the src tree directory created at a dst directory path.
     /// for example src = "C:/test/myFolder/myfile.txt" and dst = "D:/test". The returned path = "D:/test/myFolder".
-    /// if dst does not exist it is created using create_directory(path src). 
+    /// if dst does not exist it is created using create_directory_paths(path src). 
     /// @param src source file path or directory
     /// @param dst destination directory
     /// @return destination file path
@@ -150,7 +170,7 @@ namespace sfct_api{
     /// @return boolean: if src is not a file path or a regular file the function returns false.
     /// if the copy operation fails the function returns false.
     /// if src and dst pass the checks and the copy operation succeeds the function returns true.
-    bool copy_file_create_path(path src,path dst,fs::copy_options co);
+    bool copy_file_create_relative_path(path src,path dst,fs::copy_options co);
 
     /// @brief Create the src directory tree at dst (directories only)
     /// @param src src directory, must be a valid directory existing on the system.
@@ -166,4 +186,18 @@ namespace sfct_api{
     /// returns nothing if errors occurred
     /// returns nothing if there was no change in file size and rate is 0.0
     std::optional<double_t> file_get_transfer_rate(path src);
+
+    /// @brief 
+    /// @param src 
+    /// @param dst 
+    /// @param co 
+    /// @return 
+    bool copy_file(path src,path dst,fs::copy_options co);
+
+    /// @brief 
+    /// @param src 
+    /// @param dst 
+    /// @param co 
+    /// @return 
+    bool copy_file_create_path(path src,path dst,fs::copy_options co);
 }
