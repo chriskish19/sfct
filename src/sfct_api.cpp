@@ -93,12 +93,17 @@ std::optional<sfct_api::fs::path> sfct_api::get_relative_path(path entry, path b
     return ext::get_relative_path(entry,base);
 }
 
-std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, path dst)
+std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, path dst,path src_base)
 {
     // if src does not exist return nothing
     if(!fs::exists(src)){
         return std::nullopt;
     } 
+
+    // if src_base if specified it must be a directory on the system
+    if(!src_base.empty() && !fs::is_directory(src_base)){
+        return std::nullopt;
+    }
 
     // if src is a file path remove the file name
     fs::path src_dir(src);
@@ -112,7 +117,7 @@ std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, 
         dst_dir.remove_filename();
     }
 
-    return ext::create_file_relative_path(src_dir,dst_dir);
+    return ext::create_file_relative_path(src_dir,dst_dir,src_base);
 }
 
 bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co)
@@ -144,7 +149,7 @@ bool sfct_api::create_directory_tree(path src, path dst)
     // this may need to be further optimized in the future
     // create_file_relative_path is not a slow function but many calls add up depending on src directory size
     for(const auto& entry: fs::recursive_directory_iterator(src)){
-        ext::create_file_relative_path(entry.path(),dst);
+        ext::create_file_relative_path(entry.path(),dst,src);
     }
 
     // function may succeed but it could be the case that some or all directories failed to be created
@@ -252,10 +257,9 @@ sfct_api::fs::path sfct_api::ext::combine_path_tree(path entry, path base)
         _entry = entry;
     }
     return base/_entry;
-
 }
 
-std::optional<sfct_api::fs::path> sfct_api::ext::create_file_relative_path(path src, path dst)
+std::optional<sfct_api::fs::path> sfct_api::ext::create_file_relative_path(path src, path dst,path src_base)
 {
     fs::path file_dst;
 
@@ -268,10 +272,17 @@ std::optional<sfct_api::fs::path> sfct_api::ext::create_file_relative_path(path 
         }
         file_dst = dst/relativePath.value();
     }
-    else{
-        file_dst = ext::combine_path_tree(src,dst);
+    else if(!src_base.empty()){
+        // get the relative path
+        std::optional<fs::path> relativePath = ext::get_relative_path(src,src_base);
+        if(!relativePath.has_value()){
+            return std::nullopt;
+        }
+        file_dst = dst/relativePath.value();
     }
-
+    else{
+        file_dst = dst/ext::get_last_folder(src);
+    }
     
     // if it fails to create the relative directory return nothing
     if(!ext::create_directory(file_dst).has_value()){
@@ -297,6 +308,15 @@ std::optional<bool> sfct_api::ext::create_directory(path dir)
         return std::nullopt;
     }
     return false;
+}
+
+sfct_api::fs::path sfct_api::ext::get_last_folder(path entry)
+{
+    // Get the parent path of the entry
+    sfct_api::fs::path parent_path = entry.parent_path();
+    
+    // Now get the last component of the parent path, which is the immediate directory name
+    return parent_path.filename();
 }
 
 application::path_ext sfct_api::ext::private_get_relative_path(path entry, path base)

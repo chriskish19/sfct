@@ -64,15 +64,20 @@ namespace sfct_api{
 
             /// @brief 
             /// @param src 
-            /// @param dst 
+            /// @param dst
+            /// @param src_base 
             /// @return 
-            static std::optional<fs::path> create_file_relative_path(path src,path dst);
+            static std::optional<fs::path> create_file_relative_path(path src,path dst,path src_base=fs::path());
 
             /// @brief 
             /// @param dir 
             /// @return 
             static std::optional<bool> create_directory(path dir);
 
+            /// @brief 
+            /// @param entry 
+            /// @return 
+            static fs::path get_last_folder(path entry);
         private:
             /// @brief wrapper for std::filesystem::relative(entry,base)
             /// @param entry: any path 
@@ -131,7 +136,7 @@ namespace sfct_api{
     /// @param src source file path or directory
     /// @param dst destination directory
     /// @return destination file path
-    std::optional<fs::path> create_file_relative_path(path src,path dst);
+    std::optional<fs::path> create_file_relative_path(path src,path dst,path src_base=fs::path());
 
     /// @brief Given a src file path and a dst path, the src file is copied into dst path.
     /// if the destination path does not exists it is created.

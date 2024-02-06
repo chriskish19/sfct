@@ -58,4 +58,23 @@ namespace application{
         // error code from the function std::filesystem::copy_file() 
         std::error_code e;
     };
+
+    enum class file_queue_status{
+        file_added,
+        file_updated,
+        file_removed,
+        directory_added,
+        directory_removed,
+        directory_updated,
+        other_added,
+        other_removed,
+        other_updated
+    };
+
+    struct file_queue_info{
+        std::filesystem::path src,dst;
+        std::filesystem::copy_options co;
+        std::filesystem::file_status fs;
+        file_queue_status fqs;
+    };
 }
