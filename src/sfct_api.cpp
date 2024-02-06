@@ -255,6 +255,23 @@ bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co)
     return false;
 }
 
+std::uintmax_t sfct_api::remove_all(path dir)
+{
+    if(!fs::is_directory(dir)){
+        return 0;
+    }
+
+    return ext::remove_all(dir);
+}
+
+bool sfct_api::remove_file(path file)
+{
+    if(!fs::is_regular_file(file)){
+        return false;
+    }
+    return ext::remove_file(file);
+}
+
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
 {
     application::path_ext _p = private_get_relative_path(entry,base);
@@ -376,22 +393,21 @@ bool sfct_api::ext::remove_file(path file)
     return _rfe.rv;
 }
 
-bool sfct_api::ext::remove_all(path dir)
+std::uintmax_t sfct_api::ext::remove_all(path dir)
 {
     application::remove_file_ext _rfe = private_remove_all(dir);
     if(_rfe.e){
         application::logger log(_rfe.e,application::Error::WARNING,dir);
         log.to_console();
         log.to_log_file();
-        return false;
     }
-    return _rfe.rv;
+    return _rfe.files_removed;
 }
 
 application::remove_file_ext sfct_api::ext::private_remove_all(path dir)
 {
     application::remove_file_ext _rfe;
-    _rfe.rv = fs::remove_all(dir,_rfe.e);
+    _rfe.files_removed = fs::remove_all(dir,_rfe.e);
     return _rfe;
 }
 

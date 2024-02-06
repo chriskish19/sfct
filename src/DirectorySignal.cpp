@@ -65,13 +65,12 @@ void application::DirectorySignal::monitor(){
     // no monitor directories set so exit the monitor function
     if(no_watch) return;
     
+    std::thread q_sys_thread(&application::queue_system<file_queue_info>::process,&m_queue_processer); 
+
     // Process notifications
     DWORD bytesTransferred;
     DS_resources* pMonitor;
     LPOVERLAPPED pOverlapped;
-
-    m_MessageStream.SetMessage(App_MESSAGE("Waiting in Queue"));
-    m_MessageStream.ReleaseBuffer();
     
     while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
         Overflow(bytesTransferred,pMonitor);
@@ -80,34 +79,16 @@ void application::DirectorySignal::monitor(){
         // Pointer to the first notification
         FILE_NOTIFY_INFORMATION* pNotify = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(&pMonitor->m_buffer);
         ProcessDirectoryChanges(pNotify,pMonitor);
-        EmptyQueue();
 
         UpdateWatcher(pMonitor);
-        m_MessageStream.SetMessage(App_MESSAGE("Waiting in Queue"));
-        m_MessageStream.ReleaseBuffer();
-    }
-}
 
-void application::DirectorySignal::EmptyQueue()
-{
-    while(!m_directory_remove.empty()){
-        std::filesystem::path dest_to_remove = m_directory_remove.front();
-        if(std::filesystem::exists(dest_to_remove)){
-            m_MessageStream.SetMessage(App_MESSAGE("Removing Directory: ") + STRING(dest_to_remove));
-            uintmax_t files_removed = std::filesystem::remove_all(dest_to_remove);
-            if(!files_removed){
-                logger log(App_MESSAGE("Failed to remove directory"),Error::WARNING,dest_to_remove);
-                log.to_console(); 
-                log.to_log_file();
-                log.to_output();
-            }
-            else{
-                m_MessageStream.SetMessage(App_MESSAGE("Directory Removed along with containing files: ") + 
-                                            STRING(dest_to_remove) + App_MESSAGE(" Total files removed: ") +
-                                            TOSTRING(files_removed));
-            }   
-        }
-        m_directory_remove.pop();
+        // notify the waiting thread that processing may begin
+        m_queue_processer.m_local_thread_cv.notify_one();
+    }
+    
+    m_queue_processer.exit();
+    if(q_sys_thread.joinable()){
+        q_sys_thread.join();
     }
 }
 
@@ -157,7 +138,8 @@ void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATI
         entry.src = pMonitor->directory.source/fileName;
         entry.dst = pMonitor->directory.destination/fileName;
         entry.co = pMonitor->directory.co;
-        entry.fs = std::filesystem::status(entry.src);
+        entry.fs_src = std::filesystem::status(entry.src);
+        entry.fs_dst = std::filesystem::status(entry.dst);
 
         // Process the file change
         switch (pNotify->Action) {

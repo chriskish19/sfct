@@ -87,7 +87,7 @@ namespace sfct_api{
             /// @brief 
             /// @param dir 
             /// @return 
-            static bool remove_all(path dir);
+            static std::uintmax_t remove_all(path dir);
         private:
             /// @brief 
             /// @param dir 
@@ -200,4 +200,14 @@ namespace sfct_api{
     /// @param co 
     /// @return 
     bool copy_file_create_path(path src,path dst,fs::copy_options co);
+
+    /// @brief 
+    /// @param dir 
+    /// @return 
+    std::uintmax_t remove_all(path dir);
+    
+    /// @brief 
+    /// @param file 
+    /// @return 
+    bool remove_file(path file);
 }

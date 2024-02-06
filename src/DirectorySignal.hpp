@@ -46,10 +46,7 @@ namespace application{
         std::vector<DS_resources*> m_pMonitors;
         std::shared_ptr<std::vector<copyto>> m_Dirs;
         bool no_watch{false};
-        std::queue<std::filesystem::path> m_directory_remove;   // directories set for deletion
-        
-        // loop through the queue and delete directories
-        void EmptyQueue(); 
+        std::queue<std::filesystem::path> m_directory_remove;   // directories set for deletion 
 
         // check if the monitored directory buffer has overflowed
         bool Overflow(DWORD bytes_returned,DS_resources* p_monitor);

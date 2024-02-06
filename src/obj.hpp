@@ -74,12 +74,13 @@ namespace application{
     struct file_queue_info{
         std::filesystem::path src,dst;
         std::filesystem::copy_options co;
-        std::filesystem::file_status fs;
+        std::filesystem::file_status fs_src,fs_dst;
         file_queue_status fqs;
     };
 
     struct remove_file_ext{
         bool rv;
+        std::uintmax_t files_removed;
         std::error_code e;
     };
 }
