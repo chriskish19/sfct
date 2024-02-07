@@ -42,7 +42,7 @@ bool sfct_api::create_directory_paths(path src)
     }
     
     fs::path dir = src;
-    if(dir.has_filename()){
+    if(dir.has_extension()){
         dir.remove_filename();
     }
 
@@ -170,47 +170,7 @@ std::optional<double_t> sfct_api::file_get_transfer_rate(path src)
         return std::nullopt;
     }
     
-    // setup a benchmark to test the speed
-    application::benchmark test;
-
-    // begin timer
-    test.start_clock();
-
-    // get the initial file size
-    std::optional<std::uintmax_t> filesize = ext::get_file_size(src);
-
-    // if no value returned return nothing
-    if(!filesize.has_value()) 
-        return std::nullopt;
-
-    // wait 10ms for the transfer
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-    // get the change in file size
-    std::optional<std::uintmax_t> newfilesize = ext::get_file_size(src);
-    
-    // if no value returned return nothing
-    if(!newfilesize.has_value()) 
-        return std::nullopt;
-    
-    // get the change in file size
-    std::uintmax_t deltafilesize = newfilesize.value() - filesize.value();
-
-    // end timer
-    test.end_clock();
-
-    // get the rate in MB/s
-    double_t rate = test.speed(deltafilesize);
-
-    // if the file size didnt change
-    // return nothing to indicate the file is not being transfered
-    if(rate == 0.0){
-        return std::nullopt;
-    }
-
-    // if no errors and rate has a value not equal to zero
-    // return the transfer rate in MB/s
-    return rate;
+    return ext::file_get_transfer_rate(src);
 }
 
 bool sfct_api::copy_file(path src, path dst, fs::copy_options co)
@@ -402,6 +362,51 @@ std::uintmax_t sfct_api::ext::remove_all(path dir)
         log.to_log_file();
     }
     return _rfe.files_removed;
+}
+
+std::optional<double_t> sfct_api::ext::file_get_transfer_rate(path filepath)
+{
+    // setup a benchmark to test the speed
+    application::benchmark test;
+
+    // begin timer
+    test.start_clock();
+
+    // get the initial file size
+    std::optional<std::uintmax_t> filesize = ext::get_file_size(filepath);
+
+    // if no value returned return nothing
+    if(!filesize.has_value()) 
+        return std::nullopt;
+
+    // wait 10ms for the transfer
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // get the change in file size
+    std::optional<std::uintmax_t> newfilesize = ext::get_file_size(filepath);
+    
+    // if no value returned return nothing
+    if(!newfilesize.has_value()) 
+        return std::nullopt;
+    
+    // get the change in file size
+    std::uintmax_t deltafilesize = newfilesize.value() - filesize.value();
+
+    // end timer
+    test.end_clock();
+
+    // get the rate in MB/s
+    double_t rate = test.speed(deltafilesize);
+
+    // if the file size didnt change
+    // return nothing to indicate the file is not being transfered
+    if(rate == 0.0){
+        return std::nullopt;
+    }
+
+    // if no errors and rate has a value not equal to zero
+    // return the transfer rate in MB/s
+    return rate;
 }
 
 application::remove_file_ext sfct_api::ext::private_remove_all(path dir)

@@ -10,7 +10,7 @@
 #include <unordered_set>
 #include "sfct_api.hpp"
 #include "queue_system.hpp"
-
+#include "timer.hpp"
 
 /////////////////////////////////////////////////////////////////////
 // This header is responsible for monitoring directories for changes
@@ -37,6 +37,9 @@ namespace application{
     public:
         DirectorySignal(std::shared_ptr<std::vector<copyto>> dirs_to_watch);
         ~DirectorySignal();
+        DirectorySignal(const DirectorySignal&) = delete;
+        DirectorySignal& operator=(const DirectorySignal&) = delete;
+        
         void monitor();
         DWORD GetNotifyFilter(){return m_NotifyFilter;}
         HANDLE GetCompletionPort(){return m_hCompletionPort;}
@@ -45,8 +48,7 @@ namespace application{
         HANDLE m_hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
         std::vector<DS_resources*> m_pMonitors;
         std::shared_ptr<std::vector<copyto>> m_Dirs;
-        bool no_watch{false};
-        std::queue<std::filesystem::path> m_directory_remove;   // directories set for deletion 
+        bool no_watch{false}; 
 
         // check if the monitored directory buffer has overflowed
         bool Overflow(DWORD bytes_returned,DS_resources* p_monitor);

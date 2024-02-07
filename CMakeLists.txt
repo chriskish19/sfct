@@ -34,7 +34,10 @@ set(SOURCE_FILES    src/main.cpp
                     src/benchmark.cpp
                     src/constants.hpp
                     src/sfct_api.hpp
-                    src/sfct_api.cpp)
+                    src/sfct_api.cpp
+                    src/queue_system.hpp
+                    src/timer.hpp
+                    src/timer.cpp)
 
 
 add_executable(sfct ${SOURCE_FILES})

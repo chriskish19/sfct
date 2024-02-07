@@ -65,13 +65,16 @@ void application::DirectorySignal::monitor(){
     // no monitor directories set so exit the monitor function
     if(no_watch) return;
     
-    std::thread q_sys_thread(&application::queue_system<file_queue_info>::process,&m_queue_processer); 
+    std::thread q_sys_thread(&application::queue_system<application::file_queue_info>::process,&m_queue_processer);
 
     // Process notifications
     DWORD bytesTransferred;
     DS_resources* pMonitor;
     LPOVERLAPPED pOverlapped;
     
+    timer t;
+    std::atomic<bool> timer_thread_created{false};
+
     while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
         Overflow(bytesTransferred,pMonitor);
         
@@ -82,10 +85,15 @@ void application::DirectorySignal::monitor(){
 
         UpdateWatcher(pMonitor);
 
-        // notify the waiting thread that processing may begin
-        m_queue_processer.m_local_thread_cv.notify_one();
+        if(!timer_thread_created.load()){
+            std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processer.m_ready_to_process,&m_queue_processer.m_local_thread_cv,&timer_thread_created);
+            if(timer_thread.joinable()){
+                timer_thread.detach();
+            }
+            timer_thread_created = true;
+        }
     }
-    
+
     m_queue_processer.exit();
     if(q_sys_thread.joinable()){
         q_sys_thread.join();

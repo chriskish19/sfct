@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdint>
 // max file size for Windows::FastCopy
 inline constexpr std::uintmax_t MaxFileSize = 1024ull * 1024 * 1024; // 1GB

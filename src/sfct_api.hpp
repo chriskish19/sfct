@@ -88,6 +88,11 @@ namespace sfct_api{
             /// @param dir 
             /// @return 
             static std::uintmax_t remove_all(path dir);
+
+            /// @brief 
+            /// @param filepath 
+            /// @return 
+            static std::optional<double_t> file_get_transfer_rate(path filepath);
         private:
             /// @brief 
             /// @param dir 

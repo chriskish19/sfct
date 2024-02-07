@@ -8,6 +8,7 @@
 #include <atomic>
 #include "appMacros.hpp"
 #include <queue>
+#include <condition_variable>
 
 //////////////////////////////////////////////////////////////////
 // This header handles messages sent to the console.
