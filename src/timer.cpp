@@ -33,10 +33,21 @@ void application::timer::wait_timer(double_t seconds_to_wait)
     std::this_thread::sleep_for(duration);
 }
 
-void application::timer::notify_timer(double_t seconds_until_notify, std::atomic<bool>* flag_notify, std::condition_variable* cv,std::atomic<bool>* times_up)
+void application::timer::notify_timer(double_t seconds_until_notify, std::atomic<bool>* flag_notify, std::condition_variable* notify_cv,std::atomic<bool>* start_timer,std::condition_variable* start_timer_cv)
 {
-    wait_timer(seconds_until_notify);
-    flag_notify->store(true);
-    cv->notify_one();
-    times_up->store(false);
+    while(m_running.load()){
+        std::mutex local_mtx;
+        std::unique_lock<std::mutex> local_lock(local_mtx);
+        start_timer_cv->wait(local_lock, [start_timer] {return start_timer->load();});
+
+        wait_timer(seconds_until_notify);
+        flag_notify->store(true);
+        notify_cv->notify_one();
+        start_timer->store(false);
+    }
+}
+
+void application::timer::end_notify_timer()
+{
+    m_running = false;
 }

@@ -73,7 +73,9 @@ void application::DirectorySignal::monitor(){
     LPOVERLAPPED pOverlapped;
     
     timer t;
-    std::atomic<bool> timer_thread_created{false};
+    std::atomic<bool> start_timer{false};
+    std::condition_variable timer_thread_notify_cv;
+    std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processer.m_ready_to_process,&m_queue_processer.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
 
     while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
         Overflow(bytesTransferred,pMonitor);
@@ -85,13 +87,13 @@ void application::DirectorySignal::monitor(){
 
         UpdateWatcher(pMonitor);
 
-        if(!timer_thread_created.load()){
-            std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processer.m_ready_to_process,&m_queue_processer.m_local_thread_cv,&timer_thread_created);
-            if(timer_thread.joinable()){
-                timer_thread.detach();
-            }
-            timer_thread_created = true;
-        }
+        start_timer = true;
+        timer_thread_notify_cv.notify_one();
+    }
+
+    t.end_notify_timer();
+    if(timer_thread.joinable()){
+        timer_thread.detach();
     }
 
     m_queue_processer.exit();
