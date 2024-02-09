@@ -93,6 +93,21 @@ namespace sfct_api{
             /// @param filepath 
             /// @return 
             static std::optional<double_t> file_get_transfer_rate(path filepath);
+
+            /// @brief 
+            /// @param src 
+            /// @return 
+            static bool copy_symlink(path src_link,path dst,fs::copy_options co);
+
+            /// @brief 
+            /// @param filepath 
+            /// @return 
+            static bool is_file_available(path filepath);
+
+            /// @brief 
+            /// @param filepath 
+            /// @return 
+            static bool is_file_in_transit(path filepath);
         private:
             /// @brief 
             /// @param dir 
@@ -131,7 +146,7 @@ namespace sfct_api{
 
     /// @brief Waits until a file is available, pool checks the file every second. Will pool check indefinitely if the file never becomes available.
     /// @param filepath 
-    void file_check(path filepath);
+    bool file_check(path filepath);
 
     /// @brief Checks if dir is a valid directory that exists on the system
     /// @param dir directory path
@@ -215,4 +230,11 @@ namespace sfct_api{
     /// @param file 
     /// @return 
     bool remove_file(path file);
+
+    /// @brief 
+    /// @param src_link 
+    /// @param dst 
+    /// @param co 
+    /// @return 
+    bool copy_symlink(path src_link,path dst,fs::copy_options co);
 }

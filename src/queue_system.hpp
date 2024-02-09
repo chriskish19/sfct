@@ -25,13 +25,26 @@ namespace application{
                     m_main_thread_cv.notify_one();
                 }
                 else{
+                    std::queue<data_t> empty_queue;
+                    
+                    if(!m_still_wait_data.empty()){
+                        m_wait_data.swap(m_still_wait_data);
+                        m_still_wait_data.swap(empty_queue);
+
+                        while(!m_wait_data.empty()){
+                            data_t entry = m_wait_data.front();
+                            process_entry(entry);
+                            m_wait_data.pop();
+                        }
+                    }
+                    
+
                     {   
                         std::unique_lock<std::mutex> local_lock(m_local_thread_guard);
                         m_local_thread_cv.wait(local_lock, [this] {return m_ready_to_process.load();});
                     }
                     
                     std::lock_guard<std::mutex> local_lock(m_queue_buffer_mtx);
-                    std::queue<data_t> empty_queue;
                     m_queue.swap(m_queue_buffer);
                     m_queue_buffer.swap(empty_queue);
                 }
@@ -60,6 +73,12 @@ namespace application{
         std::queue<data_t> m_queue; 
 
         std::queue<data_t> m_queue_buffer;
+
+        // data to be proccessed later
+        std::queue<data_t> m_wait_data;
+
+        // data that still has to be processed later
+        std::queue<data_t> m_still_wait_data;
 
         std::mutex m_queue_buffer_mtx;
 
@@ -90,15 +109,20 @@ namespace application{
                             // skip for now
                             break;
                         case std::filesystem::file_type::regular:{
-                            sfct_api::file_check(entry.src);
-                            sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
+                            if(sfct_api::file_check(entry.src)){
+                                sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
+                            }
+                            else{
+                                m_still_wait_data.emplace(entry);
+                            }
+                            
                             break;
                         }
                         case std::filesystem::file_type::directory:
                             sfct_api::create_directory_paths(entry.dst);
                             break;
                         case std::filesystem::file_type::symlink:
-                            
+                            sfct_api::copy_symlink(entry.src,entry.dst,entry.co);
                             break;
                         case std::filesystem::file_type::block:
                             
@@ -130,8 +154,12 @@ namespace application{
                             // skip for now
                             break;
                         case std::filesystem::file_type::regular:{
-                            sfct_api::file_check(entry.src);
-                            sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
+                            if(sfct_api::file_check(entry.src)){
+                                sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
+                            }
+                            else{
+                                m_still_wait_data.emplace(entry);
+                            }
                             break;
                         }
                         case std::filesystem::file_type::directory:

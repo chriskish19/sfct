@@ -2,26 +2,18 @@
 
 bool sfct_api::is_file_available(path filepath)
 {
-    if(std::filesystem::is_regular_file(filepath)){
-        std::fstream file;
-        file.open(filepath, std::ifstream::in | std::ifstream::binary);
-        if(file.is_open()){
-            file.close();
-            return true;
-        }
-        return false;
-    }
-    else{
-        // is a directory, something else or not a valid path
-        return true;
-    }
+    return ext::is_file_available(filepath);
 }
 
-void sfct_api::file_check(path filepath)
+bool sfct_api::file_check(path filepath)
 {
-    while(!is_file_available(filepath)){
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+    if(!fs::is_regular_file(filepath)){
+        return false;
     }
+    
+    while(ext::is_file_in_transit(filepath)){}
+    
+    return ext::is_file_available(filepath);
 }
 
 bool sfct_api::check_directory(path dir)
@@ -182,8 +174,8 @@ bool sfct_api::copy_file(path src, path dst, fs::copy_options co)
         return false;
     }
 
-    if(!fs::is_directory(dst)){
-        application::logger log(App_MESSAGE("Not a valid directory path"),application::Error::WARNING,dst);
+    if(!fs::exists(dst)){
+        application::logger log(App_MESSAGE("Not a valid path"),application::Error::WARNING,dst);
         log.to_console();
         log.to_log_file();
         return false;
@@ -195,7 +187,7 @@ bool sfct_api::copy_file(path src, path dst, fs::copy_options co)
 bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co)
 {
     fs::path dst_dir = dst;
-    if(dst_dir.has_filename()){
+    if(dst_dir.has_extension()){
         dst_dir.remove_filename();
     }
     
@@ -230,6 +222,15 @@ bool sfct_api::remove_file(path file)
         return false;
     }
     return ext::remove_file(file);
+}
+
+bool sfct_api::copy_symlink(path src_link, path dst, fs::copy_options co)
+{
+    if(!fs::is_symlink(src_link) || !fs::exists(dst)){
+        return false;
+    }
+
+    return ext::copy_symlink(src_link,dst,co);
 }
 
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
@@ -407,6 +408,42 @@ std::optional<double_t> sfct_api::ext::file_get_transfer_rate(path filepath)
     // if no errors and rate has a value not equal to zero
     // return the transfer rate in MB/s
     return rate;
+}
+
+bool sfct_api::ext::copy_symlink(path src_link,path dst,fs::copy_options co)
+{
+    fs::path target = fs::read_symlink(src_link);
+    return ext::copy_file(target,dst,co);
+}
+
+bool sfct_api::ext::is_file_available(path filepath)
+{
+    if(std::filesystem::is_regular_file(filepath)){
+        std::fstream file;
+        file.open(filepath, std::ifstream::in | std::ifstream::binary);
+        if(file.is_open()){
+            file.close();
+            return true;
+        }
+        return false;
+    }
+    else{
+        // is a directory, something else or not a valid path
+        return true;
+    }
+}
+
+bool sfct_api::ext::is_file_in_transit(path filepath)
+{
+    std::chrono::time_point t1 = fs::last_write_time(filepath);
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    std::chrono::time_point t2 = fs::last_write_time(filepath);
+    if(t1 == t2){
+        return false;
+    }
+    else{
+        return true;
+    }
 }
 
 application::remove_file_ext sfct_api::ext::private_remove_all(path dir)
