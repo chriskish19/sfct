@@ -6,8 +6,7 @@
 #include "DirectorySignal.hpp"
 #include <filesystem>
 #include "appMacros.hpp"
-#include "winHelper.hpp"
-#include "FastFileCopy.hpp"
+#include "windows_helper.hpp"
 #include "benchmark.hpp"
 #include "constants.hpp"
 
@@ -44,11 +43,9 @@ namespace application{
         std::shared_ptr<std::vector<copyto>> m_copy_dirs{std::make_shared<std::vector<copyto>>()};  
 
         // fast copy directories
-        std::shared_ptr<std::vector<copyto>> m_fast_copy_dirs{std::make_shared<std::vector<copyto>>()}; 
+        std::shared_ptr<std::vector<copyto>> m_fast_copy_dirs{std::make_shared<std::vector<copyto>>()};   
 
-        std::unique_ptr<FastFileCopy> m_fastcopy;  
-
-        // fast copy directories
+        
         std::shared_ptr<std::vector<copyto>> m_bench_dirs{std::make_shared<std::vector<copyto>>()}; 
     };
 }

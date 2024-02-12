@@ -25,11 +25,9 @@ namespace application{
                     m_main_thread_cv.notify_one();
                 }
                 else{
-                    std::queue<data_t> empty_queue;
-                    
+
                     if(!m_still_wait_data.empty()){
                         m_wait_data.swap(m_still_wait_data);
-                        m_still_wait_data.swap(empty_queue);
 
                         while(!m_wait_data.empty()){
                             data_t entry = m_wait_data.front();
@@ -46,7 +44,6 @@ namespace application{
                     
                     std::lock_guard<std::mutex> local_lock(m_queue_buffer_mtx);
                     m_queue.swap(m_queue_buffer);
-                    m_queue_buffer.swap(empty_queue);
                 }
             }
         }
@@ -109,7 +106,7 @@ namespace application{
                             // skip for now
                             break;
                         case std::filesystem::file_type::regular:{
-                            if(sfct_api::file_check(entry.src)){
+                            if(sfct_api::entry_check(entry.src)){
                                 sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
                             }
                             else{
@@ -154,7 +151,7 @@ namespace application{
                             // skip for now
                             break;
                         case std::filesystem::file_type::regular:{
-                            if(sfct_api::file_check(entry.src)){
+                            if(sfct_api::entry_check(entry.src)){
                                 sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
                             }
                             else{
@@ -166,7 +163,7 @@ namespace application{
                             
                             break;
                         case std::filesystem::file_type::symlink:
-                            
+                            sfct_api::copy_symlink(entry.src,entry.dst,entry.co);
                             break;
                         case std::filesystem::file_type::block:
                             
@@ -198,13 +195,13 @@ namespace application{
                             // skip for now
                             break;
                         case std::filesystem::file_type::regular:
-                            sfct_api::remove_file(entry.dst);
+                            sfct_api::remove_entry(entry.dst);
                             break;
                         case std::filesystem::file_type::directory:
                             sfct_api::remove_all(entry.dst);
                             break;
                         case std::filesystem::file_type::symlink:
-                            
+                            sfct_api::remove_entry(entry.dst);
                             break;
                         case std::filesystem::file_type::block:
                             

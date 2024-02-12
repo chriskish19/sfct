@@ -46,8 +46,7 @@ application::ConsoleApp::ConsoleApp(){
     // make a monitor for directories
     m_Monitor = std::make_unique<DirectorySignal>(m_monitor_dirs);
 
-    // make a fast file copy for dirs
-    m_fastcopy = std::make_unique<FastFileCopy>(m_fast_copy_dirs);
+    
 }
 
 void application::ConsoleApp::Go(){

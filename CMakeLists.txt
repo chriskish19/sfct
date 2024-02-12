@@ -24,10 +24,9 @@ set(SOURCE_FILES    src/main.cpp
                     src/ConsoleApp.hpp
                     src/ConsoleApp.cpp
                     src/appMacros.hpp
-                    src/winHelper.hpp
+                    src/windows_helper.hpp
                     src/FastFileCopy.hpp
                     src/FastFileCopy.cpp
-                    src/helper.hpp
                     src/obj.hpp
                     src/args.hpp
                     src/benchmark.hpp

@@ -1,19 +1,21 @@
 #include "sfct_api.hpp"
 
-bool sfct_api::is_file_available(path filepath)
+bool sfct_api::is_entry_available(path entry)
 {
-    return ext::is_file_available(filepath);
+    if(fs::exists(entry)){
+        return ext::is_entry_available(entry);
+    }
+    return false;
 }
 
-bool sfct_api::file_check(path filepath)
-{
-    if(!fs::is_regular_file(filepath)){
+bool sfct_api::entry_check(path entry)
+{   
+    if(!fs::exists(entry)){
         return false;
     }
     
-    while(ext::is_file_in_transit(filepath)){}
-    
-    return ext::is_file_available(filepath);
+    while(ext::is_entry_in_transit(entry)){}
+    return ext::is_entry_available(entry);
 }
 
 bool sfct_api::check_directory(path dir)
@@ -102,17 +104,17 @@ std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, 
 
     // if src is a file path remove the file name
     fs::path src_dir(src);
-    if(src_dir.has_filename()){
+    if(src_dir.has_extension()){
         src_dir.remove_filename();
     }
 
     // if dst is a file path remove the file name
     fs::path dst_dir(dst);
-    if(dst_dir.has_filename()){
+    if(dst_dir.has_extension()){
         dst_dir.remove_filename();
     }
 
-    return ext::create_file_relative_path(src_dir,dst_dir,src_base);
+    return ext::create_relative_path(src_dir,dst_dir,src_base);
 }
 
 bool sfct_api::copy_file_create_relative_path(path src, path dst, fs::copy_options co)
@@ -123,9 +125,9 @@ bool sfct_api::copy_file_create_relative_path(path src, path dst, fs::copy_optio
     }
     
     // create the directories needed for the copy operation
-    std::optional<fs::path> new_dst = ext::create_file_relative_path(src,dst);
+    std::optional<fs::path> new_dst = ext::create_relative_path(src,dst);
     
-    // if create_file_relative_path succeeds attempt to copy the file
+    // if create_relative_path succeeds attempt to copy the file
     if(new_dst.has_value()){
         return ext::copy_file(src,new_dst.value(),co);
     }
@@ -142,9 +144,9 @@ bool sfct_api::create_directory_tree(path src, path dst)
     }
 
     // this may need to be further optimized in the future
-    // create_file_relative_path is not a slow function but many calls add up depending on src directory size
+    // create_relative_path is not a slow function but many calls add up depending on src directory size
     for(const auto& entry: fs::recursive_directory_iterator(src)){
-        ext::create_file_relative_path(entry.path(),dst,src);
+        ext::create_relative_path(entry.path(),dst,src);
     }
 
     // function may succeed but it could be the case that some or all directories failed to be created
@@ -174,7 +176,12 @@ bool sfct_api::copy_file(path src, path dst, fs::copy_options co)
         return false;
     }
 
-    if(!fs::exists(dst)){
+    fs::path dst_dir(dst);
+    if(dst_dir.has_extension()){
+        dst_dir.remove_filename();
+    }
+
+    if(!fs::exists(dst_dir)){
         application::logger log(App_MESSAGE("Not a valid path"),application::Error::WARNING,dst);
         log.to_console();
         log.to_log_file();
@@ -199,7 +206,7 @@ bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co)
     // create the directories needed for the copy operation
     std::optional<bool> succeded = ext::create_directory_paths(dst_dir);
     
-    // if create_file_relative_path succeeds attempt to copy the file
+    // if create_relative_path succeeds attempt to copy the file
     if(succeded.has_value()){
         return ext::copy_file(src,dst,co);
     }
@@ -216,21 +223,42 @@ std::uintmax_t sfct_api::remove_all(path dir)
     return ext::remove_all(dir);
 }
 
-bool sfct_api::remove_file(path file)
+bool sfct_api::remove_entry(path entry)
 {
-    if(!fs::is_regular_file(file)){
-        return false;
-    }
-    return ext::remove_file(file);
+    return ext::remove_entry(entry);
 }
 
 bool sfct_api::copy_symlink(path src_link, path dst, fs::copy_options co)
 {
-    if(!fs::is_symlink(src_link) || !fs::exists(dst)){
+    fs::path dst_dir = dst;
+    if(dst_dir.has_extension()){
+        dst_dir.remove_filename();
+    }
+    
+    if(!fs::is_symlink(src_link) || !fs::exists(dst_dir)){
         return false;
     }
 
-    return ext::copy_symlink(src_link,dst,co);
+    return ext::copy_symlink(src_link,dst_dir,co);
+}
+
+sfct_api::fs::copy_options sfct_api::get_copy_options(application::cs commands) noexcept
+{
+    using namespace application;
+    using fs_co = fs::copy_options;
+    fs_co co{fs_co::none};
+    
+    if((commands & cs::recursive) != cs::none){
+        co |= fs_co::recursive;
+    }
+    if((commands & cs::update) != cs::none){
+        co |= fs_co::update_existing;
+    }
+    else if((commands & cs::overwrite) != cs::none){
+        co |= fs_co::overwrite_existing; 
+    } 
+    // add more later
+    return co;
 }
 
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
@@ -282,7 +310,7 @@ sfct_api::fs::path sfct_api::ext::combine_path_tree(path entry, path base)
     return base/_entry;
 }
 
-std::optional<sfct_api::fs::path> sfct_api::ext::create_file_relative_path(path src, path dst,path src_base)
+std::optional<sfct_api::fs::path> sfct_api::ext::create_relative_path(path src, path dst,path src_base)
 {
     fs::path file_dst;
 
@@ -304,7 +332,11 @@ std::optional<sfct_api::fs::path> sfct_api::ext::create_file_relative_path(path 
         file_dst = dst/relativePath.value();
     }
     else{
-        file_dst = dst/ext::get_last_folder(src);
+        std::optional<fs::path> last_folder = ext::get_last_folder(src);
+        if(!last_folder.has_value()){
+            return std::nullopt;
+        }
+        file_dst = dst/last_folder.value();
     }
     
     // if it fails to create the relative directory return nothing
@@ -333,20 +365,25 @@ std::optional<bool> sfct_api::ext::create_directory_paths(path dir)
     return false;
 }
 
-sfct_api::fs::path sfct_api::ext::get_last_folder(path entry)
+std::optional<sfct_api::fs::path> sfct_api::ext::get_last_folder(path entry)
 {
-    // Get the parent path of the entry
-    fs::path parent_path = entry.parent_path();
+    fs::path parent_path;
+    if(entry.has_parent_path()){
+        parent_path = entry.parent_path();
+    }
+    else{
+        return std::nullopt;
+    }
     
     // Now get the last component of the parent path, which is the immediate directory name
     return parent_path.filename();
 }
 
-bool sfct_api::ext::remove_file(path file)
+bool sfct_api::ext::remove_entry(path entry)
 {
-    application::remove_file_ext _rfe = private_remove_file(file);
+    application::remove_file_ext _rfe = private_remove_entry(entry);
     if(_rfe.e){
-        application::logger log(_rfe.e,application::Error::WARNING,file);
+        application::logger log(_rfe.e,application::Error::WARNING,entry);
         log.to_console();
         log.to_log_file();
         return false;
@@ -416,34 +453,73 @@ bool sfct_api::ext::copy_symlink(path src_link,path dst,fs::copy_options co)
     return ext::copy_file(target,dst,co);
 }
 
-bool sfct_api::ext::is_file_available(path filepath)
+bool sfct_api::ext::is_entry_available(path entry)
 {
-    if(std::filesystem::is_regular_file(filepath)){
-        std::fstream file;
-        file.open(filepath, std::ifstream::in | std::ifstream::binary);
-        if(file.is_open()){
-            file.close();
-            return true;
-        }
-        return false;
+    fs::file_status fs = fs::status(entry);
+
+    switch(fs.type()){
+        case std::filesystem::file_type::none:
+            // skip for now
+            break;
+        case std::filesystem::file_type::not_found:
+            // skip for now
+            break;
+        case std::filesystem::file_type::regular:
+            return private_open_file(entry);
+            break;
+        case std::filesystem::file_type::directory:
+            
+            break;
+        case std::filesystem::file_type::symlink:{
+            fs::path target = fs::read_symlink(entry);
+            return private_open_file(target);
+            break;
+        } 
+        case std::filesystem::file_type::block:
+            
+            break;
+        case std::filesystem::file_type::character:
+            
+            break;
+        case std::filesystem::file_type::fifo:
+            
+            break;
+        case std::filesystem::file_type::socket:
+            
+            break;
+        case std::filesystem::file_type::unknown:
+
+            break;
+        default:
+            
+            break;
     }
-    else{
-        // is a directory, something else or not a valid path
-        return true;
-    }
+
+    return false;
 }
 
-bool sfct_api::ext::is_file_in_transit(path filepath)
+bool sfct_api::ext::is_entry_in_transit(path entry)
 {
-    std::chrono::time_point t1 = fs::last_write_time(filepath);
+    std::chrono::time_point t1 = fs::last_write_time(entry);
     std::this_thread::sleep_for(std::chrono::milliseconds(250));
-    std::chrono::time_point t2 = fs::last_write_time(filepath);
+    std::chrono::time_point t2 = fs::last_write_time(entry);
     if(t1 == t2){
         return false;
     }
     else{
         return true;
     }
+}
+
+bool sfct_api::ext::private_open_file(path filepath)
+{
+    std::fstream file;
+    file.open(filepath, std::ifstream::in | std::ifstream::binary);
+    if(file.is_open()){
+        file.close();
+        return true;
+    }
+    return false;
 }
 
 application::remove_file_ext sfct_api::ext::private_remove_all(path dir)
@@ -453,10 +529,10 @@ application::remove_file_ext sfct_api::ext::private_remove_all(path dir)
     return _rfe;
 }
 
-application::remove_file_ext sfct_api::ext::private_remove_file(path file)
+application::remove_file_ext sfct_api::ext::private_remove_entry(path entry)
 {
     application::remove_file_ext _rfe;
-    _rfe.rv = fs::remove(file,_rfe.e);
+    _rfe.rv = fs::remove(entry,_rfe.e);
     return _rfe;
 }
 

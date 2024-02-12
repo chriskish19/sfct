@@ -121,7 +121,7 @@ void application::FileParse::ParseSyntax()
                     copyto directory{};
                     directory.commands |= cs::copy;
                     directory.commands |= ParseCopyArgs(lineStream);
-                    directory.co = GetCopyOptions(directory.commands);
+                    directory.co = sfct_api::get_copy_options(directory.commands);
                     ParseDirs(directory);
                     break;
                 }
@@ -129,7 +129,7 @@ void application::FileParse::ParseSyntax()
                     copyto directory{};
                     directory.commands |= cs::monitor;
                     directory.commands |= ParseMonitorArgs(lineStream);
-                    directory.co = GetCopyOptions(directory.commands);
+                    directory.co = sfct_api::get_copy_options(directory.commands);
                     ParseDirs(directory);
                     break;
                 }
@@ -137,7 +137,7 @@ void application::FileParse::ParseSyntax()
                     copyto directory{};
                     directory.commands |= cs::fast_copy;
                     directory.commands |= ParseCopyArgs(lineStream);
-                    directory.co = GetCopyOptions(directory.commands);
+                    directory.co = sfct_api::get_copy_options(directory.commands);
                     ParseDirs(directory);
                     break;
                 }
