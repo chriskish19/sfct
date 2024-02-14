@@ -36,16 +36,12 @@ namespace application{
         // the object that monitors directories                   
         std::unique_ptr<DirectorySignal> m_Monitor;
 
-        // monitor only directories
+        // group of monitor directories
         std::shared_ptr<std::vector<copyto>> m_monitor_dirs{std::make_shared<std::vector<copyto>>()};
 
-        // copy only directories
-        std::shared_ptr<std::vector<copyto>> m_copy_dirs{std::make_shared<std::vector<copyto>>()};  
-
-        // fast copy directories
-        std::shared_ptr<std::vector<copyto>> m_fast_copy_dirs{std::make_shared<std::vector<copyto>>()};   
-
-        
-        std::shared_ptr<std::vector<copyto>> m_bench_dirs{std::make_shared<std::vector<copyto>>()}; 
+        // grouped directory entries
+        std::vector<copyto> m_copy_dirs,
+                            m_fast_copy_dirs,
+                            m_bench_dirs;
     };
 }

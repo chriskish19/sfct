@@ -14,7 +14,10 @@ bool sfct_api::entry_check(path entry)
         return false;
     }
     
-    while(ext::is_entry_in_transit(entry)){}
+    if(!ext::is_entry_available(entry)){
+        while(ext::is_entry_in_transit(entry)){}
+    }
+    
     return ext::is_entry_available(entry);
 }
 
@@ -225,6 +228,10 @@ std::uintmax_t sfct_api::remove_all(path dir)
 
 bool sfct_api::remove_entry(path entry)
 {
+    if(!fs::exists(entry)){
+        return false;
+    }
+    
     return ext::remove_entry(entry);
 }
 
@@ -259,6 +266,11 @@ sfct_api::fs::copy_options sfct_api::get_copy_options(application::cs commands) 
     } 
     // add more later
     return co;
+}
+
+bool sfct_api::recursive_flag_check(application::cs commands) noexcept
+{
+    return ((commands & application::cs::recursive) != application::cs::none);
 }
 
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)

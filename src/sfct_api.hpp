@@ -126,6 +126,8 @@ namespace sfct_api{
             /// @param entry any path
             /// @return true if the entry is being transferred into entry path, false if it isnt.
             static bool is_entry_in_transit(path entry);
+
+            
         private:
             /// @brief opens a file at filepath
             /// @param filepath any path
@@ -258,8 +260,8 @@ namespace sfct_api{
     std::uintmax_t remove_all(path dir);
     
     /// @brief wrapper for ext::remove_entry(). Removes a file or entry given a path.
-    /// @param entry any path
-    /// @return ext::remove_entry(): true for removal and false for no removal.
+    /// @param entry path must exist on the system
+    /// @return ext::remove_entry(): true for removal and false for no removal. False if path does not exist on the system.
     bool remove_entry(path entry);
 
     /// @brief wrapper for ext::copy_symlink(). Copies the target file that sym_link points to, to dst.
@@ -270,8 +272,13 @@ namespace sfct_api{
     /// @return true for no error and false if there is an error. Calls private_copy_file() under the hood which will log the error if there is one.
     bool copy_symlink(path src_link,path dst,fs::copy_options co);
 
-    /// @brief 
+    /// @brief converts cs commands to fs::copy_options
     /// @param commands 
-    /// @return 
+    /// @return corresponding fs::copy_options
     fs::copy_options get_copy_options(application::cs commands) noexcept;
+
+    /// @brief checks if recursive flag is set
+    /// @param commands 
+    /// @return true if it is and false if it is not set.
+    bool recursive_flag_check(application::cs commands) noexcept;
 }

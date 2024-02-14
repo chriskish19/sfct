@@ -4,7 +4,6 @@
 #include "Logger.hpp"
 #include "FileParse.hpp"
 #include "ConsoleTM.hpp"
-#include "helper.hpp"
 #include <queue>
 #include "constants.hpp"
 #include <unordered_set>
@@ -47,7 +46,7 @@ namespace application{
         DWORD m_NotifyFilter{FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME};
         HANDLE m_hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
         std::vector<DS_resources*> m_pMonitors;
-        std::shared_ptr<std::vector<copyto>> m_Dirs;
+        std::shared_ptr<std::vector<copyto>> m_dirs;
         bool no_watch{false}; 
 
         // check if the monitored directory buffer has overflowed
@@ -55,9 +54,6 @@ namespace application{
 
         // calls ReadDirectoryChanges
         void UpdateWatcher(DS_resources* p_monitor);
-
-        // checks for recursive flag
-        bool RecursiveFlagCheck(cs command);
 
         // go through all the notifications from the watched directory
         void ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION* pNotify,DS_resources* pMonitor);

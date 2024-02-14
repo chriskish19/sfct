@@ -114,7 +114,7 @@ void application::FileParse::ParseSyntax()
         std::istringstream lineStream(line);
         std::string token;
         lineStream >> token;
-        auto found_token = global_tokenizer.Find(token);
+        auto found_token = tokenizer.Find(token);
         if(found_token.has_value()){
             switch(found_token.value()){
                 case cs::copy:{
@@ -159,24 +159,9 @@ void application::FileParse::ParseSyntax()
 void application::FileParse::CheckDirectories(){
     for(auto it{m_Data->begin()};it!=m_Data->end();){
         if((it->commands & cs::create) != cs::none){
-
-            if(!std::filesystem::exists(it->source)){
-                // create the directories for benchmarking
-                if(!std::filesystem::create_directories(it->source)){
-                    logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->source);
-                    log.to_console();
-                    log.to_log_file();
-                }
-            }
-            
-            if(!std::filesystem::exists(it->destination)){
-                if(!std::filesystem::create_directories(it->destination)){
-                    logger log(App_MESSAGE("Failed to create directory"),Error::DEBUG,it->destination);
-                    log.to_console();
-                    log.to_log_file();
-                }
-            }
-            
+            // create the paths for benchmarking
+            sfct_api::create_directory_paths(it->source);
+            sfct_api::create_directory_paths(it->destination);
         }
         
         
@@ -276,7 +261,7 @@ application::cs application::FileParse::ParseCopyArgs(std::istringstream &lineSt
     cs commands = cs::none;
     std::string token;
     while(lineStream >> token){
-        auto found_token = global_tokenizer.Find(token);
+        auto found_token = tokenizer.Find(token);
         if(found_token.has_value()){
             switch(found_token.value()){
                 case cs::recursive:{
@@ -319,7 +304,7 @@ void application::FileParse::ParseDirs(copyto &dir)
     while(std::getline(m_File,line) && !end){
         std::istringstream lineStream(line);
         lineStream >> token;
-        auto found_token = global_tokenizer.Find(token);
+        auto found_token = tokenizer.Find(token);
         if(found_token.has_value()){
             switch(found_token.value()){
                 case cs::open_brace:{
@@ -378,7 +363,7 @@ application::cs application::FileParse::ParseMonitorArgs(std::istringstream &lin
     cs commands = cs::none;
     std::string token;
     while(lineStream >> token){
-        auto found_token = global_tokenizer.Find(token);
+        auto found_token = tokenizer.Find(token);
         if(found_token.has_value()){
             switch(found_token.value()){
                 case cs::sync:{
@@ -431,7 +416,7 @@ application::cs application::FileParse::ParseBenchArgs(std::istringstream &lineS
     cs commands = cs::none;
     std::string token;
     while(lineStream >> token){
-        auto found_token = global_tokenizer.Find(token);
+        auto found_token = tokenizer.Find(token);
         if(found_token.has_value()){
             switch(found_token.value()){
                 case cs::create:{

@@ -6,7 +6,7 @@
 #if WINDOWS_BUILD
 
 application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto>> dirs_to_watch)
-:m_Dirs(dirs_to_watch){
+:m_dirs(dirs_to_watch){
     
     if(!dirs_to_watch){
         logger log(App_MESSAGE("nullptr"),Error::FATAL);
@@ -117,7 +117,7 @@ void application::DirectorySignal::UpdateWatcher(DS_resources* p_monitor)
             p_monitor->m_hDir, 
             &p_monitor->m_buffer, 
             sizeof(p_monitor->m_buffer), 
-            RecursiveFlagCheck(p_monitor->directory.commands), // watch subtree
+            sfct_api::recursive_flag_check(p_monitor->directory.commands), // watch subtree
             m_NotifyFilter,
             NULL, 
             &p_monitor->m_ol, 
@@ -127,11 +127,6 @@ void application::DirectorySignal::UpdateWatcher(DS_resources* p_monitor)
                 log.to_log_file();
                 log.to_output();
             }
-}
-
-bool application::DirectorySignal::RecursiveFlagCheck(cs command)
-{
-    return ((command & cs::recursive) != cs::none);
 }
 
 void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION *pNotify,DS_resources* pMonitor)
@@ -162,7 +157,12 @@ void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATI
                 break;
             }
             case FILE_ACTION_REMOVED:{
-                entry.fqs = file_queue_status::file_removed;
+                if((pMonitor->directory.commands & cs::sync) != cs::none){
+                    entry.fqs = file_queue_status::file_removed;
+                }
+                else{
+                    entry.fqs = file_queue_status::none;
+                }
                 break;
             }
             case FILE_ACTION_RENAMED_OLD_NAME:

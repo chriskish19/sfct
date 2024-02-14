@@ -46,6 +46,11 @@ namespace Windows{
         _setmode(_fileno(stdout), _O_U16TEXT);          
     }
 
+
+    /// @brief this function is not being used until i figure out a way to handle large files currently causes high ram usage.
+    /// @param src 
+    /// @param dst 
+    /// @return 
     inline bool FastCopy(const std::filesystem::path src, const std::filesystem::path dst) {
         HANDLE hSource = CreateFile(src.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
         HANDLE hDest = CreateFile(dst.c_str(), GENERIC_WRITE | GENERIC_READ, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);

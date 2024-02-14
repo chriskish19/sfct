@@ -224,6 +224,10 @@ namespace application{
                     }
                     break;
                 }
+                case file_queue_status::none:
+                    break;
+                default:
+                    break;
             }
         }
     };

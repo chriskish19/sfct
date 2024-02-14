@@ -88,5 +88,7 @@ namespace application{
         int m_LineNumber{};
 
         cs ParseBenchArgs(std::istringstream& lineStream);
+
+        args_maps tokenizer;
     };
 }

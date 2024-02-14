@@ -29,7 +29,7 @@ application::logger::logger(Error type, const std::source_location& location, DW
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
         Win32error,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        0,
         (LPWSTR)&errorMsgBuffer,
         0,
         NULL

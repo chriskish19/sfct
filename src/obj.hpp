@@ -68,7 +68,8 @@ namespace application{
         directory_updated,
         other_added,
         other_removed,
-        other_updated
+        other_updated,
+        none
     };
 
     struct file_queue_info{
