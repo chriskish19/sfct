@@ -31,11 +31,11 @@ application::ConsoleApp::ConsoleApp(){
         }
 
         if((dir.commands & cs::copy) != cs::none){
-            m_copy_dirs.push_back(dir);
+            m_copy_dirs->push_back(dir);
         }
 
         if((dir.commands & cs::fast_copy) != cs::none){
-            m_fast_copy_dirs.push_back(dir);
+            m_fast_copy_dirs->push_back(dir);
         }
 
         if((dir.commands & cs::benchmark) != cs::none){
@@ -47,19 +47,21 @@ application::ConsoleApp::ConsoleApp(){
 void application::ConsoleApp::Go(){
     std::thread MessageStreamThread(&application::CONSOLETM::RunMessages,&m_MessageStream);
     
-    if(!m_copy_dirs.empty()){
+    if(!m_copy_dirs->empty()){
         m_MessageStream.SetMessage(App_MESSAGE("Preparing to copy files"));
         m_MessageStream.SetMessage(App_MESSAGE("Checking files..."));
         m_MessageStream.ReleaseBuffer();
 
-        
+        directory_copy dc(m_copy_dirs);
+        dc.copy();
     }
     
-    if(!m_fast_copy_dirs.empty()){
+    if(!m_fast_copy_dirs->empty()){
         m_MessageStream.SetMessage(App_MESSAGE("Preparing to fast copy files"));
         m_MessageStream.ReleaseBuffer();
 
-        
+        directory_copy dc(m_fast_copy_dirs);
+        dc.fast_copy();
     }
 
     if(!m_bench_dirs.empty()){

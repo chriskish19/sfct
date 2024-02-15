@@ -34,7 +34,9 @@ set(SOURCE_FILES    src/main.cpp
                     src/sfct_api.cpp
                     src/queue_system.hpp
                     src/timer.hpp
-                    src/timer.cpp)
+                    src/timer.cpp
+                    src/directory_copy.hpp
+                    src/directory_copy.cpp)
 
 
 add_executable(sfct ${SOURCE_FILES})

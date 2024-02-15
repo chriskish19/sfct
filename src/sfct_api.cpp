@@ -93,7 +93,7 @@ std::optional<sfct_api::fs::path> sfct_api::get_relative_path(path entry, path b
     return ext::get_relative_path(entry,base);
 }
 
-std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, path dst,path src_base)
+std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, path dst,path src_base,bool create_dir)
 {
     // if src does not exist return nothing
     if(!fs::exists(src)){
@@ -117,7 +117,7 @@ std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, 
         dst_dir.remove_filename();
     }
 
-    return ext::create_relative_path(src_dir,dst_dir,src_base);
+    return ext::create_relative_path(src_dir,dst_dir,src_base,create_dir);
 }
 
 bool sfct_api::copy_file_create_relative_path(path src, path dst, fs::copy_options co)
@@ -339,7 +339,7 @@ sfct_api::fs::path sfct_api::ext::combine_path_tree(path entry, path base)
     return base/_entry;
 }
 
-std::optional<sfct_api::fs::path> sfct_api::ext::create_relative_path(path src, path dst,path src_base)
+std::optional<sfct_api::fs::path> sfct_api::ext::create_relative_path(path src, path dst,path src_base,bool create_dir)
 {
     fs::path file_dst;
 
@@ -369,7 +369,9 @@ std::optional<sfct_api::fs::path> sfct_api::ext::create_relative_path(path src, 
     }
     
     // if it fails to create the relative directory return nothing
-    if(!ext::create_directory_paths(file_dst).has_value()){
+    // if create_dir is false, the ext::create_directory_paths(file_dst).has_value() 
+    // part of the expression will not be evaluated due to the short-circuiting behavior of the logical AND operator (&&) in C++.
+    if(create_dir && !ext::create_directory_paths(file_dst).has_value()){
         return std::nullopt;
     } 
 

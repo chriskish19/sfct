@@ -71,14 +71,15 @@ namespace sfct_api{
             /// The function will not work as intended without proper path checking. 
             /// @param src any path 
             /// @param dst any path
-            /// @param src_base any path
+            /// @param src_base any path (optional)
+            /// @param create_dir creates the new relative directory. (optional)
             /// @return the new relative path.
             /// For example: 
             /// src = C:/test/a 
             /// dst = D:/home
             /// src_base = C:/test
             /// returned: D:/home/a  
-            static std::optional<fs::path> create_relative_path(path src,path dst,path src_base=fs::path());
+            static std::optional<fs::path> create_relative_path(path src,path dst,path src_base=fs::path(),bool create_dir=true);
 
             /// @brief given a path the function attempts to create the directories in the path.
             /// @param dir any path, does no check wether dir is a directory
@@ -214,8 +215,10 @@ namespace sfct_api{
     /// if dst does not exist it is created using create_directory_paths(path src). 
     /// @param src source file path or directory
     /// @param dst destination directory
+    /// @param src_base (optional). a base path of src. for example you iterate recursively through a directory 
+    /// src_base would be the iterator starting directory. And any paths inside would be src.
     /// @return destination file path
-    std::optional<fs::path> create_file_relative_path(path src,path dst,path src_base=fs::path());
+    std::optional<fs::path> create_file_relative_path(path src,path dst,path src_base=fs::path(),bool create_dir=true);
 
     /// @brief Given a src file path and a dst path, the src file is copied into dst path.
     /// if the destination path does not exists it is created.

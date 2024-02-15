@@ -8,6 +8,7 @@
 #include <concepts>
 #include <type_traits>
 #include "sfct_api.hpp"
+#include <filesystem>
 
 namespace application{
     template<typename data_t>
@@ -94,6 +95,7 @@ namespace application{
 
             // add more for other types of data_t 
         }
+        
 
         void process_file_queue_info(const file_queue_info& entry){
             switch(entry.fqs){

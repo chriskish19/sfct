@@ -9,6 +9,7 @@
 #include "windows_helper.hpp"
 #include "benchmark.hpp"
 #include "constants.hpp"
+#include "directory_copy.hpp"
 
 /////////////////////////////////////////////////////////////////
 // This header is responsible for the main object used to run the program.
@@ -36,12 +37,10 @@ namespace application{
         // the object that monitors directories                   
         std::unique_ptr<DirectorySignal> m_Monitor;
 
-        // group of monitor directories
+        
         std::shared_ptr<std::vector<copyto>> m_monitor_dirs{std::make_shared<std::vector<copyto>>()};
-
-        // grouped directory entries
-        std::vector<copyto> m_copy_dirs,
-                            m_fast_copy_dirs,
-                            m_bench_dirs;
+        std::shared_ptr<std::vector<copyto>> m_fast_copy_dirs{std::make_shared<std::vector<copyto>>()};
+        std::shared_ptr<std::vector<copyto>> m_copy_dirs{std::make_shared<std::vector<copyto>>()};
+        std::vector<copyto> m_bench_dirs;
     };
 }
