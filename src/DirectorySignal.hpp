@@ -10,6 +10,7 @@
 #include "sfct_api.hpp"
 #include "queue_system.hpp"
 #include "timer.hpp"
+#include "TM.hpp"
 
 /////////////////////////////////////////////////////////////////////
 // This header is responsible for monitoring directories for changes

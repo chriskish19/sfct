@@ -18,13 +18,13 @@ void application::timer::end_clock()
     m_end = std::chrono::high_resolution_clock::now();
 }
 
-double_t application::timer::get_time()
+double_t application::timer::get_time() noexcept
 {
     m_duration = m_end - m_start;
     return m_duration.count(); // in seconds
 }
 
-void application::timer::wait_timer(double_t seconds_to_wait)
+void application::timer::wait_timer(double_t seconds_to_wait) noexcept
 {
     // Create a duration representing floating-point seconds.
     auto duration = std::chrono::duration<double_t>(seconds_to_wait);
@@ -33,7 +33,7 @@ void application::timer::wait_timer(double_t seconds_to_wait)
     std::this_thread::sleep_for(duration);
 }
 
-void application::timer::notify_timer(double_t seconds_until_notify, std::atomic<bool>* flag_notify, std::condition_variable* notify_cv,std::atomic<bool>* start_timer,std::condition_variable* start_timer_cv)
+void application::timer::notify_timer(double_t seconds_until_notify, std::atomic<bool>* flag_notify, std::condition_variable* notify_cv,std::atomic<bool>* start_timer,std::condition_variable* start_timer_cv) noexcept
 {
     while(m_running.load()){
         std::mutex local_mtx;
@@ -47,7 +47,7 @@ void application::timer::notify_timer(double_t seconds_until_notify, std::atomic
     }
 }
 
-void application::timer::end_notify_timer()
+void application::timer::end_notify_timer() noexcept
 {
     m_running = false;
 }

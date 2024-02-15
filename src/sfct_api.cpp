@@ -273,6 +273,23 @@ bool sfct_api::recursive_flag_check(application::cs commands) noexcept
     return ((commands & application::cs::recursive) != application::cs::none);
 }
 
+void sfct_api::copy_entry(path src, path dst, fs::copy_options co)
+{
+    if(!fs::exists(src)){
+        application::logger log(App_MESSAGE("src non exist"),application::Error::WARNING);
+        log.to_console();
+        log.to_log_file();
+        return;
+    }
+    
+    fs::path dst_dir = dst;
+    if(fs::is_directory(src) && dst_dir.has_extension()){
+        dst_dir.remove_filename();
+    }
+
+    return ext::copy_entry(src,dst_dir,co);
+}
+
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
 {
     application::path_ext _p = private_get_relative_path(entry,base);
@@ -520,6 +537,17 @@ bool sfct_api::ext::is_entry_in_transit(path entry)
     }
     else{
         return true;
+    }
+}
+
+void sfct_api::ext::copy_entry(path src, path dst, fs::copy_options co)
+{
+    std::error_code e;
+    fs::copy(src,dst,co,e);
+    if(e){
+        application::logger log(e,application::Error::WARNING,src);
+        log.to_console();
+        log.to_output();
     }
 }
 

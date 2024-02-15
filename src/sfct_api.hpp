@@ -10,6 +10,7 @@
 #include "benchmark.hpp"
 #include <unordered_set>
 #include "args.hpp"
+#include <functional>
 
 
 // INFO:
@@ -127,7 +128,12 @@ namespace sfct_api{
             /// @return true if the entry is being transferred into entry path, false if it isnt.
             static bool is_entry_in_transit(path entry);
 
-            
+            /// @brief wrapper for std::filesystem::copy(). 
+            /// @param src any path
+            /// @param dst any path
+            /// @param co any copy_options
+            /// if there was an error it is logged.
+            static void copy_entry(path src,path dst,fs::copy_options co);
         private:
             /// @brief opens a file at filepath
             /// @param filepath any path
@@ -281,4 +287,12 @@ namespace sfct_api{
     /// @param commands 
     /// @return true if it is and false if it is not set.
     bool recursive_flag_check(application::cs commands) noexcept;
+
+    /// @brief wrapper for ext::copy_entry(). Copies any type of file or a whole directory.
+    /// @param src must exist
+    /// @param dst if it does not exist it will be created
+    /// @param co any copy options
+    void copy_entry(path src,path dst,fs::copy_options co);
+
+    
 }

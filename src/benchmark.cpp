@@ -85,7 +85,7 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
     benchmark test;
     test.start_clock();
 
-    std::filesystem::copy(dir.source,dir.destination,dir.co);
+    sfct_api::copy_entry(dir.source,dir.destination,dir.co);
     
     // stop the timer
     test.end_clock();

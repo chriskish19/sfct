@@ -64,8 +64,13 @@ application::DirectorySignal::~DirectorySignal(){
 void application::DirectorySignal::monitor(){
     // no monitor directories set so exit the monitor function
     if(no_watch) return;
-    
-    std::thread q_sys_thread(&application::queue_system<application::file_queue_info>::process,&m_queue_processer);
+
+    std::thread q_sys_thread([this](){
+    exceptions(
+        &application::queue_system<application::file_queue_info>::process, 
+        &m_queue_processer
+    );
+    });
 
     // Process notifications
     DWORD bytesTransferred;

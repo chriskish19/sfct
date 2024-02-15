@@ -3,6 +3,9 @@
 #include <vector>
 #include "ConsoleTM.hpp"
 #include <utility>
+#include <exception>
+#include <functional>
+#include <filesystem>
 
 ////////////////////////////////////////////////////////////////////////////////////
 // This header is responsible for managing threads, its a wrapper for std::thread. 
@@ -16,6 +19,39 @@
 
 
 namespace application{
+    /// @brief a wrapper for threads to call so exceptions are handled by the thread that was launched.
+    /// @tparam Function 
+    /// @tparam ...Args 
+    /// @param fp function pointer
+    /// @param ...args 
+    template <typename Function, typename... Args>
+    void exceptions(Function fp, Args&&... args){
+        try{
+            // Call the function with the provided arguments
+            std::invoke(fp, std::forward<Args>(args)...);
+        }
+        catch (const std::filesystem::filesystem_error& e) {
+            // Handle filesystem related errors
+            std::cerr << "Filesystem error: " << e.what() << '\n';
+        }
+        catch(const std::runtime_error& e){
+            // the error message
+            std::cerr << e.what() << std::endl;
+        }
+        catch(const std::bad_alloc& e){
+            // the error message
+            std::cerr << e.what() << std::endl;
+        }
+        catch (const std::exception& e) {
+            // Catch other standard exceptions
+            std::cerr << "Standard exception: " << e.what() << '\n';
+        } catch (...) {
+            // Catch any other exceptions
+            std::cerr << "Unknown exception caught\n";
+        }
+    }
+
+
     enum class SystemPerformance{
         SLOW,
         AVERAGE,
@@ -43,7 +79,10 @@ namespace application{
         template <typename Function, typename... Args>
         void do_work(Function fp, Args&&... args) {
             if (m_Threads.size() < m_Workers) {
-                m_Threads.emplace_back(fp, std::forward<Args>(args)...);
+                // Start a new thread that calls the exceptions function with fp and args...
+                m_Threads.emplace_back([fp, args...](){
+                    exceptions(fp, std::forward<Args>(args)...);
+                });
             }
         }
 
