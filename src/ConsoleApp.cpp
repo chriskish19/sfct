@@ -1,10 +1,6 @@
 #include "ConsoleApp.hpp"
 
 application::ConsoleApp::ConsoleApp(){
-#if WINDOWS_BUILD
-    Windows::SetWideConsoleMode();
-#endif
-
     // Open the file for reading
     // The FileParse class does not handle file not found it just returns false
     if(!m_List.OpenFile()){

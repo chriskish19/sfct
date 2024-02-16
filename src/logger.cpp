@@ -9,8 +9,9 @@ application::logger::logger(const std::error_code &ec, Error type, const std::fi
     : m_location(location), m_type(type)
 {
     initLogger();
-    std::wstring s_error_message(ec.message().begin(),ec.message().end());
-    mMessage += s_error_message;
+    std::string s_error_message(ec.message());
+    std::wstring ws_error_message(s_error_message.begin(),s_error_message.end());
+    mMessage += ws_error_message + filepath.wstring();
 }
 
 application::logger::logger(const std::wstring &s, Error type, const std::source_location &location)
@@ -64,19 +65,16 @@ void application::logger::to_log_file() const{
     
     // if logFile is not open send info to console and output window
     if (!logFile.is_open()) {
-        logger log(L"failed to open logFile", Error::WARNING);
-        log.to_console();
-        log.to_output();
+        std::wcout << L"log file failed to open" << std::endl;
     }
+    
     
     // write mMessage to the log.txt file
     logFile << mMessage << std::endl;
     
     // if it fails to write mMessage to log.txt, log the fail to the console and output window
     if (logFile.fail()) {
-        logger log(L"failed to write to log file", Error::WARNING);
-        log.to_console();
-        log.to_output();
+        std::wcout << L"failed to write to log file" << std::endl;
     }
 }
 
@@ -101,7 +99,7 @@ application::logger::logger(const std::wstring& s,Error type,const std::filesyst
     initLogger();
     mMessage += L" Message: " + s;
 
-    mMessage += std::format(L"{}",filepath.c_str());
+    mMessage += filepath.wstring();
 }
 
 void application::logger::time_stamp(){

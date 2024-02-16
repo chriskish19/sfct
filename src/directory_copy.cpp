@@ -27,11 +27,6 @@ void application::directory_copy::copy()
     );
     });
 
-    timer t;
-    std::atomic<bool> start_timer{false};
-    std::condition_variable timer_thread_notify_cv;
-    std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processor.m_ready_to_process,&m_queue_processor.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
-
     for(const auto& dir:*m_dirs){
         
         if(sfct_api::recursive_flag_check(dir.commands)){
@@ -72,13 +67,8 @@ void application::directory_copy::copy()
 
         }
         
-        start_timer = true;
-        timer_thread_notify_cv.notify_one();
-    }
-
-    t.end_notify_timer();
-    if(timer_thread.joinable()){
-        timer_thread.detach();
+        m_queue_processor.m_ready_to_process = true;
+        m_queue_processor.m_local_thread_cv.notify_one();
     }
 
     m_queue_processor.exit();
