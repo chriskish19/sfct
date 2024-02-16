@@ -135,6 +135,13 @@ namespace sfct_api{
             /// @param co any copy_options
             /// if there was an error it is logged.
             static void copy_entry(path src,path dst,fs::copy_options co);
+
+            /// @brief checks if dst is missing files found in src.
+            /// @param src any path
+            /// @param dst any path
+            /// @param recursive_sync (optional) checks subtree
+            /// @return the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
+            static std::optional<std::shared_ptr<std::unordered_set<fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
         private:
             /// @brief opens a file at filepath
             /// @param filepath any path
@@ -214,7 +221,7 @@ namespace sfct_api{
     /// for example src = "C:/test/myFolder/myfile.txt" and dst = "D:/test". The returned path = "D:/test/myFolder".
     /// if dst does not exist it is created using create_directory_paths(path src). 
     /// @param src source file path or directory
-    /// @param dst destination directory
+    /// @param dst destination file path or directory
     /// @param src_base (optional). a base path of src. for example you iterate recursively through a directory 
     /// src_base would be the iterator starting directory. And any paths inside would be src.
     /// @return destination file path
@@ -297,5 +304,10 @@ namespace sfct_api{
     /// @param co any copy options
     void copy_entry(path src,path dst,fs::copy_options co);
 
-    
+    /// @brief wrapper for ext::are_directories_synced()
+    /// @param src must be a directory on the system
+    /// @param dst must be a directory on the system
+    /// @param recursive_sync (optional) checks subtree.
+    /// @return the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
+    std::optional<std::shared_ptr<std::unordered_set<fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
 }

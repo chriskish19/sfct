@@ -73,6 +73,6 @@ void application::directory_copy::copy()
 
     m_queue_processor.exit();
     if(q_sys_thread.joinable()){
-        q_sys_thread.join();
+        q_sys_thread.detach();
     }
 }

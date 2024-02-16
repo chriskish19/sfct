@@ -51,7 +51,7 @@ namespace application{
         bool no_watch{false}; 
 
         // check if the monitored directory buffer has overflowed
-        bool Overflow(DWORD bytes_returned,DS_resources* p_monitor);
+        bool Overflow(DWORD bytes_returned);
 
         // calls ReadDirectoryChanges
         void UpdateWatcher(DS_resources* p_monitor);

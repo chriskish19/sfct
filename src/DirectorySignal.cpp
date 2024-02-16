@@ -83,7 +83,7 @@ void application::DirectorySignal::monitor(){
     std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processer.m_ready_to_process,&m_queue_processer.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
 
     while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
-        Overflow(bytesTransferred,pMonitor);
+        Overflow(bytesTransferred);
         
         // Process change notification in pMonitor->buffer
         // Pointer to the first notification
@@ -107,10 +107,11 @@ void application::DirectorySignal::monitor(){
     }
 }
 
-bool application::DirectorySignal::Overflow(DWORD bytes_returned, DS_resources* p_monitor)
+bool application::DirectorySignal::Overflow(DWORD bytes_returned)
 {
-    if(bytes_returned == MonitorBuffer){
+    if(bytes_returned == 0){
         m_MessageStream.SetMessage(App_MESSAGE("The monitoring buffer has overflowed"));
+        m_MessageStream.ReleaseBuffer();
         return true;
     }
     return false;

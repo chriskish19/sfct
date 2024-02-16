@@ -100,24 +100,12 @@ std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, 
         return std::nullopt;
     } 
 
-    // if src_base if specified it must be a directory on the system
+    // if src_base is specified it must be a directory on the system
     if(!src_base.empty() && !fs::is_directory(src_base)){
         return std::nullopt;
     }
 
-    // if src is a file path remove the file name
-    fs::path src_dir(src);
-    if(src_dir.has_extension()){
-        src_dir.remove_filename();
-    }
-
-    // if dst is a file path remove the file name
-    fs::path dst_dir(dst);
-    if(dst_dir.has_extension()){
-        dst_dir.remove_filename();
-    }
-
-    return ext::create_relative_path(src_dir,dst_dir,src_base,create_dir);
+    return ext::create_relative_path(src,dst,src_base,create_dir);
 }
 
 bool sfct_api::copy_file_create_relative_path(path src, path dst, fs::copy_options co)
@@ -290,6 +278,25 @@ void sfct_api::copy_entry(path src, path dst, fs::copy_options co)
     return ext::copy_entry(src,dst_dir,co);
 }
 
+std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api::are_directories_synced(path src, path dst, bool recursive_sync)
+{
+    if(!fs::is_directory(src)){
+        application::logger log(App_MESSAGE("invalid directory"),application::Error::WARNING,src);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+
+    if(!fs::is_directory(dst)){
+        application::logger log(App_MESSAGE("invalid directory"),application::Error::WARNING,dst);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+
+    return ext::are_directories_synced(src,dst,recursive_sync);
+}
+
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
 {
     application::path_ext _p = private_get_relative_path(entry,base);
@@ -343,30 +350,27 @@ std::optional<sfct_api::fs::path> sfct_api::ext::create_relative_path(path src, 
 {
     fs::path file_dst;
 
-    // if the root paths equal, get the relative path
-    if(src.root_path() == dst.root_path()){
-        // get the relative path
-        std::optional<fs::path> relativePath = ext::get_relative_path(src,dst);
-        if(!relativePath.has_value()){
+    if(!src_base.empty()){
+        auto relative_path = ext::get_relative_path(src,src_base);
+        if(!relative_path.has_value()){
             return std::nullopt;
         }
-        file_dst = dst/relativePath.value();
-    }
-    else if(!src_base.empty()){
-        // get the relative path
-        std::optional<fs::path> relativePath = ext::get_relative_path(src,src_base);
-        if(!relativePath.has_value()){
-            return std::nullopt;
-        }
-        file_dst = dst/relativePath.value();
+
+        file_dst = dst/relative_path.value();
     }
     else{
-        std::optional<fs::path> last_folder = ext::get_last_folder(src);
-        if(!last_folder.has_value()){
+        auto relative_path = ext::get_relative_path(src,dst);
+        if(!relative_path.has_value()){
             return std::nullopt;
         }
-        file_dst = dst/last_folder.value();
+
+        file_dst = relative_path.value();
     }
+
+
+
+
+
     
     // if it fails to create the relative directory return nothing
     // if create_dir is false, the ext::create_directory_paths(file_dst).has_value() 
@@ -551,6 +555,60 @@ void sfct_api::ext::copy_entry(path src, path dst, fs::copy_options co)
         log.to_console();
         log.to_output();
     }
+}
+
+std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api::ext::are_directories_synced(path src, path dst,bool recursive_sync)
+{
+    
+    std::unordered_set<fs::path> dst_missing_paths,dst_relative_paths;
+    
+    if(recursive_sync){
+
+        for(const auto& entry:fs::recursive_directory_iterator(src)){
+            auto relative_path = ext::create_relative_path(entry.path(),dst,src,false);
+            if(relative_path.has_value()){
+                dst_relative_paths.emplace(relative_path.value());
+            }
+        }
+
+        for(const auto& entry:fs::recursive_directory_iterator(dst)){
+            if(dst_relative_paths.find(entry.path())==dst_relative_paths.end()){
+                dst_missing_paths.emplace(entry.path());
+            }
+        }
+
+        if(dst_missing_paths.empty()){
+            return std::nullopt;
+        }
+        
+        return std::make_shared<std::unordered_set<sfct_api::fs::path>>(dst_missing_paths);
+
+    }
+    else{
+
+        for(const auto& entry:fs::directory_iterator(src)){
+            fs::path entry_path = entry.path();
+            fs::path relative_path;
+            if(entry_path.has_filename()){
+                relative_path = dst/entry_path.filename();
+                dst_relative_paths.emplace(relative_path);
+            }
+        }
+
+        for(const auto& entry:fs::directory_iterator(dst)){
+            if(dst_relative_paths.find(entry.path())==dst_relative_paths.end()){
+                dst_missing_paths.emplace(entry.path());
+            }
+        }
+
+        if(dst_missing_paths.empty()){
+            return std::nullopt;
+        }
+        
+        return std::make_shared<std::unordered_set<sfct_api::fs::path>>(dst_missing_paths);
+
+    }
+    
 }
 
 bool sfct_api::ext::private_open_file(path filepath)
