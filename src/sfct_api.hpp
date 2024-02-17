@@ -140,8 +140,10 @@ namespace sfct_api{
             /// @param src any path
             /// @param dst any path
             /// @param recursive_sync (optional) checks subtree
-            /// @return the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
-            static std::optional<std::shared_ptr<std::unordered_set<fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
+            /// @return destination paths and source paths in an unordered_map.
+            /// the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
+            /// an unordered_map key is dst and value is src
+            static std::optional<std::shared_ptr<std::unordered_map<fs::path,fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
         private:
             /// @brief opens a file at filepath
             /// @param filepath any path
@@ -308,6 +310,8 @@ namespace sfct_api{
     /// @param src must be a directory on the system
     /// @param dst must be a directory on the system
     /// @param recursive_sync (optional) checks subtree.
-    /// @return the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
-    std::optional<std::shared_ptr<std::unordered_set<fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
+    /// @return destination paths and source paths in an unordered_map.
+    /// the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
+    /// an unordered_map key is dst and value is src
+    std::optional<std::shared_ptr<std::unordered_map<fs::path,fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
 }

@@ -278,7 +278,7 @@ void sfct_api::copy_entry(path src, path dst, fs::copy_options co)
     return ext::copy_entry(src,dst_dir,co);
 }
 
-std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api::are_directories_synced(path src, path dst, bool recursive_sync)
+std::optional<std::shared_ptr<std::unordered_map<sfct_api::fs::path,sfct_api::fs::path>>> sfct_api::are_directories_synced(path src, path dst, bool recursive_sync)
 {
     if(!fs::is_directory(src)){
         application::logger log(App_MESSAGE("invalid directory"),application::Error::WARNING,src);
@@ -557,31 +557,31 @@ void sfct_api::ext::copy_entry(path src, path dst, fs::copy_options co)
     }
 }
 
-std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api::ext::are_directories_synced(path src, path dst,bool recursive_sync)
+std::optional<std::shared_ptr<std::unordered_map<sfct_api::fs::path,sfct_api::fs::path>>> sfct_api::ext::are_directories_synced(path src, path dst,bool recursive_sync)
 {
-    
-    std::unordered_set<fs::path> dst_missing_paths,dst_relative_paths;
-    
+    std::unordered_map<fs::path,fs::path> paths_mp; // key is dst, value is src
+
     if(recursive_sync){
 
         for(const auto& entry:fs::recursive_directory_iterator(src)){
             auto relative_path = ext::create_relative_path(entry.path(),dst,src,false);
             if(relative_path.has_value()){
-                dst_relative_paths.emplace(relative_path.value());
+                paths_mp.emplace(relative_path.value(),entry.path());
             }
         }
 
         for(const auto& entry:fs::recursive_directory_iterator(dst)){
-            if(dst_relative_paths.find(entry.path())==dst_relative_paths.end()){
-                dst_missing_paths.emplace(entry.path());
+            auto found = paths_mp.find(entry.path());
+            if(found != paths_mp.end()){
+                paths_mp.erase(found);
             }
         }
 
-        if(dst_missing_paths.empty()){
+        if(paths_mp.empty()){
             return std::nullopt;
         }
         
-        return std::make_shared<std::unordered_set<sfct_api::fs::path>>(dst_missing_paths);
+        return std::make_shared<std::unordered_map<fs::path,fs::path>>(paths_mp);
 
     }
     else{
@@ -591,21 +591,22 @@ std::optional<std::shared_ptr<std::unordered_set<sfct_api::fs::path>>> sfct_api:
             fs::path relative_path;
             if(entry_path.has_filename()){
                 relative_path = dst/entry_path.filename();
-                dst_relative_paths.emplace(relative_path);
+                paths_mp.emplace(relative_path,entry_path);
             }
         }
 
         for(const auto& entry:fs::directory_iterator(dst)){
-            if(dst_relative_paths.find(entry.path())==dst_relative_paths.end()){
-                dst_missing_paths.emplace(entry.path());
+            auto found = paths_mp.find(entry.path());
+            if(found != paths_mp.end()){
+                paths_mp.erase(found);
             }
         }
 
-        if(dst_missing_paths.empty()){
+        if(paths_mp.empty()){
             return std::nullopt;
         }
         
-        return std::make_shared<std::unordered_set<sfct_api::fs::path>>(dst_missing_paths);
+        return std::make_shared<std::unordered_map<fs::path,fs::path>>(paths_mp);
 
     }
     

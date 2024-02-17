@@ -66,6 +66,8 @@ namespace application{
         std::condition_variable m_local_thread_cv;
 
         std::atomic<bool> m_ready_to_process{false};
+
+        std::atomic<bool> m_running{true};
     private:
         // data ready to be processed
         std::queue<data_t> m_queue; 
@@ -79,8 +81,6 @@ namespace application{
         std::queue<data_t> m_still_wait_data;
 
         std::mutex m_queue_buffer_mtx;
-
-        std::atomic<bool> m_running{true};
 
         std::mutex m_local_thread_guard;
 		

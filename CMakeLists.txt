@@ -36,7 +36,9 @@ set(SOURCE_FILES    src/main.cpp
                     src/timer.hpp
                     src/timer.cpp
                     src/directory_copy.hpp
-                    src/directory_copy.cpp)
+                    src/directory_copy.cpp
+                    src/directory_sync.hpp
+                    src/directory_sync.cpp)
 
 
 add_executable(sfct ${SOURCE_FILES})
