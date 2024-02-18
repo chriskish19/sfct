@@ -21,7 +21,6 @@ namespace application{
                         data_t entry = m_queue.front();
                         process_entry(entry);
                         m_queue.pop();
-                        m_queue_set.erase(entry);
                     }
                     m_ready_to_process = false;
                     m_main_thread_cv.notify_one();
@@ -52,9 +51,7 @@ namespace application{
 
         void add_to_queue(const data_t& entry){
             std::lock_guard<std::mutex> local_lock(m_queue_buffer_mtx);
-            if(m_queue_set.insert(entry).second){
-                m_queue_buffer.emplace(entry);
-            } 
+            m_queue_buffer.emplace(entry);
         }
 
         void exit(){
@@ -91,10 +88,6 @@ namespace application{
 		std::condition_variable m_main_thread_cv;
 
 
-        std::unordered_set<data_t> m_queue_set;
-
-
-
         void process_entry(const data_t& entry){
             if constexpr (std::is_same_v<data_t, file_queue_info>) {
                 process_file_queue_info(entry);
@@ -126,28 +119,6 @@ namespace application{
                         }
                         case std::filesystem::file_type::directory:{
                             sfct_api::create_directory_paths(entry.dst);
-                            if(sfct_api::recursive_flag_check(entry.commands)){
-                                // add all entries from src directory
-                                for(const auto& _entry:std::filesystem::recursive_directory_iterator(entry.src)){
-                                    
-                                    auto dst_path = sfct_api::create_file_relative_path(_entry.path(),entry.dst,entry.src,false);
-                                    if(dst_path.has_value()){
-                                        file_queue_info _file_info;
-                                        _file_info.src = _entry.path();
-                                        _file_info.dst = dst_path.value();
-                                        _file_info.co = entry.co;
-                                        _file_info.commands = cs::single;
-                                        _file_info.fqs = file_queue_status::file_added;
-                                        _file_info.fs_dst = std::filesystem::status(dst_path.value());
-                                        _file_info.fs_src = std::filesystem::status(_entry.path());
-                                        
-                                        if(m_queue_set.insert(_file_info).second){
-                                            m_queue.emplace(_file_info);
-                                        }
-                                    }
-                                    
-                                }
-                            }
                             break;
                         }
                         case std::filesystem::file_type::symlink:

@@ -161,7 +161,6 @@ void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATI
         entry.co = pMonitor->directory.co;
         entry.fs_src = std::filesystem::status(entry.src);
         entry.fs_dst = std::filesystem::status(entry.dst);
-        entry.commands = pMonitor->directory.commands;
 
         // Process the file change
         switch (pNotify->Action) {
