@@ -41,6 +41,8 @@ void application::directory_sync(const std::vector<application::copyto> &dirs, s
 
         qs.m_ready_to_process = true;
         qs.m_local_thread_cv.notify_one();
+
+        procceed->store(false);
     }
 
     qs.exit();

@@ -70,7 +70,7 @@ void application::DirectorySignal::monitor(){
     std::thread q_sys_thread([this](){
     exceptions(
         &application::queue_system<application::file_queue_info>::process, 
-        &m_queue_processer
+        &m_queue_processor
     );
     });
 
@@ -86,18 +86,16 @@ void application::DirectorySignal::monitor(){
     timer t;
     std::atomic<bool> start_timer{false};
     std::condition_variable timer_thread_notify_cv;
-    std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processer.m_ready_to_process,&m_queue_processer.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
+    std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processor.m_ready_to_process,&m_queue_processor.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
 
 
-    std::atomic<bool> begin_sync{false},run{true};
-    std::condition_variable sync_cv;
-    std::thread directory_sync_thread([this,&begin_sync,&sync_cv,&run](){
+    std::thread directory_sync_thread([this](){
     exceptions(
         &application::directory_sync,
         *m_dirs,
-        &begin_sync,
-        &sync_cv,
-        &run
+        &m_queue_processor.m_waiting,
+        &m_queue_processor.m_for_external_use,
+        &m_queue_processor.m_running
     );
     });
 
@@ -124,13 +122,14 @@ void application::DirectorySignal::monitor(){
         timer_thread.detach();
     }
 
-    m_queue_processer.exit();
+    m_queue_processor.exit();
     if(q_sys_thread.joinable()){
         q_sys_thread.join();
     }
 
+
     if(directory_sync_thread.joinable()){
-        directory_sync_thread.join();
+        directory_sync_thread.detach();
     }
 }
 
@@ -209,7 +208,7 @@ void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATI
         }
 
         // add the entry to queue system
-        m_queue_processer.add_to_queue(entry);
+        m_queue_processor.add_to_queue(entry);
 
         // check if there is no more data in pNotify
         if(pNotify->NextEntryOffset==0){

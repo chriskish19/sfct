@@ -39,6 +39,8 @@ namespace application{
                     
 
                     {   
+                        m_waiting = true;
+                        m_for_external_use.notify_one();
                         std::unique_lock<std::mutex> local_lock(m_local_thread_guard);
                         m_local_thread_cv.wait(local_lock, [this] {return m_ready_to_process.load();});
                     }
@@ -68,6 +70,10 @@ namespace application{
         std::atomic<bool> m_ready_to_process{false};
 
         std::atomic<bool> m_running{true};
+
+        std::condition_variable m_for_external_use;
+
+        std::atomic<bool> m_waiting{false};
     private:
         // data ready to be processed
         std::queue<data_t> m_queue; 
