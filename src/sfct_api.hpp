@@ -306,7 +306,7 @@ namespace sfct_api{
     /// @param co any copy options
     void copy_entry(path src,path dst,fs::copy_options co);
 
-    /// @brief wrapper for ext::are_directories_synced()
+    /// @brief wrapper for ext::are_directories_synced(). very slow function.
     /// @param src must be a directory on the system
     /// @param dst must be a directory on the system
     /// @param recursive_sync (optional) checks subtree.

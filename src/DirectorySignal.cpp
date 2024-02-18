@@ -89,17 +89,6 @@ void application::DirectorySignal::monitor(){
     std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processor.m_ready_to_process,&m_queue_processor.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
 
 
-    std::thread directory_sync_thread([this](){
-    exceptions(
-        &application::directory_sync,
-        *m_dirs,
-        &m_queue_processor.m_waiting,
-        &m_queue_processor.m_for_external_use,
-        &m_queue_processor.m_running
-    );
-    });
-
-
 
     while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
         Overflow(bytesTransferred);
@@ -125,11 +114,6 @@ void application::DirectorySignal::monitor(){
     m_queue_processor.exit();
     if(q_sys_thread.joinable()){
         q_sys_thread.join();
-    }
-
-
-    if(directory_sync_thread.joinable()){
-        directory_sync_thread.detach();
     }
 }
 
@@ -177,6 +161,7 @@ void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATI
         entry.co = pMonitor->directory.co;
         entry.fs_src = std::filesystem::status(entry.src);
         entry.fs_dst = std::filesystem::status(entry.dst);
+        entry.commands = pMonitor->directory.commands;
 
         // Process the file change
         switch (pNotify->Action) {
