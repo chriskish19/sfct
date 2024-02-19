@@ -49,6 +49,8 @@ namespace application{
             // Catch any other exceptions
             std::cerr << "Unknown exception caught\n";
         }
+
+        // thread will exit...now
     }
 
 
