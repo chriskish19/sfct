@@ -229,7 +229,7 @@ namespace application{
                             break;
                         case std::filesystem::file_type::regular:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -281,7 +281,7 @@ namespace application{
                             break;
                         case std::filesystem::file_type::regular:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_file_create_path(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);

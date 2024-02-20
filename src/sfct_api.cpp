@@ -553,7 +553,7 @@ void sfct_api::ext::copy_entry(path src, path dst, fs::copy_options co)
     if(e){
         application::logger log(e,application::Error::WARNING,src);
         log.to_console();
-        log.to_output();
+        log.to_log_file();
     }
 }
 

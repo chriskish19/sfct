@@ -133,7 +133,7 @@ namespace sfct_api{
             /// @param src any path
             /// @param dst any path
             /// @param co any copy_options
-            /// if there was an error it is logged.
+            /// @attention there was an error it is logged.
             static void copy_entry(path src,path dst,fs::copy_options co);
 
             /// @brief checks if dst is missing files found in src.
