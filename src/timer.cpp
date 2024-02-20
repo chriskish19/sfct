@@ -40,10 +40,12 @@ void application::timer::notify_timer(double_t seconds_until_notify, std::atomic
         std::unique_lock<std::mutex> local_lock(local_mtx);
         start_timer_cv->wait(local_lock, [start_timer] {return start_timer->load();});
 
-        wait_timer(seconds_until_notify);
-        flag_notify->store(true);
-        notify_cv->notify_one();
-        start_timer->store(false);
+        if(m_running.load()){
+            wait_timer(seconds_until_notify);
+            flag_notify->store(true);
+            notify_cv->notify_one();
+            start_timer->store(false);
+        }
     }
 }
 

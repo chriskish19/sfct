@@ -41,36 +41,33 @@ application::ConsoleApp::ConsoleApp(){
 }
 
 void application::ConsoleApp::Go(){
-    std::thread MessageStreamThread(&application::CONSOLETM::RunMessages,&m_MessageStream);
+    
+    //std::jthread MessageStreamThread(&application::CONSOLETM::RunMessages,&m_MessageStream);
     
     if(!m_copy_dirs->empty()){
-        m_MessageStream.SetMessage(App_MESSAGE("Preparing to copy files"));
-        m_MessageStream.SetMessage(App_MESSAGE("Checking files..."));
-        m_MessageStream.ReleaseBuffer();
+        STDOUT << App_MESSAGE("Preparing to copy files \n");
+        STDOUT << App_MESSAGE("Checking files...\n");
 
         directory_copy dc(m_copy_dirs);
         dc.copy();
     }
     
     if(!m_fast_copy_dirs->empty()){
-        m_MessageStream.SetMessage(App_MESSAGE("Preparing to fast copy files"));
-        m_MessageStream.ReleaseBuffer();
+        STDOUT << App_MESSAGE("Preparing to fast copy files \n");
 
         directory_copy dc(m_fast_copy_dirs);
         dc.fast_copy();
     }
 
     if(!m_bench_dirs.empty()){
-        m_MessageStream.SetMessage(App_MESSAGE("Preparing to benchmark"));
-        m_MessageStream.ReleaseBuffer();
+        STDOUT << App_MESSAGE("Preparing to benchmark \n");
 
         benchmark test;
         test.speed_test_directories(m_bench_dirs);
     }
 
     if(!m_monitor_dirs->empty()){
-        m_MessageStream.SetMessage(App_MESSAGE("Preparing to monitor"));
-        m_MessageStream.ReleaseBuffer();
+        STDOUT << App_MESSAGE("Preparing to monitor \n");
 
         // make a monitor for directories
         m_Monitor = std::make_unique<DirectorySignal>(m_monitor_dirs);
@@ -80,14 +77,7 @@ void application::ConsoleApp::Go(){
     }
    
 
-    m_MessageStream.SetMessage(App_MESSAGE("Exiting"));
-
-    // end the message stream
-    m_MessageStream.end();
-
-    if(MessageStreamThread.joinable()){
-        MessageStreamThread.join();
-    }
+    STDOUT << App_MESSAGE("Exiting \n");
 }
 
 

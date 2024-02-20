@@ -102,7 +102,4 @@ namespace application{
 		std::unique_lock<std::mutex> m_main_thread_lock;
 		std::condition_variable m_main_thread_cv;
     };
-
-    // global message stream object for outputing to the console
-    inline CONSOLETM m_MessageStream;
 }

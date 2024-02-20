@@ -11,6 +11,7 @@
 #define OFSTREAM std::wofstream
 #define CONSOLETM wConsoleTM
 #define TOSTRING std::to_wstring
+#define STDOUT std::wcout
 #else
 #define WINDOWS_BUILD 0
 #endif

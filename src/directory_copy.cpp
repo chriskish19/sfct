@@ -20,12 +20,6 @@ void application::directory_copy::fast_copy()
 
 void application::directory_copy::copy()
 {
-    std::thread q_sys_thread([this](){
-    exceptions(
-        &application::queue_system<application::file_queue_info>::process, 
-        &m_queue_processor
-    );
-    });
 
     for(const auto& dir:*m_dirs){
         
@@ -42,7 +36,7 @@ void application::directory_copy::copy()
                     _file_info.fs_src = std::filesystem::status(entry.path());
                     _file_info.src = entry.path();
 
-                    m_queue_processor.add_to_queue(_file_info);
+                    m_queue_processor.process_entry(_file_info);
                 }
             }
 
@@ -60,19 +54,10 @@ void application::directory_copy::copy()
                 _file_info.fs_src = std::filesystem::status(entry.path());
                 _file_info.src = entry.path();
 
-                m_queue_processor.add_to_queue(_file_info);
+                m_queue_processor.process_entry(_file_info);
             }
-            
-
-
+        
         }
         
-        m_queue_processor.m_ready_to_process = true;
-        m_queue_processor.m_local_thread_cv.notify_one();
-    }
-
-    m_queue_processor.exit();
-    if(q_sys_thread.joinable()){
-        q_sys_thread.detach();
     }
 }

@@ -216,6 +216,7 @@ namespace application{
             m_new_main_directory_entries.clear();
         }
 
+    public:
         void process_entry(const file_queue_info& entry){
             switch(entry.fqs){
                 case file_queue_status::file_added:{
@@ -237,10 +238,13 @@ namespace application{
                             break;
                         }
                         case std::filesystem::file_type::directory:{
-                            sfct_api::create_directory_paths(entry.dst);
-                            if(entry.src.parent_path() == entry.main_src && sfct_api::recursive_flag_check(entry.commands) && m_all_seen_main_directory_entries.insert(entry).second){
-                                m_new_main_directory_entries.push_back(entry);
+                            if(std::filesystem::exists(entry.src)){
+                                sfct_api::create_directory_paths(entry.dst);
+                                if(entry.src.parent_path() == entry.main_src && sfct_api::recursive_flag_check(entry.commands) && m_all_seen_main_directory_entries.insert(entry).second){
+                                    m_new_main_directory_entries.push_back(entry);
+                                }
                             }
+                            
                             break;
                         }
                         case std::filesystem::file_type::symlink:

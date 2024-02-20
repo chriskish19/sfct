@@ -55,8 +55,7 @@ void application::benchmark::speed_test(const copyto& dir,std::uintmax_t bytes)
     // speed in MB/s
     double_t speed = test.speed(bench_file_size);
 
-    m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(speed));
-    m_MessageStream.ReleaseBuffer();
+    STDOUT << App_MESSAGE("Speed in MB/s: ") << TOSTRING(speed);
 
     sfct_api::remove_entry(dir.source/filename);
     sfct_api::remove_entry(dir.destination/filename);
@@ -93,8 +92,7 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
     // speed in MB/s
     double_t speed = test.speed(bytes);
 
-    m_MessageStream.SetMessage(App_MESSAGE("Speed in MB/s: ") + TOSTRING(speed));
-    m_MessageStream.ReleaseBuffer();
+    STDOUT << App_MESSAGE("Speed in MB/s: ") << TOSTRING(speed);
 
     // slower but safer than using remove_all
     for(const auto& filename:filenames){

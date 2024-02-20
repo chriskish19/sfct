@@ -67,11 +67,13 @@ void application::DirectorySignal::monitor(){
 
 
 
-    std::thread q_sys_thread([this](){
-    exceptions(
-        &application::queue_system<application::file_queue_info>::process, 
-        &m_queue_processor
-    );
+    std::promise<std::exception_ptr> promise;
+    auto future = promise.get_future();
+    std::atomic<bool> exception_occurred{false};
+    std::thread q_sys_thread([this,&promise,&exception_occurred]() {
+        auto eptr = exceptions(&application::queue_system<file_queue_info>::process, &m_queue_processor);
+        promise.set_value(eptr); // Pass the exception pointer to the future
+        exception_occurred = true;
     });
 
 
@@ -90,7 +92,7 @@ void application::DirectorySignal::monitor(){
 
 
 
-    while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
+    while (!exception_occurred.load() && GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
         Overflow(bytesTransferred);
         
         // Process change notification in pMonitor->buffer
@@ -108,20 +110,26 @@ void application::DirectorySignal::monitor(){
 
     t.end_notify_timer();
     if(timer_thread.joinable()){
-        timer_thread.detach();
+        timer_thread_notify_cv.notify_one();
+        timer_thread.join();
     }
 
     m_queue_processor.exit();
     if(q_sys_thread.joinable()){
+        m_queue_processor.m_local_thread_cv.notify_one();
         q_sys_thread.join();
+    }
+
+    std::exception_ptr eptr = future.get();
+    if(eptr){
+        std::rethrow_exception(eptr);
     }
 }
 
 bool application::DirectorySignal::Overflow(DWORD bytes_returned)
 {
     if(bytes_returned == 0){
-        m_MessageStream.SetMessage(App_MESSAGE("The monitoring buffer has overflowed"));
-        m_MessageStream.ReleaseBuffer();
+        STDOUT << App_MESSAGE("The monitoring buffer has overflowed");
         return true;
     }
     return false;

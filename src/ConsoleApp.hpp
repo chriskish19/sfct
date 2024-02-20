@@ -42,5 +42,7 @@ namespace application{
         std::shared_ptr<std::vector<copyto>> m_fast_copy_dirs{std::make_shared<std::vector<copyto>>()};
         std::shared_ptr<std::vector<copyto>> m_copy_dirs{std::make_shared<std::vector<copyto>>()};
         std::vector<copyto> m_bench_dirs;
+
+        CONSOLETM m_MessageStream;
     };
 }

@@ -25,34 +25,22 @@ namespace application{
     /// @param fp function pointer
     /// @param ...args 
     template <typename Function, typename... Args>
-    void exceptions(Function fp, Args&&... args){
-        try{
+    std::exception_ptr exceptions(Function fp, Args&&... args){
+        std::exception_ptr eptr;
+    
+        try {
             // Call the function with the provided arguments
             std::invoke(fp, std::forward<Args>(args)...);
-        }
-        catch (const std::filesystem::filesystem_error& e) {
-            // Handle filesystem related errors
-            std::cerr << "Filesystem error: " << e.what() << '\n';
-        }
-        catch(const std::runtime_error& e){
-            // the error message
-            std::cerr << e.what() << std::endl;
-        }
-        catch(const std::bad_alloc& e){
-            // the error message
-            std::cerr << e.what() << std::endl;
-        }
-        catch (const std::exception& e) {
-            // Catch other standard exceptions
-            std::cerr << "Standard exception: " << e.what() << '\n';
         } catch (...) {
-            // Catch any other exceptions
-            std::cerr << "Unknown exception caught\n";
+            // Capture any exception into an std::exception_ptr
+            eptr = std::current_exception();
+            // Optionally log that an exception was captured
+            std::cerr << "Exception captured\n";
         }
 
-        // thread will exit...now
+        // Return the exception pointer for further handling
+        return eptr;
     }
-
 
     enum class SystemPerformance{
         SLOW,
@@ -111,3 +99,30 @@ namespace application{
         const inline static SystemPerformance m_PC_SPEC{GetPCspec()};
     };
 }
+
+/*
+        try{
+            // Call the function with the provided arguments
+            std::invoke(fp, std::forward<Args>(args)...);
+        }
+        catch (const std::filesystem::filesystem_error& e) {
+            // Handle filesystem related errors
+            std::cerr << "Filesystem error: " << e.what() << '\n';
+        }
+        catch(const std::runtime_error& e){
+            // the error message
+            std::cerr << e.what() << std::endl;
+        }
+        catch(const std::bad_alloc& e){
+            // the error message
+            std::cerr << e.what() << std::endl;
+        }
+        catch (const std::exception& e) {
+            // Catch other standard exceptions
+            std::cerr << "Standard exception: " << e.what() << '\n';
+        } catch (...) {
+            // Catch any other exceptions
+            std::cerr << "Unknown exception caught\n";
+        }
+
+        */
