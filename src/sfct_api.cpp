@@ -297,6 +297,29 @@ std::optional<std::shared_ptr<std::unordered_map<sfct_api::fs::path,sfct_api::fs
     return ext::are_directories_synced(src,dst,recursive_sync);
 }
 
+std::optional<application::directory_info> sfct_api::get_directory_info(const application::copyto &dir)
+{
+    if(!fs::is_directory(dir.source)){
+        return std::nullopt;
+    }
+
+    return ext::get_directory_info(dir);
+}
+
+void sfct_api::output_entry_to_console(const fs::directory_entry &entry,const STRING& prev_entry_path)
+{
+    STRING s_clear(prev_entry_path.length(),' ');
+    STRING s_entry_path(entry.path());
+    
+
+    STDOUT << "\r" << App_MESSAGE("Processing entry: ") << s_clear;
+    STDOUT << "\r" << App_MESSAGE("Processing entry: ") << s_entry_path;
+
+    if(STDOUT.fail()){
+        STDOUT.clear();
+    }
+}
+
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
 {
     application::path_ext _p = private_get_relative_path(entry,base);
@@ -610,6 +633,48 @@ std::optional<std::shared_ptr<std::unordered_map<sfct_api::fs::path,sfct_api::fs
 
     }
     
+}
+
+void sfct_api::ext::log_error_code(const std::error_code &e,path p)
+{
+    if(e){
+        application::logger log(e,application::Error::WARNING,p);
+        log.to_console();
+        log.to_log_file();
+    }
+}
+
+application::directory_info sfct_api::ext::get_directory_info(const application::copyto &dir)
+{
+    if(sfct_api::recursive_flag_check(dir.commands)){
+
+        application::directory_info di{};
+        for(const auto& entry:fs::recursive_directory_iterator(dir.source)){
+            std::error_code e;
+            di.TotalSize += entry.file_size(e);
+            ext::log_error_code(e,entry.path());
+            di.FileCount++;
+        }
+
+        di.AvgFileSize = static_cast<double_t>(di.TotalSize / di.FileCount);
+
+        return di;
+
+    }
+    else{
+
+        application::directory_info di{};
+        for(const auto& entry:fs::directory_iterator(dir.source)){
+            std::error_code e;
+            di.TotalSize += entry.file_size(e);
+            ext::log_error_code(e,entry.path());
+            di.FileCount++;
+        }
+
+        di.AvgFileSize = static_cast<double_t>(di.TotalSize / di.FileCount);
+
+        return di;
+    }
 }
 
 bool sfct_api::ext::private_open_file(path filepath)

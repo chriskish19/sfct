@@ -144,6 +144,16 @@ namespace sfct_api{
             /// the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
             /// an unordered_map key is dst and value is src
             static std::optional<std::shared_ptr<std::unordered_map<fs::path,fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
+
+            /// @brief logs an error code to the console and log file
+            /// @param e error code
+            /// @param p path that caused the error code
+            static void log_error_code(const std::error_code& e,path p);
+
+            /// @brief gets information on a directory, the total number of files, total size, avg file size
+            /// @param dir any copyto object
+            /// @return a directory_info object with the directory information
+            static application::directory_info get_directory_info(const application::copyto &dir);
         private:
             /// @brief opens a file at filepath
             /// @param filepath any path
@@ -314,4 +324,15 @@ namespace sfct_api{
     /// the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
     /// an unordered_map key is dst and value is src
     std::optional<std::shared_ptr<std::unordered_map<fs::path,fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
+    
+    /// @brief wrapper for ext::get_directory_info
+    /// @param dir dir.source must exist on the system
+    /// @return if dir.source does not exist on the system nothing is returned.
+    /// if dir.source does exist then a directory info object is returned
+    std::optional<application::directory_info> get_directory_info(const application::copyto& dir);
+
+    /// @brief 
+    /// @param entry 
+    /// @param prev_entry_path 
+    void output_entry_to_console(const fs::directory_entry& entry,const STRING& prev_entry_path);
 }

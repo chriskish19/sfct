@@ -42,11 +42,8 @@ application::ConsoleApp::ConsoleApp(){
 
 void application::ConsoleApp::Go(){
     
-    std::jthread MessageStreamThread(&application::CONSOLETM::RunMessages,&m_MessageStream);
-    
     if(!m_copy_dirs->empty()){
         STDOUT << App_MESSAGE("Preparing to copy files \n");
-        STDOUT << App_MESSAGE("Checking files...\n");
 
         directory_copy dc(m_copy_dirs);
         dc.copy();
@@ -75,9 +72,6 @@ void application::ConsoleApp::Go(){
         // monitor directories
         m_Monitor->monitor();
     }
-   
-    m_MessageStream.end();
-    STDOUT << App_MESSAGE("Exiting \n");
 }
 
 
