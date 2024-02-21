@@ -306,9 +306,9 @@ std::optional<application::directory_info> sfct_api::get_directory_info(const ap
     return ext::get_directory_info(dir);
 }
 
-void sfct_api::output_entry_to_console(const fs::directory_entry &entry,const STRING& prev_entry_path)
+void sfct_api::output_entry_to_console(const fs::directory_entry &entry,const size_t prev_entry_path_length)
 {
-    STRING s_clear(prev_entry_path.length(),' ');
+    STRING s_clear(prev_entry_path_length,' ');
     STRING s_entry_path(entry.path());
     
 

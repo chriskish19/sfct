@@ -62,7 +62,7 @@ void application::directory_copy::copy()
                     _file_info.fs_src = std::filesystem::status(entry.path());
                     _file_info.src = entry.path();
 
-                    sfct_api::output_entry_to_console(entry,prev_entry_path);
+                    sfct_api::output_entry_to_console(entry,prev_entry_path.length());
                     prev_entry_path = STRING(entry.path());
 
                     m_queue_processor.process_entry(_file_info);
@@ -84,7 +84,7 @@ void application::directory_copy::copy()
                 _file_info.fs_src = std::filesystem::status(entry.path());
                 _file_info.src = entry.path();
 
-                sfct_api::output_entry_to_console(entry,prev_entry_path);
+                sfct_api::output_entry_to_console(entry,prev_entry_path.length());
                 prev_entry_path = STRING(entry.path());
 
                 m_queue_processor.process_entry(_file_info);

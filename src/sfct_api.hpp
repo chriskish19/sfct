@@ -331,8 +331,9 @@ namespace sfct_api{
     /// if dir.source does exist then a directory info object is returned
     std::optional<application::directory_info> get_directory_info(const application::copyto& dir);
 
-    /// @brief 
-    /// @param entry 
-    /// @param prev_entry_path 
-    void output_entry_to_console(const fs::directory_entry& entry,const STRING& prev_entry_path);
+    /// @brief use to output a directory entry path name to the console on the same line repeatably
+    /// @param entry any directory entry
+    /// @param prev_entry_path a count of the previous entries path length. Useful so that the name gets cleared and no fragments are
+    /// left behind on the output line.
+    void output_entry_to_console(const fs::directory_entry& entry,const size_t prev_entry_path_length);
 }
