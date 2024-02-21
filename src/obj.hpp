@@ -41,6 +41,24 @@ namespace application{
         std::uintmax_t TotalSize;
         std::uintmax_t FileCount;
         double_t AvgFileSize;
+
+         // Overload the += operator
+        directory_info& operator+=(const directory_info& other) {
+            // Add the TotalSize and FileCount from the other object to this one
+            TotalSize += other.TotalSize;
+            FileCount += other.FileCount;
+
+            // Recalculate the average file size
+            // Check for division by zero
+            if (FileCount > 0) {
+                AvgFileSize = static_cast<double_t>(TotalSize) / FileCount;
+            } else {
+                AvgFileSize = 0;
+            }
+
+            // Return a reference to this object
+            return *this;
+        }
     };
 
     struct path_ext{

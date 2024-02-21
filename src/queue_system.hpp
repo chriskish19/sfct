@@ -216,8 +216,13 @@ namespace application{
             m_new_main_directory_entries.clear();
         }
 
-    public:
+        // useful for outputting to the console
+        STRING m_prev_entry_path;
+
         void process_entry(const file_queue_info& entry){
+            sfct_api::output_path_to_console(entry.src,m_prev_entry_path.length());
+            m_prev_entry_path = STRING(entry.src);
+            
             switch(entry.fqs){
                 case file_queue_status::file_added:{
                     switch(entry.fs_src.type()){
@@ -362,6 +367,155 @@ namespace application{
                 default:
                     break;
             }
+        }
+
+    public:
+        void public_process_entry(const file_queue_info& entry){
+            switch(entry.fqs){
+                case file_queue_status::file_added:{
+                    switch(entry.fs_src.type()){
+                        case std::filesystem::file_type::none:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::not_found:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::regular:{
+                            if(sfct_api::entry_check(entry.src)){
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                            }
+                            else{
+                                m_still_wait_data.emplace(entry);
+                            }
+                            
+                            break;
+                        }
+                        case std::filesystem::file_type::directory:{
+                            if(std::filesystem::exists(entry.src)){
+                                sfct_api::create_directory_paths(entry.dst);
+                                if(entry.src.parent_path() == entry.main_src && sfct_api::recursive_flag_check(entry.commands) && m_all_seen_main_directory_entries.insert(entry).second){
+                                    m_new_main_directory_entries.push_back(entry);
+                                }
+                            }
+                            
+                            break;
+                        }
+                        case std::filesystem::file_type::symlink:
+                            sfct_api::copy_symlink(entry.src,entry.dst,entry.co);
+                            break;
+                        case std::filesystem::file_type::block:
+                            
+                            break;
+                        case std::filesystem::file_type::character:
+                            
+                            break;
+                        case std::filesystem::file_type::fifo:
+                            
+                            break;
+                        case std::filesystem::file_type::socket:
+                            
+                            break;
+                        case std::filesystem::file_type::unknown:
+
+                            break;
+                        default:
+                            
+                            break;
+                    }
+                    break;
+                }
+                case file_queue_status::file_updated:{
+                    switch(entry.fs_src.type()){
+                        case std::filesystem::file_type::none:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::not_found:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::regular:{
+                            if(sfct_api::entry_check(entry.src)){
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                            }
+                            else{
+                                m_still_wait_data.emplace(entry);
+                            }
+                            break;
+                        }
+                        case std::filesystem::file_type::directory:
+                            
+                            break;
+                        case std::filesystem::file_type::symlink:
+                            sfct_api::copy_symlink(entry.src,entry.dst,entry.co);
+                            break;
+                        case std::filesystem::file_type::block:
+                            
+                            break;
+                        case std::filesystem::file_type::character:
+                            
+                            break;
+                        case std::filesystem::file_type::fifo:
+                            
+                            break;
+                        case std::filesystem::file_type::socket:
+                            
+                            break;
+                        case std::filesystem::file_type::unknown:
+
+                            break;
+                        default:
+                            
+                            break;
+                    }
+                    break;
+                }
+                case file_queue_status::file_removed:{
+                    switch(entry.fs_dst.type()){
+                        case std::filesystem::file_type::none:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::not_found:
+                            // skip for now
+                            break;
+                        case std::filesystem::file_type::regular:{
+                            sfct_api::remove_entry(entry.dst);
+                            m_all_seen_entries.erase(entry);
+                            break;
+                        }
+                        case std::filesystem::file_type::directory:{
+                            m_all_seen_entries.clear();
+                            sfct_api::remove_all(entry.dst);
+                            break;
+                        }
+                        case std::filesystem::file_type::symlink:
+                            sfct_api::remove_entry(entry.dst);
+                            break;
+                        case std::filesystem::file_type::block:
+                            
+                            break;
+                        case std::filesystem::file_type::character:
+                            
+                            break;
+                        case std::filesystem::file_type::fifo:
+                            
+                            break;
+                        case std::filesystem::file_type::socket:
+                            
+                            break;
+                        case std::filesystem::file_type::unknown:
+
+                            break;
+                        default:
+                            
+                            break;
+                    }
+                    break;
+                }
+                case file_queue_status::none:
+                    break;
+                default:
+                    break;
+            }
+        
         }
     };
 }

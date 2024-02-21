@@ -320,6 +320,20 @@ void sfct_api::output_entry_to_console(const fs::directory_entry &entry,const si
     }
 }
 
+void sfct_api::output_path_to_console(path p, const size_t prev_p_length)
+{
+    STRING s_clear(prev_p_length,' ');
+    STRING s_path(p);
+    
+
+    STDOUT << "\r" << App_MESSAGE("Processing entry: ") << s_clear;
+    STDOUT << "\r" << App_MESSAGE("Processing entry: ") << s_path;
+
+    if(STDOUT.fail()){
+        STDOUT.clear();
+    }
+}
+
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
 {
     application::path_ext _p = private_get_relative_path(entry,base);

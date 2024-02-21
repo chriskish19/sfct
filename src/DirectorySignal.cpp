@@ -19,7 +19,19 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
         no_watch = true;
     }
 
+    directory_info total_di{};
+
+    STDOUT << "\n";
+
     for(const auto &dir:*dirs_to_watch){
+        STDOUT << App_MESSAGE("Monitoring directory: ") << dir.source << App_MESSAGE(" to: ") << dir.destination << "\n";
+
+
+        auto di = sfct_api::get_directory_info(dir);
+        if(di.has_value()){
+            total_di += di.value();
+        }
+        
         HANDLE hDir = CreateFile(
             dir.source.c_str(), FILE_LIST_DIRECTORY,
             FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -48,6 +60,10 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
         UpdateWatcher(monitor);
         m_pMonitors.push_back(monitor);
     }
+
+    // output stats to console
+    STDOUT << App_MESSAGE("Total size in bytes: ") << total_di.TotalSize << "\n";
+    STDOUT << App_MESSAGE("Total number of files: ") << total_di.FileCount << "\n";
 }
 
 application::DirectorySignal::~DirectorySignal(){

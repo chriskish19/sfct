@@ -336,4 +336,10 @@ namespace sfct_api{
     /// @param prev_entry_path a count of the previous entries path length. Useful so that the name gets cleared and no fragments are
     /// left behind on the output line.
     void output_entry_to_console(const fs::directory_entry& entry,const size_t prev_entry_path_length);
+
+    /// @brief use to output a path name to the console on the same line repeatably
+    /// @param p any path
+    /// @param prev_p_length a count of the previous path length. Useful so that the name gets cleared and no fragments are
+    /// left behind on the output line. 
+    void output_path_to_console(path p,const size_t prev_p_length);
 }
