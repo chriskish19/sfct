@@ -385,7 +385,8 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                m_still_wait_data.emplace(entry);
+                                STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                                if(STDOUT.fail()) STDOUT.clear();
                             }
                             
                             break;
@@ -393,9 +394,6 @@ namespace application{
                         case std::filesystem::file_type::directory:{
                             if(std::filesystem::exists(entry.src)){
                                 sfct_api::create_directory_paths(entry.dst);
-                                if(entry.src.parent_path() == entry.main_src && sfct_api::recursive_flag_check(entry.commands) && m_all_seen_main_directory_entries.insert(entry).second){
-                                    m_new_main_directory_entries.push_back(entry);
-                                }
                             }
                             
                             break;
@@ -437,7 +435,8 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                m_still_wait_data.emplace(entry);
+                                STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                                if(STDOUT.fail()) STDOUT.clear();
                             }
                             break;
                         }
@@ -478,11 +477,9 @@ namespace application{
                             break;
                         case std::filesystem::file_type::regular:{
                             sfct_api::remove_entry(entry.dst);
-                            m_all_seen_entries.erase(entry);
                             break;
                         }
                         case std::filesystem::file_type::directory:{
-                            m_all_seen_entries.clear();
                             sfct_api::remove_all(entry.dst);
                             break;
                         }
