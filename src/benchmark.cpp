@@ -50,12 +50,17 @@ void application::benchmark::speed_test(const copyto& dir,std::uintmax_t bytes)
     test.end_clock();
 
     // get the bench file size
-    std::uintmax_t bench_file_size = std::filesystem::file_size(dir.source/filename);
+    auto bench_file_size = sfct_api::get_entry_size(dir.source/filename);
 
-    // speed in MB/s
-    double_t speed = test.speed(bench_file_size);
+    if(bench_file_size.has_value()){
+        // speed in MB/s
+        double_t speed = test.speed(bench_file_size.value());
 
-    STDOUT << App_MESSAGE("Speed in MB/s: ") << TOSTRING(speed) << "\n";
+        STDOUT << App_MESSAGE("Speed in MB/s: ") << TOSTRING(speed) << "\n";
+    }
+    else{
+        STDOUT << App_MESSAGE("Failed to get the transfer rate") << "\n";
+    }
 
     sfct_api::remove_entry(dir.source/filename);
     sfct_api::remove_entry(dir.destination/filename);

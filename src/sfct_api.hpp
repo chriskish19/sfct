@@ -342,4 +342,10 @@ namespace sfct_api{
     /// @param prev_p_length a count of the previous path length. Useful so that the name gets cleared and no fragments are
     /// left behind on the output line. 
     void output_path_to_console(path p,const size_t prev_p_length);
+
+    /// @brief wrapper for ext::get_file_size()
+    /// @param entry must exist on the system
+    /// @return if it doesnt exist nothing is returned
+    /// if the entry does exist and there is no error the size in bytes is returned
+    std::optional<std::uintmax_t> get_entry_size(path entry);
 }

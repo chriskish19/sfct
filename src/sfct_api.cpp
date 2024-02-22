@@ -334,6 +334,14 @@ void sfct_api::output_path_to_console(path p, const size_t prev_p_length)
     }
 }
 
+std::optional<std::uintmax_t> sfct_api::get_entry_size(path entry)
+{
+    if(!fs::exists(entry)){
+        return std::nullopt;
+    }
+    return ext::get_file_size(entry);
+}
+
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
 {
     application::path_ext _p = private_get_relative_path(entry,base);
