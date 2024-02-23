@@ -112,12 +112,11 @@ namespace sfct_api{
             /// returns nothing if there was no change in file size and rate is 0.0
             static std::optional<double_t> file_get_transfer_rate(path filepath);
 
-            /// @brief copies the actual file that src_link points to, to dst. Uses ext::copy_file().
+            /// @brief copies the actual file that src_link points to, to dst. Uses ext::copy_entry().
             /// @param src_link any path
-            /// @param dst any path
+            /// @param dst any path, if it doesnt exist it will be created
             /// @param co any copy options
-            /// @return ext::copy_file().
-            static bool copy_symlink(path src_link,path dst,fs::copy_options co);
+            static void copy_symlink(path src_link,path dst,fs::copy_options co);
 
             /// @brief checks a file if it is currently being used. Can be any type of file.
             /// @param entry any path
@@ -154,7 +153,25 @@ namespace sfct_api{
             /// @param dir any copyto object
             /// @return a directory_info object with the directory information
             static application::directory_info get_directory_info(const application::copyto &dir);
+
+            /// @brief wrapper for private_read_symlink()
+            /// @param src_link any path
+            /// @return if there was an error it is logged and nothing is returned
+            /// if there was no error the target path is returned
+            static std::optional<fs::path> read_symlink(path src_link);
+
+            /// @brief checks an entry if its available and if its not then checks if it is being transfered, if it is being actively transfered then it will
+            /// wait 250ms and check again until it stops being transfered. Then it will check one last time if the entry is available it will return true if it is and
+            /// false if it isnt.
+            /// @param entry any path
+            /// @return true for available and false for not.
+            static bool entry_check(path entry); 
         private:
+            /// @brief wrapper for std::filesystem::read_symlink()
+            /// @param src_link any path
+            /// @return a copy_sym_ext object with error code and target path
+            static application::copy_sym_ext private_read_symlink(path src_link);
+
             /// @brief opens a file at filepath
             /// @param filepath any path
             /// @return true if the file was opened, false if it failed to open.
@@ -197,7 +214,7 @@ namespace sfct_api{
 
     /// @brief waits in 250ms intervals until an entry has been completly copied into entry path. Then checks if the entry is available.
     /// Checks if entry exists on the system if it doesnt it returns false.
-    /// @param entry any 
+    /// @param entry must exist on the system
     /// @return true if the entry is available and false if it isnt. False if entry doesnt exist in the system.
     bool entry_check(path entry); 
 
@@ -293,11 +310,13 @@ namespace sfct_api{
     bool remove_entry(path entry);
 
     /// @brief wrapper for ext::copy_symlink(). Copies the target file that sym_link points to, to dst.
-    /// checks that src_link is valid. Checks that dst has a valid directory path in it.
+    /// checks that src_link is valid. Since it calls copy_entry() that means if the target is a directory the whole
+    /// directory will be copied.
     /// @param src_link must be a valid sym_link on the system
-    /// @param dst must be a valid directory or file path
+    /// @param dst any path
     /// @param co any copy options
-    /// @return true for no error and false if there is an error. Calls private_copy_file() under the hood which will log the error if there is one.
+    /// @return returns true if src_link is valid and false if it is invalid.
+    /// any errors will be logged
     bool copy_symlink(path src_link,path dst,fs::copy_options co);
 
     /// @brief converts cs commands to fs::copy_options
@@ -348,4 +367,8 @@ namespace sfct_api{
     /// @return if it doesnt exist nothing is returned
     /// if the entry does exist and there is no error the size in bytes is returned
     std::optional<std::uintmax_t> get_entry_size(path entry);
+
+    /// @brief processes a file_queue_info object to be copied
+    /// @param entry any entry
+    void process_file_queue_info_entry(const application::file_queue_info& entry);
 }

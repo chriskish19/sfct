@@ -65,7 +65,7 @@ void application::directory_copy::copy()
                     sfct_api::output_entry_to_console(entry,prev_entry_path.length());
                     prev_entry_path = STRING(entry.path());
 
-                    m_queue_processor.public_process_entry(_file_info);
+                    sfct_api::process_file_queue_info_entry(_file_info);
                 }
             }
 
@@ -87,7 +87,7 @@ void application::directory_copy::copy()
                 sfct_api::output_entry_to_console(entry,prev_entry_path.length());
                 prev_entry_path = STRING(entry.path());
 
-                m_queue_processor.public_process_entry(_file_info);
+                sfct_api::process_file_queue_info_entry(_file_info);
             }
         
         }

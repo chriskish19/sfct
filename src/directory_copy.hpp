@@ -1,5 +1,5 @@
 #pragma once
-#include "queue_system.hpp"
+#include "sfct_api.hpp"
 #include "timer.hpp"
 
 namespace application{
@@ -11,7 +11,5 @@ namespace application{
         void copy();
     private:
         std::shared_ptr<std::vector<copyto>> m_dirs;
-
-        queue_system<file_queue_info> m_queue_processor;
     };
 }

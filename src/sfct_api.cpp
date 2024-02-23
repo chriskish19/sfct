@@ -14,11 +14,7 @@ bool sfct_api::entry_check(path entry)
         return false;
     }
     
-    if(!ext::is_entry_available(entry)){
-        while(ext::is_entry_in_transit(entry)){}
-    }
-    
-    return ext::is_entry_available(entry);
+    return ext::entry_check(entry);
 }
 
 bool sfct_api::check_directory(path dir)
@@ -230,11 +226,12 @@ bool sfct_api::copy_symlink(path src_link, path dst, fs::copy_options co)
         dst_dir.remove_filename();
     }
     
-    if(!fs::is_symlink(src_link) || !fs::exists(dst_dir)){
+    if(!fs::is_symlink(src_link)){
         return false;
     }
 
-    return ext::copy_symlink(src_link,dst_dir,co);
+    ext::copy_symlink(src_link,dst_dir,co);
+    return true;
 }
 
 sfct_api::fs::copy_options sfct_api::get_copy_options(application::cs commands) noexcept
@@ -340,6 +337,233 @@ std::optional<std::uintmax_t> sfct_api::get_entry_size(path entry)
         return std::nullopt;
     }
     return ext::get_file_size(entry);
+}
+
+void sfct_api::process_file_queue_info_entry(const application::file_queue_info &entry)
+{
+    switch(entry.fqs){
+        case application::file_queue_status::file_added:{
+            switch(entry.fs_src.type()){
+                case std::filesystem::file_type::none:
+                    // skip for now
+                    break;
+                case std::filesystem::file_type::not_found:
+                    // skip for now
+                    break;
+                case std::filesystem::file_type::regular:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::directory:{
+                    if(std::filesystem::exists(entry.src)){
+                        sfct_api::create_directory_paths(entry.dst);
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::symlink:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::block:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::character:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::fifo:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::socket:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::unknown:
+                    // skip
+                    break;
+                default:
+                    // do nothing
+                    break;
+            }
+            break;
+        }
+        case application::file_queue_status::file_updated:{
+            switch(entry.fs_src.type()){
+                case std::filesystem::file_type::none:
+                    // skip for now
+                    break;
+                case std::filesystem::file_type::not_found:
+                    // skip for now
+                    break;
+                case std::filesystem::file_type::regular:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    break;
+                }
+                case std::filesystem::file_type::directory:
+                    // skip
+                    break;
+                case std::filesystem::file_type::symlink:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::block:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::character:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::fifo:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::socket:{
+                    if(sfct_api::entry_check(entry.src)){
+                        sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                    }
+                    else{
+                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
+                        if(STDOUT.fail()) STDOUT.clear();
+                    }
+                    
+                    break;
+                }
+                case std::filesystem::file_type::unknown:
+                    // do nothing
+                    break;
+                default:
+                    // do nothing
+                    break;
+            }
+            break;
+        }
+        case application::file_queue_status::file_removed:{
+            switch(entry.fs_dst.type()){
+                case std::filesystem::file_type::none:
+                    // skip for now
+                    break;
+                case std::filesystem::file_type::not_found:
+                    // skip for now
+                    break;
+                case std::filesystem::file_type::regular:{
+                    sfct_api::remove_entry(entry.dst);
+                    break;
+                }
+                case std::filesystem::file_type::directory:{
+                    sfct_api::remove_all(entry.dst);
+                    break;
+                }
+                case std::filesystem::file_type::symlink:
+                    sfct_api::remove_entry(entry.dst);
+                    break;
+                case std::filesystem::file_type::block:
+                    sfct_api::remove_entry(entry.dst);
+                    break;
+                case std::filesystem::file_type::character:
+                    sfct_api::remove_entry(entry.dst);
+                    break;
+                case std::filesystem::file_type::fifo:
+                    sfct_api::remove_entry(entry.dst);
+                    break;
+                case std::filesystem::file_type::socket:
+                    sfct_api::remove_entry(entry.dst);
+                    break;
+                case std::filesystem::file_type::unknown:
+                    // skip
+                    break;
+                default:
+                    // skip
+                    break;
+            }
+            break;
+        }
+        case application::file_queue_status::none:
+            // do nothing
+            break;
+        default:
+            // do nothing
+            break;
+    }
 }
 
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
@@ -527,10 +751,13 @@ std::optional<double_t> sfct_api::ext::file_get_transfer_rate(path filepath)
     return rate;
 }
 
-bool sfct_api::ext::copy_symlink(path src_link,path dst,fs::copy_options co)
+void sfct_api::ext::copy_symlink(path src_link,path dst,fs::copy_options co)
 {
-    fs::path target = fs::read_symlink(src_link);
-    return ext::copy_file(target,dst,co);
+    auto target = ext::read_symlink(src_link);
+
+    if(target.has_value()){
+        ext::copy_entry(target.value(),dst,co);
+    }
 }
 
 bool sfct_api::ext::is_entry_available(path entry)
@@ -697,6 +924,34 @@ application::directory_info sfct_api::ext::get_directory_info(const application:
 
         return di;
     }
+}
+
+std::optional<sfct_api::fs::path> sfct_api::ext::read_symlink(path src_link)
+{
+     application::copy_sym_ext _cs = private_read_symlink(src_link);
+     if(_cs.e){
+        application::logger log(_cs.e,application::Error::WARNING,src_link);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+     }
+     return _cs.target;
+}
+
+bool sfct_api::ext::entry_check(path entry)
+{
+    if(!ext::is_entry_available(entry)){
+        while(ext::is_entry_in_transit(entry)){}
+    }
+    
+    return ext::is_entry_available(entry);
+}
+
+application::copy_sym_ext sfct_api::ext::private_read_symlink(path src_link)
+{
+    application::copy_sym_ext _cs;
+    _cs.target = fs::read_symlink(src_link,_cs.e);
+    return _cs;
 }
 
 bool sfct_api::ext::private_open_file(path filepath)

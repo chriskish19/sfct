@@ -109,6 +109,11 @@ namespace application{
         std::uintmax_t files_removed;
         std::error_code e;
     };
+
+    struct copy_sym_ext{
+        std::filesystem::path target;
+        std::error_code e;
+    };
 }
 
 namespace std {
