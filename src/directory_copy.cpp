@@ -52,7 +52,7 @@ void application::directory_copy::copy()
             STRING prev_entry_path;
 
             for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
-                std::optional<std::filesystem::path> succeeded = sfct_api::create_file_relative_path(entry.path(),dir.destination,dir.source,false);
+                std::optional<std::filesystem::path> succeeded = sfct_api::create_file_relative_path(entry.path(),dir.destination,dir.source,true);
                 if(succeeded.has_value()){
                     file_queue_info _file_info;
                     _file_info.co = dir.co;
@@ -66,6 +66,11 @@ void application::directory_copy::copy()
                     prev_entry_path = STRING(entry.path());
 
                     sfct_api::process_file_queue_info_entry(_file_info);
+                }
+                else{
+                    logger log(App_MESSAGE("Skipping entry, failed to obtain relative path"),Error::WARNING,entry.path());
+                    log.to_console();
+                    log.to_log_file();
                 }
             }
 

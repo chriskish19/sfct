@@ -234,7 +234,7 @@ namespace application{
                             break;
                         case std::filesystem::file_type::regular:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -254,7 +254,7 @@ namespace application{
                         }
                         case std::filesystem::file_type::symlink:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -264,7 +264,7 @@ namespace application{
                         }
                         case std::filesystem::file_type::block:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -274,7 +274,7 @@ namespace application{
                         }
                         case std::filesystem::file_type::character:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -284,7 +284,7 @@ namespace application{
                         }
                         case std::filesystem::file_type::fifo:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -294,7 +294,7 @@ namespace application{
                         }
                         case std::filesystem::file_type::socket:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -321,7 +321,7 @@ namespace application{
                             break;
                         case std::filesystem::file_type::regular:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -333,7 +333,7 @@ namespace application{
                             break;
                         case std::filesystem::file_type::symlink:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -343,7 +343,7 @@ namespace application{
                         }
                         case std::filesystem::file_type::block:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -353,7 +353,7 @@ namespace application{
                         }
                         case std::filesystem::file_type::character:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -363,7 +363,7 @@ namespace application{
                         }
                         case std::filesystem::file_type::fifo:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);
@@ -373,7 +373,7 @@ namespace application{
                         }
                         case std::filesystem::file_type::socket:{
                             if(sfct_api::entry_check(entry.src)){
-                                sfct_api::copy_entry(entry.src,entry.dst,entry.co);
+                                sfct_api::copy_entry(entry.src,entry.dst,entry.co,true);
                             }
                             else{
                                 m_still_wait_data.emplace(entry);

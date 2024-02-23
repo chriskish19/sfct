@@ -258,21 +258,35 @@ bool sfct_api::recursive_flag_check(application::cs commands) noexcept
     return ((commands & application::cs::recursive) != application::cs::none);
 }
 
-void sfct_api::copy_entry(path src, path dst, fs::copy_options co)
+void sfct_api::copy_entry(path src, path dst, fs::copy_options co,bool create_dst)
 {
     if(!fs::exists(src)){
-        application::logger log(App_MESSAGE("src non exist"),application::Error::WARNING);
+        application::logger log(App_MESSAGE("does not exist on system"),application::Error::WARNING,src);
         log.to_console();
         log.to_log_file();
         return;
     }
     
     fs::path dst_dir = dst;
-    if(fs::is_directory(src) && dst_dir.has_extension()){
+    if(fs::is_directory(src) && !fs::is_directory(dst_dir)){
         dst_dir.remove_filename();
+        return ext::copy_entry(src,dst_dir,co);
+    }
+    
+    if(create_dst){
+        if(!fs::is_directory(dst_dir)){
+            dst_dir.remove_filename();
+        }
+
+        if(!fs::exists(dst_dir)){
+            ext::create_directory_paths(dst_dir);
+        }
+        
+        return ext::copy_entry(src,dst,co);
     }
 
-    return ext::copy_entry(src,dst_dir,co);
+
+    return ext::copy_entry(src,dst,co);
 }
 
 std::optional<std::shared_ptr<std::unordered_map<sfct_api::fs::path,sfct_api::fs::path>>> sfct_api::are_directories_synced(path src, path dst, bool recursive_sync)
@@ -636,15 +650,16 @@ std::optional<sfct_api::fs::path> sfct_api::ext::create_relative_path(path src, 
         file_dst = relative_path.value();
     }
 
-
-
-
-
     
+    fs::path file_dst_dir = file_dst; 
+    if(!fs::is_directory(file_dst)){
+        file_dst_dir.remove_filename();
+    }
+
     // if it fails to create the relative directory return nothing
     // if create_dir is false, the ext::create_directory_paths(file_dst).has_value() 
     // part of the expression will not be evaluated due to the short-circuiting behavior of the logical AND operator (&&) in C++.
-    if(create_dir && !ext::create_directory_paths(file_dst).has_value()){
+    if(create_dir && !ext::create_directory_paths(file_dst_dir).has_value()){
         return std::nullopt;
     } 
 

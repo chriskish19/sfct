@@ -329,11 +329,15 @@ namespace sfct_api{
     /// @return true if it is and false if it is not set.
     bool recursive_flag_check(application::cs commands) noexcept;
 
-    /// @brief wrapper for ext::copy_entry(). Copies any type of file or a whole directory.
+    /// @brief wrapper for ext::copy_entry(). Copies any type of file or a whole directory. 
+    /// If src includes a file name then the dst must also include that same name to be copyable.
+    /// The destination directory tree will not be created in this case. Only when src is a directory and dst is a directory will
+    /// it get created then copied.
     /// @param src must exist
-    /// @param dst if it does not exist it will be created
+    /// @param dst if it does not exist it may get created. see description.
     /// @param co any copy options
-    void copy_entry(path src,path dst,fs::copy_options co);
+    /// @param create_dst specifies whether to create the dst directory explictly or not. If it is false the directory may still get created, see description.
+    void copy_entry(path src,path dst,fs::copy_options co,bool create_dst=false);
 
     /// @brief wrapper for ext::are_directories_synced(). very slow function.
     /// @param src must be a directory on the system
@@ -368,7 +372,7 @@ namespace sfct_api{
     /// if the entry does exist and there is no error the size in bytes is returned
     std::optional<std::uintmax_t> get_entry_size(path entry);
 
-    /// @brief processes a file_queue_info object to be copied
+    /// @brief processes a file_queue_info object to be copied or removed
     /// @param entry any entry
     void process_file_queue_info_entry(const application::file_queue_info& entry);
 }
