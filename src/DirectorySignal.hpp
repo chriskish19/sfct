@@ -46,7 +46,7 @@ namespace application{
         DWORD GetNotifyFilter(){return m_NotifyFilter;}
         HANDLE GetCompletionPort(){return m_hCompletionPort;}
     private:
-        DWORD m_NotifyFilter{FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME|FILE_NOTIFY_CHANGE_LAST_WRITE};
+        DWORD m_NotifyFilter{FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME|FILE_NOTIFY_CHANGE_SIZE};
         HANDLE m_hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
         std::vector<DS_resources*> m_pMonitors;
         std::shared_ptr<std::vector<copyto>> m_dirs;

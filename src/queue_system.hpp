@@ -218,6 +218,7 @@ namespace application{
 
         // useful for outputting to the console
         STRING m_prev_entry_path;
+        std::filesystem::path m_rename_old;
 
         void process_entry(const file_queue_info& entry){
             sfct_api::output_path_to_console(entry.src,m_prev_entry_path.length());
@@ -440,6 +441,14 @@ namespace application{
                             // do nothing
                             break;
                     }
+                    break;
+                }
+                case file_queue_status::rename_old:{
+                    m_rename_old = entry.dst;
+                    break;
+                }
+                case file_queue_status::rename_new:{
+                    sfct_api::rename_entry(m_rename_old,entry.dst);
                     break;
                 }
                 case file_queue_status::none:

@@ -176,7 +176,7 @@ void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATI
         entry.main_dst = pMonitor->directory.destination;
         entry.main_src = pMonitor->directory.source;
 
-
+        
         // Process the file change
         switch (pNotify->Action) {
             case FILE_ACTION_MODIFIED:{
@@ -197,12 +197,13 @@ void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATI
                 break;
             }
             case FILE_ACTION_RENAMED_OLD_NAME:
-                // for future
+                entry.fqs = file_queue_status::rename_old;
                 break;
             case FILE_ACTION_RENAMED_NEW_NAME:
-                // for future
+                entry.fqs = file_queue_status::rename_new;
                 break;
             default:
+                // do nothing
                 break;
         }
 

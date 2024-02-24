@@ -89,6 +89,8 @@ namespace application{
         other_added,
         other_removed,
         other_updated,
+        rename_old,
+        rename_new,
         none
     };
 

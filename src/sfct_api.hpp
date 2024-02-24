@@ -166,6 +166,11 @@ namespace sfct_api{
             /// @param entry any path
             /// @return true for available and false for not.
             static bool entry_check(path entry); 
+
+            /// @brief renames an entry
+            /// @param old_entry any path
+            /// @param new_entry any path
+            static void rename_entry(path old_entry,path new_entry);
         private:
             /// @brief wrapper for std::filesystem::read_symlink()
             /// @param src_link any path
@@ -375,4 +380,9 @@ namespace sfct_api{
     /// @brief processes a file_queue_info object to be copied or removed
     /// @param entry any entry
     void process_file_queue_info_entry(const application::file_queue_info& entry);
+
+    /// @brief 
+    /// @param old_entry 
+    /// @param new_entry 
+    void rename_entry(path old_entry,path new_entry);
 }

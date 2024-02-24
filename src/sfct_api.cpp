@@ -580,6 +580,18 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
     }
 }
 
+void sfct_api::rename_entry(path old_entry, path new_entry)
+{
+    if(!fs::exists(old_entry)){
+        application::logger log(App_MESSAGE("does not exist on system"),application::Error::WARNING);
+        log.to_console();
+        log.to_log_file();
+        return;
+    }
+
+    ext::rename_entry(old_entry,new_entry);
+}
+
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
 {
     application::path_ext _p = private_get_relative_path(entry,base);
@@ -962,6 +974,17 @@ bool sfct_api::ext::entry_check(path entry)
     return ext::is_entry_available(entry);
 }
 
+void sfct_api::ext::rename_entry(path old_entry, path new_entry)
+{
+    std::error_code e;
+    fs::rename(old_entry,new_entry,e);
+    if(e){
+        application::logger log(e,application::Error::WARNING,old_entry);
+        log.to_console();
+        log.to_log_file();
+    }
+}
+
 application::copy_sym_ext sfct_api::ext::private_read_symlink(path src_link)
 {
     application::copy_sym_ext _cs;
@@ -1014,4 +1037,5 @@ application::copy_file_ext sfct_api::ext::private_copy_file(path src, path dst, 
     _cfe.rv = fs::copy_file(src,dst,co,_cfe.e);
     return _cfe;
 }
+
 
