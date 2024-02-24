@@ -355,6 +355,8 @@ std::optional<std::uintmax_t> sfct_api::get_entry_size(path entry)
 
 void sfct_api::process_file_queue_info_entry(const application::file_queue_info &entry)
 {
+    sfct_api::to_console(App_MESSAGE("Processing entry: "),entry.src);
+
     switch(entry.fqs){
         case application::file_queue_status::file_added:{
             switch(entry.fs_src.type()){
@@ -369,8 +371,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -387,8 +390,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -398,8 +402,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -409,8 +414,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -420,8 +426,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -431,8 +438,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -459,8 +467,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     break;
                 }
@@ -472,8 +481,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -483,8 +493,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -494,8 +505,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -505,8 +517,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -516,8 +529,9 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                         sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                     }
                     else{
-                        STDOUT << App_MESSAGE("Skipping, File is in use: ") << entry.src << "\n";
-                        if(STDOUT.fail()) STDOUT.clear();
+                        application::logger log(App_MESSAGE("Skipping, File is in use: "),application::Error::INFO,entry.src);
+                        log.to_console();
+                        log.to_log_file();
                     }
                     
                     break;
@@ -590,6 +604,16 @@ void sfct_api::rename_entry(path old_entry, path new_entry)
     }
 
     ext::rename_entry(old_entry,new_entry);
+}
+
+void sfct_api::to_console(const STRING& message,path p)
+{
+    STDOUT << message << p << "\n";
+    
+    if(STDOUT.fail()){
+        STDOUT.clear();
+        STDOUT << "\n";
+    }
 }
 
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)

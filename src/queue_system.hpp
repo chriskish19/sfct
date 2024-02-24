@@ -204,7 +204,7 @@ namespace application{
                                 // lets not check everything
                                 // if one entry exists most likley they all do
                                 // but may change this in the future for more robust checking
-                                exit__ = true;
+                                // exit__ = true;
                             }
                         }
                     }
@@ -216,13 +216,12 @@ namespace application{
             m_new_main_directory_entries.clear();
         }
 
-        // useful for outputting to the console
-        STRING m_prev_entry_path;
+        
+        // for renaming a path
         std::filesystem::path m_rename_old;
-
+        
         void process_entry(const file_queue_info& entry){
-            sfct_api::output_path_to_console(entry.src,m_prev_entry_path.length());
-            m_prev_entry_path = STRING(entry.src);
+            sfct_api::to_console(App_MESSAGE("Processing entry: "),entry.src);
             
             switch(entry.fqs){
                 case file_queue_status::file_added:{

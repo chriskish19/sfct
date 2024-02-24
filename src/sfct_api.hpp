@@ -377,12 +377,17 @@ namespace sfct_api{
     /// if the entry does exist and there is no error the size in bytes is returned
     std::optional<std::uintmax_t> get_entry_size(path entry);
 
+    /// @brief plainly send a message to the console with a path name
+    /// @param message any message
+    /// @param p any path
+    void to_console(const STRING& message,path p);
+
     /// @brief processes a file_queue_info object to be copied or removed
     /// @param entry any entry
     void process_file_queue_info_entry(const application::file_queue_info& entry);
 
-    /// @brief 
-    /// @param old_entry 
-    /// @param new_entry 
+    /// @brief wrapper for ext::rename_entry().
+    /// @param old_entry must exist on the system
+    /// @param new_entry any path (this should be checked?)
     void rename_entry(path old_entry,path new_entry);
 }

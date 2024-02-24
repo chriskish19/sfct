@@ -54,6 +54,12 @@ application::logger::logger(Error type, const std::source_location& location, DW
 
 void application::logger::to_console() const{
     std::wcout << mMessage << std::endl;
+    
+    if(std::wcout.fail()){
+        std::wcout.clear();
+        std::wcout << "\n";
+    }
+        
 }
 
 void application::logger::to_output() const{
