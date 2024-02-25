@@ -2,7 +2,7 @@
 
 bool sfct_api::is_entry_available(path entry)
 {
-    if(fs::exists(entry)){
+    if(ext::exists(entry)){
         return ext::is_entry_available(entry);
     }
     return false;
@@ -10,7 +10,7 @@ bool sfct_api::is_entry_available(path entry)
 
 bool sfct_api::entry_check(path entry)
 {   
-    if(!fs::exists(entry)){
+    if(!ext::exists(entry)){
         return false;
     }
     
@@ -19,7 +19,7 @@ bool sfct_api::entry_check(path entry)
 
 bool sfct_api::check_directory(path dir)
 {
-    if(!fs::is_directory(dir)){
+    if(!ext::is_directory(dir)){
         application::logger log(App_MESSAGE("Invalid Directory"),application::Error::WARNING,dir);
         log.to_console();
         log.to_log_file();
@@ -30,7 +30,7 @@ bool sfct_api::check_directory(path dir)
 
 bool sfct_api::create_directory_paths(path src)
 {
-    if(fs::exists(src)){
+    if(ext::exists(src)){
         return false;
     }
     
@@ -50,7 +50,7 @@ bool sfct_api::create_directory_paths(path src)
 std::optional<sfct_api::fs::path> sfct_api::get_relative_file_path(path file,path base)
 {
     // if file is not a file, log it and return nothing
-    if(!fs::is_regular_file(file)){
+    if(!ext::is_regular_file(file)){
         application::logger log(App_MESSAGE("Not a valid file"),application::Error::WARNING,file);
         log.to_console();
         log.to_log_file();
@@ -58,7 +58,7 @@ std::optional<sfct_api::fs::path> sfct_api::get_relative_file_path(path file,pat
     }
 
     // if base is not present and is not a directory on the system, log it and return nothing
-    if(!fs::is_directory(base)){
+    if(!ext::is_directory(base)){
         application::logger log(App_MESSAGE("Not a valid directory on system"),application::Error::WARNING,base);
         log.to_console();
         log.to_log_file();
@@ -71,7 +71,7 @@ std::optional<sfct_api::fs::path> sfct_api::get_relative_file_path(path file,pat
 std::optional<sfct_api::fs::path> sfct_api::get_relative_path(path entry, path base)
 {
     // if entry is not present on the system, log it and return nothing
-    if(!fs::exists(entry)){
+    if(!ext::exists(entry)){
         application::logger log(App_MESSAGE("Not a valid system path"),application::Error::WARNING,entry);
         log.to_console();
         log.to_log_file();
@@ -79,7 +79,7 @@ std::optional<sfct_api::fs::path> sfct_api::get_relative_path(path entry, path b
     }
 
     // if base is not present and is not a directory on the system, log it and return nothing
-    if(!fs::is_directory(base)){
+    if(!ext::is_directory(base)){
         application::logger log(App_MESSAGE("Not a valid directory on system"),application::Error::WARNING,base);
         log.to_console();
         log.to_log_file();
@@ -92,12 +92,12 @@ std::optional<sfct_api::fs::path> sfct_api::get_relative_path(path entry, path b
 std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, path dst,path src_base,bool create_dir)
 {
     // if src does not exist return nothing
-    if(!fs::exists(src)){
+    if(!ext::exists(src)){
         return std::nullopt;
     } 
 
     // if src_base is specified it must be a directory on the system
-    if(!src_base.empty() && !fs::is_directory(src_base)){
+    if(!src_base.empty() && !ext::is_directory(src_base)){
         return std::nullopt;
     }
 
@@ -107,7 +107,7 @@ std::optional<sfct_api::fs::path> sfct_api::create_file_relative_path(path src, 
 bool sfct_api::copy_file_create_relative_path(path src, path dst, fs::copy_options co)
 {
     // src must exist and be a regular file to be copyable
-    if(!fs::exists(src) || !fs::is_regular_file(src)){
+    if(!ext::exists(src) || !ext::is_regular_file(src)){
         return false;
     }
     
@@ -126,7 +126,7 @@ bool sfct_api::create_directory_tree(path src, path dst)
 {
     // src must be a directory and exist.
     // dst must be a directory and exist.
-    if(!fs::is_directory(src) || !fs::is_directory(dst)){
+    if(!ext::is_directory(src) || !ext::is_directory(dst)){
         return false;
     }
 
@@ -144,7 +144,7 @@ bool sfct_api::create_directory_tree(path src, path dst)
 std::optional<double_t> sfct_api::file_get_transfer_rate(path src)
 {
     // if the src path is not a file log it and return nothing
-    if(!fs::is_regular_file(src)){
+    if(!ext::is_regular_file(src)){
         application::logger log(App_MESSAGE("Not a file"),application::Error::WARNING,src);
         log.to_console();
         log.to_log_file();
@@ -156,7 +156,7 @@ std::optional<double_t> sfct_api::file_get_transfer_rate(path src)
 
 bool sfct_api::copy_file(path src, path dst, fs::copy_options co)
 {
-    if(!fs::is_regular_file(src)){
+    if(!ext::is_regular_file(src)){
         application::logger log(App_MESSAGE("Not a valid file path"),application::Error::WARNING,src);
         log.to_console();
         log.to_log_file();
@@ -168,7 +168,7 @@ bool sfct_api::copy_file(path src, path dst, fs::copy_options co)
         dst_dir.remove_filename();
     }
 
-    if(!fs::exists(dst_dir)){
+    if(!ext::exists(dst_dir)){
         application::logger log(App_MESSAGE("Not a valid path"),application::Error::WARNING,dst);
         log.to_console();
         log.to_log_file();
@@ -186,7 +186,7 @@ bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co)
     }
     
     // src must exist and be a regular file to be copyable
-    if(!fs::is_regular_file(src)){
+    if(!ext::is_regular_file(src)){
         return false;
     }
     
@@ -203,7 +203,7 @@ bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co)
 
 std::uintmax_t sfct_api::remove_all(path dir)
 {
-    if(!fs::is_directory(dir)){
+    if(!ext::is_directory(dir)){
         return 0;
     }
 
@@ -212,7 +212,7 @@ std::uintmax_t sfct_api::remove_all(path dir)
 
 bool sfct_api::remove_entry(path entry)
 {
-    if(!fs::exists(entry)){
+    if(!ext::exists(entry)){
         return false;
     }
     
@@ -226,7 +226,7 @@ bool sfct_api::copy_symlink(path src_link, path dst, fs::copy_options co)
         dst_dir.remove_filename();
     }
     
-    if(!fs::is_symlink(src_link)){
+    if(!ext::is_symlink(src_link)){
         return false;
     }
 
@@ -260,7 +260,7 @@ bool sfct_api::recursive_flag_check(application::cs commands) noexcept
 
 void sfct_api::copy_entry(path src, path dst, fs::copy_options co,bool create_dst)
 {
-    if(!fs::exists(src)){
+    if(!ext::exists(src)){
         application::logger log(App_MESSAGE("does not exist on system"),application::Error::WARNING,src);
         log.to_console();
         log.to_log_file();
@@ -268,17 +268,17 @@ void sfct_api::copy_entry(path src, path dst, fs::copy_options co,bool create_ds
     }
     
     fs::path dst_dir = dst;
-    if(fs::is_directory(src) && !fs::is_directory(dst_dir)){
+    if(ext::is_directory(src) && !ext::is_directory(dst_dir)){
         dst_dir.remove_filename();
         return ext::copy_entry(src,dst_dir,co);
     }
     
     if(create_dst){
-        if(!fs::is_directory(dst_dir)){
+        if(!ext::is_directory(dst_dir)){
             dst_dir.remove_filename();
         }
 
-        if(!fs::exists(dst_dir)){
+        if(!ext::exists(dst_dir)){
             ext::create_directory_paths(dst_dir);
         }
         
@@ -291,14 +291,14 @@ void sfct_api::copy_entry(path src, path dst, fs::copy_options co,bool create_ds
 
 std::optional<std::shared_ptr<std::unordered_map<sfct_api::fs::path,sfct_api::fs::path>>> sfct_api::are_directories_synced(path src, path dst, bool recursive_sync)
 {
-    if(!fs::is_directory(src)){
+    if(!ext::is_directory(src)){
         application::logger log(App_MESSAGE("invalid directory"),application::Error::WARNING,src);
         log.to_console();
         log.to_log_file();
         return std::nullopt;
     }
 
-    if(!fs::is_directory(dst)){
+    if(!ext::is_directory(dst)){
         application::logger log(App_MESSAGE("invalid directory"),application::Error::WARNING,dst);
         log.to_console();
         log.to_log_file();
@@ -310,7 +310,7 @@ std::optional<std::shared_ptr<std::unordered_map<sfct_api::fs::path,sfct_api::fs
 
 std::optional<application::directory_info> sfct_api::get_directory_info(const application::copyto &dir)
 {
-    if(!fs::is_directory(dir.source)){
+    if(!ext::is_directory(dir.source)){
         return std::nullopt;
     }
 
@@ -328,6 +328,7 @@ void sfct_api::output_entry_to_console(const fs::directory_entry &entry,const si
 
     if(STDOUT.fail()){
         STDOUT.clear();
+        STDOUT << "\n";
     }
 }
 
@@ -342,12 +343,13 @@ void sfct_api::output_path_to_console(path p, const size_t prev_p_length)
 
     if(STDOUT.fail()){
         STDOUT.clear();
+        STDOUT << "\n";
     }
 }
 
 std::optional<std::uintmax_t> sfct_api::get_entry_size(path entry)
 {
-    if(!fs::exists(entry)){
+    if(!ext::exists(entry)){
         return std::nullopt;
     }
     return ext::get_file_size(entry);
@@ -379,7 +381,7 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
                     break;
                 }
                 case std::filesystem::file_type::directory:{
-                    if(std::filesystem::exists(entry.src)){
+                    if(ext::exists(entry.src)){
                         sfct_api::create_directory_paths(entry.dst);
                     }
                     
@@ -596,7 +598,7 @@ void sfct_api::process_file_queue_info_entry(const application::file_queue_info 
 
 void sfct_api::rename_entry(path old_entry, path new_entry)
 {
-    if(!fs::exists(old_entry)){
+    if(!ext::exists(old_entry)){
         application::logger log(App_MESSAGE("does not exist on system"),application::Error::WARNING);
         log.to_console();
         log.to_log_file();
@@ -604,6 +606,16 @@ void sfct_api::rename_entry(path old_entry, path new_entry)
     }
 
     ext::rename_entry(old_entry,new_entry);
+}
+
+bool sfct_api::is_directory(path entry)
+{
+    return ext::is_directory(entry);
+}
+
+bool sfct_api::exists(path entry)
+{
+    return ext::exists(entry);
 }
 
 void sfct_api::to_console(const STRING& message,path p)
@@ -614,6 +626,116 @@ void sfct_api::to_console(const STRING& message,path p)
         STDOUT.clear();
         STDOUT << "\n";
     }
+}
+
+bool sfct_api::ext::is_directory(path entry)
+{
+    application::is_entry_ext _is = private_is_directory(entry);
+    if(_is.e){
+        application::logger log(_is.e,application::Error::WARNING,entry);
+        log.to_console();
+        log.to_log_file();
+    }
+    return _is.rv;
+}
+
+bool sfct_api::ext::exists(path entry)
+{
+    application::is_entry_ext _is = private_exists(entry);
+    if(_is.e){
+        application::logger log(_is.e,application::Error::WARNING,entry);
+        log.to_console();
+        log.to_log_file();
+    }
+    return _is.rv;
+}
+
+bool sfct_api::ext::is_regular_file(path entry)
+{
+    application::is_entry_ext _is = private_is_regular_file(entry);
+    if(_is.e){
+        application::logger log(_is.e,application::Error::WARNING,entry);
+        log.to_console();
+        log.to_log_file();
+    }
+    return _is.rv;
+}
+
+bool sfct_api::ext::is_symlink(path entry)
+{
+    application::is_entry_ext _is = private_is_symlink(entry);
+    if(_is.e){
+        application::logger log(_is.e,application::Error::WARNING,entry);
+        log.to_console();
+        log.to_log_file();
+    }
+    return _is.rv;
+}
+
+std::optional<std::filesystem::file_time_type> sfct_api::ext::last_write_time(path entry)
+{
+    application::last_write_ext _lw = private_last_write_time(entry);
+    if(_lw.e){
+        application::logger log(_lw.e,application::Error::WARNING,entry);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+    return _lw.t;
+}
+
+std::optional<sfct_api::fs::file_status> sfct_api::ext::file_status(path entry)
+{
+    application::file_status_ext _fs = private_file_status(entry);
+    if(_fs.e){
+        application::logger log(_fs.e,application::Error::WARNING,entry);
+        log.to_console();
+        log.to_log_file();
+        return std::nullopt;
+    }
+    return _fs.s;
+}
+
+application::file_status_ext sfct_api::ext::private_file_status(path entry)
+{
+    application::file_status_ext _fs;
+    _fs.s = fs::status(entry,_fs.e);
+    return _fs;
+}
+
+application::last_write_ext sfct_api::ext::private_last_write_time(path entry)
+{
+    application::last_write_ext _lw;
+    _lw.t = fs::last_write_time(entry,_lw.e);
+    return _lw;
+}
+
+application::is_entry_ext sfct_api::ext::private_is_symlink(path entry)
+{
+    application::is_entry_ext _is;
+    _is.rv = fs::is_symlink(entry,_is.e);
+    return _is;
+}
+
+application::is_entry_ext sfct_api::ext::private_is_regular_file(path entry)
+{
+    application::is_entry_ext _is;
+    _is.rv = fs::is_regular_file(entry,_is.e);
+    return _is;
+}
+
+application::is_entry_ext sfct_api::ext::private_exists(path entry)
+{
+    application::is_entry_ext _is;
+    _is.rv = fs::exists(entry,_is.e);
+    return _is;
+}
+
+application::is_entry_ext sfct_api::ext::private_is_directory(path entry)
+{
+    application::is_entry_ext _is;
+    _is.rv = fs::is_directory(entry,_is.e);
+    return _is;
 }
 
 std::optional<sfct_api::fs::path> sfct_api::ext::get_relative_path(path entry, path base)
@@ -688,7 +810,7 @@ std::optional<sfct_api::fs::path> sfct_api::ext::create_relative_path(path src, 
 
     
     fs::path file_dst_dir = file_dst; 
-    if(!fs::is_directory(file_dst)){
+    if(!ext::is_directory(file_dst)){
         file_dst_dir.remove_filename();
     }
 
@@ -813,44 +935,45 @@ void sfct_api::ext::copy_symlink(path src_link,path dst,fs::copy_options co)
 
 bool sfct_api::ext::is_entry_available(path entry)
 {
-    fs::file_status fs = fs::status(entry);
-
-    switch(fs.type()){
-        case std::filesystem::file_type::none:
-            // skip for now
-            break;
-        case std::filesystem::file_type::not_found:
-            // skip for now
-            break;
-        case std::filesystem::file_type::regular:
-            return private_open_file(entry);
-            break;
-        case std::filesystem::file_type::directory:
-            
-            break;
-        case std::filesystem::file_type::symlink:{
-            fs::path target = fs::read_symlink(entry);
-            return private_open_file(target);
-            break;
-        } 
-        case std::filesystem::file_type::block:
-            
-            break;
-        case std::filesystem::file_type::character:
-            
-            break;
-        case std::filesystem::file_type::fifo:
-            
-            break;
-        case std::filesystem::file_type::socket:
-            
-            break;
-        case std::filesystem::file_type::unknown:
-
-            break;
-        default:
-            
-            break;
+    auto fs = ext::file_status(entry);
+    if(fs.has_value()){
+        switch(fs.value().type()){
+            case std::filesystem::file_type::none:
+                // skip for now
+                break;
+            case std::filesystem::file_type::not_found:
+                // skip for now
+                break;
+            case std::filesystem::file_type::regular:
+                return ext::private_open_file(entry);
+                break;
+            case std::filesystem::file_type::directory:
+                // do nothing
+                break;
+            case std::filesystem::file_type::symlink:{
+                fs::path target = fs::read_symlink(entry);
+                return ext::private_open_file(target);
+                break;
+            } 
+            case std::filesystem::file_type::block:
+                return ext::private_open_file(entry);
+                break;
+            case std::filesystem::file_type::character:
+                return ext::private_open_file(entry);
+                break;
+            case std::filesystem::file_type::fifo:
+                return ext::private_open_file(entry);
+                break;
+            case std::filesystem::file_type::socket:
+                return ext::private_open_file(entry);
+                break;
+            case std::filesystem::file_type::unknown:
+                // skip
+                break;
+            default:
+                // do nothing
+                break;
+        }
     }
 
     return false;
@@ -858,10 +981,19 @@ bool sfct_api::ext::is_entry_available(path entry)
 
 bool sfct_api::ext::is_entry_in_transit(path entry)
 {
-    std::chrono::time_point t1 = fs::last_write_time(entry);
+    auto t1 = ext::last_write_time(entry);
     std::this_thread::sleep_for(std::chrono::milliseconds(250));
-    std::chrono::time_point t2 = fs::last_write_time(entry);
-    if(t1 == t2){
+    auto t2 = ext::last_write_time(entry);
+    
+    // Check if either t1 or t2 is std::nullopt
+    if (!t1.has_value() || !t2.has_value()) {
+        // Handle the case where one or both timestamps are not available
+        // For example, return false assuming the file is not in transit if we cannot get the timestamp
+        // Or handle it differently based on your application's needs
+        return false;
+    }
+    
+    if(t1.value() == t2.value()){
         return false;
     }
     else{

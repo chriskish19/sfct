@@ -14,7 +14,6 @@
 
 
 // INFO:
-// Functions prefixed with MT are multithreaded
 // The goals for this api are: 
 // 1. manage complexity
 // 2. limit spaghetti
@@ -171,7 +170,69 @@ namespace sfct_api{
             /// @param old_entry any path
             /// @param new_entry any path
             static void rename_entry(path old_entry,path new_entry);
+
+            /// @brief checks if entry is a directory. wrapper for private_is_directory().
+            /// @param entry any path
+            /// @return true if it is a directory on the system and false if it is not
+            static bool is_directory(path entry);
+
+            /// @brief checks if an entry exists on the system. wrapper for private_exists().
+            /// @param entry any path
+            /// @return true if it does exist and false if not.
+            static bool exists(path entry);
+
+            /// @brief checks if entry is a regular file on the system. wrapper for private_is_regular_file().
+            /// @param entry any path
+            /// @return true if it is a regular file on the system and false if it is not.
+            static bool is_regular_file(path entry);
+
+            /// @brief checks if entry is a symlink on the system. wrapper for private_is_symlink().
+            /// @param entry any path
+            /// @return true if it is a symlink on the system and false if not.
+            static bool is_symlink(path entry);
+
+            /// @brief gets the last write time of an entry path
+            /// @param entry any path
+            /// @return if there was an error then nothing is returned and the error is logged.
+            /// if there was no error then the last write time is returned.
+            static std::optional<fs::file_time_type> last_write_time(path entry);
+
+            /// @brief gets the status of an entry path. wrapper for private_file_status().
+            /// @param entry any path
+            /// @return if there was an error nothing is returned and the error is logged.
+            /// if there was no error then the file_status object is returned.
+            static std::optional<fs::file_status> file_status(path entry);
         private:
+            /// @brief gets the status of an entry path. wrapper for std::filesystem::status().
+            /// @param entry any path
+            /// @return a file_status_ext object with the file status and error code.
+            static application::file_status_ext private_file_status(path entry);
+
+            /// @brief gets the last write time of an entry path. wrapper for std::filesystem::last_write_time().
+            /// @param entry any path
+            /// @return a last_write_ext object with error code and last write time.
+            static application::last_write_ext private_last_write_time(path entry);
+
+            /// @brief wrapper for std::filesystem::is_symlink(). If there was an error it is logged.
+            /// @param entry any path
+            /// @return an is_entry_ext object with return value and error.
+            static application::is_entry_ext private_is_symlink(path entry);
+
+            /// @brief wrapper for std::filesystem::is_regular_file(). If there was an error it is logged.
+            /// @param entry any path
+            /// @return an is_entry_ext object with return value and error.
+            static application::is_entry_ext private_is_regular_file(path entry);
+
+            /// @brief wrapper for std::filesystem::exists(). If there was an error it is logged.
+            /// @param entry any path
+            /// @return an is_entry_ext object with return value and error.
+            static application::is_entry_ext private_exists(path entry);
+
+            /// @brief wrapper for std::filesystem::is_directory(). If there was an error it is logged.
+            /// @param entry any path
+            /// @return an is_entry_ext object with return value and error.
+            static application::is_entry_ext private_is_directory(path entry);
+
             /// @brief wrapper for std::filesystem::read_symlink()
             /// @param src_link any path
             /// @return a copy_sym_ext object with error code and target path
@@ -390,4 +451,14 @@ namespace sfct_api{
     /// @param old_entry must exist on the system
     /// @param new_entry any path (this should be checked?)
     void rename_entry(path old_entry,path new_entry);
+
+    /// @brief checks if entry is a directory on the system. wrapper for ext::is_directory().
+    /// @param entry any path
+    /// @return true if it is a valid directory on the system and false if it is not.
+    bool is_directory(path entry);
+
+    /// @brief checks if entry exists on the system. wrapper for ext::exists().
+    /// @param entry any path
+    /// @return true if it exists on the system and false for not.
+    bool exists(path entry);
 }

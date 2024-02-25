@@ -2,7 +2,7 @@
 #include <filesystem>
 #include "args.hpp"
 #include <functional>
-
+#include <chrono>
 
 /////////////////////////////////////////////////////////////////
 // This header contains common structures that are used throughout the program.
@@ -114,6 +114,21 @@ namespace application{
 
     struct copy_sym_ext{
         std::filesystem::path target;
+        std::error_code e;
+    };
+
+    struct is_entry_ext{
+        std::error_code e;
+        bool rv;
+    };
+
+    struct last_write_ext{
+        std::filesystem::file_time_type t;
+        std::error_code e;
+    };
+
+    struct file_status_ext{
+        std::filesystem::file_status s;
         std::error_code e;
     };
 }
