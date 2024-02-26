@@ -42,10 +42,7 @@ application::logger::logger(Error type, const std::source_location& location, DW
         LocalFree(errorMsgBuffer);
     }
     else {
-        logger log(L"Format message failed", Error::WARNING);
-        log.to_console();
-        log.to_output();
-        log.to_log_file();
+        std::wcout << L"Format message failed" << "\n";
     }
     
     // mMessage is timestamped and has error type now add win32error and location to the end

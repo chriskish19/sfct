@@ -7,7 +7,6 @@
 #include "AppMacros.hpp"
 #include "obj.hpp"
 #include "TM.hpp"
-#include "benchmark.hpp"
 #include <unordered_set>
 #include "args.hpp"
 #include <functional>
@@ -40,19 +39,19 @@ namespace sfct_api{
             /// @param entry any path
             /// @param base any path
             /// @return relative path
-            static std::optional<fs::path> get_relative_path(path entry,path base);
+            static std::optional<fs::path> get_relative_path(path entry,path base) noexcept;
 
             /// @brief wrapper for private_get_file_size, if private_get_file_size fails the error is logged and nothing is returned.
             /// @param entry any path
             /// @return the file size if there is no error, and nothing if there is an error.
-            static std::optional<std::uintmax_t> get_file_size(path entry);
+            static std::optional<std::uintmax_t> get_file_size(path entry) noexcept;
 
             /// @brief wrapper for private_copy_file(src,dst,co,error_code). If it fails the error is logged and false is returned.
             /// @param src any path
             /// @param dst any path 
             /// @param co any copy options 
             /// @return true if no error, false for error
-            static bool copy_file(path src,path dst,fs::copy_options co);
+            static bool copy_file(path src,path dst,fs::copy_options co) noexcept;
 
             /// @brief removes root path of entry and combines it with base
             /// @param entry any path
@@ -62,7 +61,7 @@ namespace sfct_api{
             /// entry: C:/test
             /// base: D:/high
             /// returned: D:/high/test
-            static fs::path combine_path_tree(path entry,path base);
+            static fs::path combine_path_tree(path entry,path base) noexcept;
 
             /// @brief gets the relative path and then creates the new directory. If src and dst are on different root drives, use src_base as the base path 
             /// and src as the source file path. If src_base is not specified and src and dst are on different drives the function will return the dst path with the last folder of src.
@@ -78,12 +77,12 @@ namespace sfct_api{
             /// dst = D:/home
             /// src_base = C:/test
             /// returned: D:/home/a  
-            static std::optional<fs::path> create_relative_path(path src,path dst,path src_base=fs::path(),bool create_dir=true);
+            static std::optional<fs::path> create_relative_path(path src,path dst,path src_base=fs::path(),bool create_dir=true) noexcept;
 
             /// @brief given a path the function attempts to create the directories in the path.
             /// @param dir any path, does no check wether dir is a directory
             /// @return false for not creating the directory, nothing for an error, and true for creating the directory.
-            static std::optional<bool> create_directory_paths(path dir);
+            static std::optional<bool> create_directory_paths(path dir) noexcept;
 
             /// @brief gets the last folder name in entry and returns it as a path. 
             /// @param entry any path
@@ -91,17 +90,17 @@ namespace sfct_api{
             /// Example:
             /// entry = C:/test/parent/myfile.txt
             /// returned: parent
-            static std::optional<fs::path> get_last_folder(path entry);
+            static std::optional<fs::path> get_last_folder(path entry) noexcept;
 
             /// @brief wrapper for private_remove_entry(). If there is an error it is logged and false is returned.
             /// @param entry any path
             /// @return true for successful removal and false for no removal.
-            static bool remove_entry(path entry);
+            static bool remove_entry(path entry) noexcept;
 
             /// @brief wrapper for private_remove_all(). If there is an error it is logged.
             /// @param dir any path
             /// @return the number of removed files
-            static std::uintmax_t remove_all(path dir);
+            static std::uintmax_t remove_all(path dir) noexcept;
 
             /// @brief Gets the transfer speed of a file if its currently being copied to filepath
             /// it does a quick check difference in file size over a 10ms interval and then calculates the speed in MB/s
@@ -109,30 +108,30 @@ namespace sfct_api{
             /// @return the rate in MB/s
             /// returns nothing if errors occurred
             /// returns nothing if there was no change in file size and rate is 0.0
-            static std::optional<double_t> file_get_transfer_rate(path filepath);
+            static std::optional<double_t> file_get_transfer_rate(path filepath) noexcept;
 
             /// @brief copies the actual file that src_link points to, to dst. Uses ext::copy_entry().
             /// @param src_link any path
             /// @param dst any path, if it doesnt exist it will be created
             /// @param co any copy options
-            static void copy_symlink(path src_link,path dst,fs::copy_options co);
+            static void copy_symlink(path src_link,path dst,fs::copy_options co) noexcept;
 
             /// @brief checks a file if it is currently being used. Can be any type of file.
             /// @param entry any path
             /// @return if the entry is in use it returns false, if it is not in use it returns true.
-            static bool is_entry_available(path entry);
+            static bool is_entry_available(path entry) noexcept;
 
             /// @brief checks the last write times in a 250ms interval. Then compares the times to see if they are equal, if they are it returns false else true.
             /// @param entry any path
             /// @return true if the entry is being transferred into entry path, false if it isnt.
-            static bool is_entry_in_transit(path entry);
+            static bool is_entry_in_transit(path entry) noexcept;
 
             /// @brief wrapper for std::filesystem::copy(). 
             /// @param src any path
             /// @param dst any path
             /// @param co any copy_options
             /// @attention there was an error it is logged.
-            static void copy_entry(path src,path dst,fs::copy_options co);
+            static void copy_entry(path src,path dst,fs::copy_options co) noexcept;
 
             /// @brief checks if dst is missing files found in src.
             /// @param src any path
@@ -141,174 +140,169 @@ namespace sfct_api{
             /// @return destination paths and source paths in an unordered_map.
             /// the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
             /// an unordered_map key is dst and value is src
-            static std::optional<std::shared_ptr<std::unordered_map<fs::path,fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
+            static std::optional<std::shared_ptr<std::unordered_map<fs::path,fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true) noexcept;
 
             /// @brief logs an error code to the console and log file
             /// @param e error code
             /// @param p path that caused the error code
-            static void log_error_code(const std::error_code& e,path p);
+            static void log_error_code(const std::error_code& e,path p) noexcept;
 
             /// @brief gets information on a directory, the total number of files, total size, avg file size
             /// @param dir any copyto object
             /// @return a directory_info object with the directory information
-            static application::directory_info get_directory_info(const application::copyto &dir);
+            static application::directory_info get_directory_info(const application::copyto &dir) noexcept;
 
             /// @brief wrapper for private_read_symlink()
             /// @param src_link any path
             /// @return if there was an error it is logged and nothing is returned
             /// if there was no error the target path is returned
-            static std::optional<fs::path> read_symlink(path src_link);
+            static std::optional<fs::path> read_symlink(path src_link) noexcept;
 
             /// @brief checks an entry if its available and if its not then checks if it is being transfered, if it is being actively transfered then it will
             /// wait 250ms and check again until it stops being transfered. Then it will check one last time if the entry is available it will return true if it is and
             /// false if it isnt.
             /// @param entry any path
             /// @return true for available and false for not.
-            static bool entry_check(path entry); 
+            static bool entry_check(path entry) noexcept; 
 
             /// @brief renames an entry
             /// @param old_entry any path
             /// @param new_entry any path
-            static void rename_entry(path old_entry,path new_entry);
+            static void rename_entry(path old_entry,path new_entry) noexcept;
 
             /// @brief checks if entry is a directory. wrapper for private_is_directory().
             /// @param entry any path
             /// @return true if it is a directory on the system and false if it is not
-            static bool is_directory(path entry);
+            static bool is_directory(path entry) noexcept;
 
             /// @brief checks if an entry exists on the system. wrapper for private_exists().
             /// @param entry any path
             /// @return true if it does exist and false if not.
-            static bool exists(path entry);
+            static bool exists(path entry) noexcept;
 
             /// @brief checks if entry is a regular file on the system. wrapper for private_is_regular_file().
             /// @param entry any path
             /// @return true if it is a regular file on the system and false if it is not.
-            static bool is_regular_file(path entry);
+            static bool is_regular_file(path entry) noexcept;
 
             /// @brief checks if entry is a symlink on the system. wrapper for private_is_symlink().
             /// @param entry any path
             /// @return true if it is a symlink on the system and false if not.
-            static bool is_symlink(path entry);
+            static bool is_symlink(path entry) noexcept;
 
             /// @brief gets the last write time of an entry path
             /// @param entry any path
             /// @return if there was an error then nothing is returned and the error is logged.
             /// if there was no error then the last write time is returned.
-            static std::optional<fs::file_time_type> last_write_time(path entry);
+            static std::optional<fs::file_time_type> last_write_time(path entry) noexcept;
 
             /// @brief gets the status of an entry path. wrapper for private_file_status().
             /// @param entry any path
             /// @return if there was an error nothing is returned and the error is logged.
             /// if there was no error then the file_status object is returned.
-            static std::optional<fs::file_status> file_status(path entry);
+            static std::optional<fs::file_status> file_status(path entry) noexcept;
         private:
             /// @brief gets the status of an entry path. wrapper for std::filesystem::status().
             /// @param entry any path
             /// @return a file_status_ext object with the file status and error code.
-            static application::file_status_ext private_file_status(path entry);
+            static application::file_status_ext private_file_status(path entry) noexcept;
 
             /// @brief gets the last write time of an entry path. wrapper for std::filesystem::last_write_time().
             /// @param entry any path
             /// @return a last_write_ext object with error code and last write time.
-            static application::last_write_ext private_last_write_time(path entry);
+            static application::last_write_ext private_last_write_time(path entry) noexcept;
 
             /// @brief wrapper for std::filesystem::is_symlink(). If there was an error it is logged.
             /// @param entry any path
             /// @return an is_entry_ext object with return value and error.
-            static application::is_entry_ext private_is_symlink(path entry);
+            static application::is_entry_ext private_is_symlink(path entry) noexcept;
 
             /// @brief wrapper for std::filesystem::is_regular_file(). If there was an error it is logged.
             /// @param entry any path
             /// @return an is_entry_ext object with return value and error.
-            static application::is_entry_ext private_is_regular_file(path entry);
+            static application::is_entry_ext private_is_regular_file(path entry) noexcept;
 
             /// @brief wrapper for std::filesystem::exists(). If there was an error it is logged.
             /// @param entry any path
             /// @return an is_entry_ext object with return value and error.
-            static application::is_entry_ext private_exists(path entry);
+            static application::is_entry_ext private_exists(path entry) noexcept;
 
             /// @brief wrapper for std::filesystem::is_directory(). If there was an error it is logged.
             /// @param entry any path
             /// @return an is_entry_ext object with return value and error.
-            static application::is_entry_ext private_is_directory(path entry);
+            static application::is_entry_ext private_is_directory(path entry) noexcept;
 
             /// @brief wrapper for std::filesystem::read_symlink()
             /// @param src_link any path
             /// @return a copy_sym_ext object with error code and target path
-            static application::copy_sym_ext private_read_symlink(path src_link);
+            static std::optional<application::copy_sym_ext> private_read_symlink(path src_link) noexcept;
 
             /// @brief opens a file at filepath
             /// @param filepath any path
             /// @return true if the file was opened, false if it failed to open.
-            static bool private_open_file(path filepath);
+            static bool private_open_file(path filepath) noexcept;
 
             /// @brief wrapper for std::filesystem::remove_all().
             /// @param dir any path
             /// @return a remove_file_ext object which contains the error code, return value boolean, and the number of files removed.
-            static application::remove_file_ext private_remove_all(path dir);
+            static std::optional<application::remove_file_ext> private_remove_all(path dir) noexcept;
             
             /// @brief wrapper for std::filesystem::remove().
             /// @param entry any path
             /// @return a remove_file_ext object which contains the error code and return value boolean.
-            static application::remove_file_ext private_remove_entry(path entry);
+            static application::remove_file_ext private_remove_entry(path entry) noexcept;
 
             /// @brief wrapper for std::filesystem::relative(entry,base)
             /// @param entry: any path 
             /// @param base: any path
             /// @return a path_ext object which contains the relative path and error code.
-            static application::path_ext private_get_relative_path(path entry,path base);
+            static std::optional<application::path_ext> private_get_relative_path(path entry,path base) noexcept;
 
             /// @brief wrapper for std::filesystem::file_size(path)
             /// @param entry: any path 
             /// @return a file_size_ext object which contains the size and error code.
-            static application::file_size_ext private_get_file_size(path entry);
+            static application::file_size_ext private_get_file_size(path entry) noexcept;
 
             /// @brief wrapper for std::filesystem::copy_file(src,dst,co,error_code)
             /// @param src: any path
             /// @param dst: any path
             /// @param co: any copy options
             /// @return a copy_file_ext object which contains the error code and returned value from the function std::filesystem::copy_file()
-            static application::copy_file_ext private_copy_file(path src,path dst,fs::copy_options co);
+            static application::copy_file_ext private_copy_file(path src,path dst,fs::copy_options co) noexcept;
     };
 
 
     /// @brief wrapper for ext::is_entry_avaliable(). First checks if the entry exists. 
     /// @param entry any path
     /// @return true if the entry is available, false if in use.
-    bool is_entry_available(path entry);
+    bool is_entry_available(path entry) noexcept;
 
     /// @brief waits in 250ms intervals until an entry has been completly copied into entry path. Then checks if the entry is available.
     /// Checks if entry exists on the system if it doesnt it returns false.
     /// @param entry must exist on the system
     /// @return true if the entry is available and false if it isnt. False if entry doesnt exist in the system.
-    bool entry_check(path entry); 
-
-    /// @brief Checks if dir is a valid directory that exists on the system
-    /// @param dir directory path
-    /// @return false for not a directory and true if it is
-    bool check_directory(path dir);
+    bool entry_check(path entry) noexcept; 
 
     /// @brief if the source path doesnt exist the directory is created 
     /// @param src source path: can be a file entry or directory
     /// @return if the source path already exists the function returns false.
     /// false if there was an error, which will be logged.
     /// true if source path gets created.
-    bool create_directory_paths(path src);
+    bool create_directory_paths(path src) noexcept;
 
     /// @brief wrapper for ext::get_relative_path(). Checks for file path to be a regular file on the system. Checks for base path to be a directory on the system.
     /// @param file: must be a valid file on the system
     /// @param base: must be a valid directory on the system
     /// @return: a new relative path
     /// if there was an error it returns nothing but logs the error.
-    std::optional<fs::path> get_relative_file_path(path file,path base);
+    std::optional<fs::path> get_relative_file_path(path file,path base) noexcept;
 
     /// @brief wrapper for ext::get_relative_path(). Checks for entry path to be on the system. Checks for base path to be on the system.
     /// @param entry: must be a valid path on the system 
     /// @param base: must be a valid directory on the system
     /// @return a new relative path
     /// if there was an error it returns nothing but logs the error.
-    std::optional<fs::path> get_relative_path(path entry,path base);
+    std::optional<fs::path> get_relative_path(path entry,path base) noexcept;
 
     /// @brief wrapper for create_relative_path(). Checks if src exists and if it doesnt returns nothing. 
     /// Checks if src_base is on the system if its specified and if its not on the system returns nothing. 
@@ -320,7 +314,7 @@ namespace sfct_api{
     /// @param src_base (optional). a base path of src. for example you iterate recursively through a directory 
     /// src_base would be the iterator starting directory. And any paths inside would be src.
     /// @return destination file path
-    std::optional<fs::path> create_file_relative_path(path src,path dst,path src_base=fs::path(),bool create_dir=true);
+    std::optional<fs::path> create_file_relative_path(path src,path dst,path src_base=fs::path(),bool create_dir=true) noexcept;
 
     /// @brief Given a src file path and a dst path, the src file is copied into dst path.
     /// if the destination path does not exists it is created.
@@ -334,19 +328,20 @@ namespace sfct_api{
     /// @return boolean: if src is not a file path or a regular file the function returns false.
     /// if the copy operation fails the function returns false.
     /// if src and dst pass the checks and the copy operation succeeds the function returns true.
-    bool copy_file_create_relative_path(path src,path dst,fs::copy_options co);
+    bool copy_file_create_relative_path(path src,path dst,fs::copy_options co) noexcept;
 
     /// @brief Create the src directory tree at dst (directories only)
     /// @param src src directory, must be a valid directory existing on the system.
     /// @param dst dst directory, must be a valid directory existing on the system.
     /// @return boolean: if src and dst are valid directories the function will return true else it returns false.
     /// directories may or may not be created, it will appear in the log file or console if a directory fails to be created.
-    bool create_directory_tree(path src,path dst);
+    bool create_directory_tree(path src,path dst) noexcept;
 
     /// @brief wrapper for ext::file_get_transfer_rate().
     /// @param src file path: must be a regular file existing on the system
     /// @return calls ext::file_get_transfer_rate()
-    std::optional<double_t> file_get_transfer_rate(path src);
+    /// if src is not a regular file on the system nothing is returned.
+    std::optional<double_t> file_get_transfer_rate(path src) noexcept;
 
     /// @brief wrapper for ext::copy_file(). Checks if the dst directory path is valid on the system. Checks if the src path is a valid file on the system.
     /// @param src source file path
@@ -354,26 +349,26 @@ namespace sfct_api{
     /// @param co any copy options
     /// @return if src or dst is not valid on the system false is returned.
     /// when it calls ext::copy_file() it returns: true if no error, false if error.
-    bool copy_file(path src,path dst,fs::copy_options co);
+    bool copy_file(path src,path dst,fs::copy_options co) noexcept;
 
     /// @brief copies a file to a dst path that is created. 
     /// @param src source file: must be a regular file on the system
-    /// @param dst destination path can be any path
+    /// @param dst destination path can be any path but it must include the filename in the path or the function will fail
     /// @param co any copy options
     /// @return if it fails to create the directory, false is returned.
     /// if src is not a regular file on the system false is returned.
     /// ext::copy_file(): true is returned for no error and false for error.
-    bool copy_file_create_path(path src,path dst,fs::copy_options co);
+    bool copy_file_create_path(path src,path dst,fs::copy_options co) noexcept;
 
     /// @brief wrapper for ext::remove_all(). given a directory, all the files in the directory are deleted recursively
     /// @param dir must be a valid directory on the system
     /// @return the number of removed files
-    std::uintmax_t remove_all(path dir);
+    std::uintmax_t remove_all(path dir) noexcept;
     
     /// @brief wrapper for ext::remove_entry(). Removes a file or entry given a path.
     /// @param entry path must exist on the system
     /// @return ext::remove_entry(): true for removal and false for no removal. False if path does not exist on the system.
-    bool remove_entry(path entry);
+    bool remove_entry(path entry) noexcept;
 
     /// @brief wrapper for ext::copy_symlink(). Copies the target file that sym_link points to, to dst.
     /// checks that src_link is valid. Since it calls copy_entry() that means if the target is a directory the whole
@@ -383,7 +378,7 @@ namespace sfct_api{
     /// @param co any copy options
     /// @return returns true if src_link is valid and false if it is invalid.
     /// any errors will be logged
-    bool copy_symlink(path src_link,path dst,fs::copy_options co);
+    bool copy_symlink(path src_link,path dst,fs::copy_options co) noexcept;
 
     /// @brief converts cs commands to fs::copy_options
     /// @param commands 
@@ -403,7 +398,7 @@ namespace sfct_api{
     /// @param dst if it does not exist it may get created. see description.
     /// @param co any copy options
     /// @param create_dst specifies whether to create the dst directory explictly or not. If it is false the directory may still get created, see description.
-    void copy_entry(path src,path dst,fs::copy_options co,bool create_dst=false);
+    void copy_entry(path src,path dst,fs::copy_options co,bool create_dst=false) noexcept;
 
     /// @brief wrapper for ext::are_directories_synced(). very slow function.
     /// @param src must be a directory on the system
@@ -412,53 +407,53 @@ namespace sfct_api{
     /// @return destination paths and source paths in an unordered_map.
     /// the missing file paths not found in dst but exist in src. if no missing files are found nothing is returned.
     /// an unordered_map key is dst and value is src
-    std::optional<std::shared_ptr<std::unordered_map<fs::path,fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true);
+    std::optional<std::shared_ptr<std::unordered_map<fs::path,fs::path>>> are_directories_synced(path src,path dst,bool recursive_sync=true) noexcept;
     
     /// @brief wrapper for ext::get_directory_info
     /// @param dir dir.source must exist on the system
     /// @return if dir.source does not exist on the system nothing is returned.
     /// if dir.source does exist then a directory info object is returned
-    std::optional<application::directory_info> get_directory_info(const application::copyto& dir);
+    std::optional<application::directory_info> get_directory_info(const application::copyto& dir) noexcept;
 
     /// @brief use to output a directory entry path name to the console on the same line repeatably
     /// @param entry any directory entry
     /// @param prev_entry_path a count of the previous entries path length. Useful so that the name gets cleared and no fragments are
     /// left behind on the output line.
-    void output_entry_to_console(const fs::directory_entry& entry,const size_t prev_entry_path_length);
+    void output_entry_to_console(const fs::directory_entry& entry,const size_t prev_entry_path_length) noexcept;
 
     /// @brief use to output a path name to the console on the same line repeatably
     /// @param p any path
     /// @param prev_p_length a count of the previous path length. Useful so that the name gets cleared and no fragments are
     /// left behind on the output line. 
-    void output_path_to_console(path p,const size_t prev_p_length);
+    void output_path_to_console(path p,const size_t prev_p_length) noexcept;
 
     /// @brief wrapper for ext::get_file_size()
     /// @param entry must exist on the system
     /// @return if it doesnt exist nothing is returned
     /// if the entry does exist and there is no error the size in bytes is returned
-    std::optional<std::uintmax_t> get_entry_size(path entry);
+    std::optional<std::uintmax_t> get_entry_size(path entry) noexcept;
 
     /// @brief plainly send a message to the console with a path name
     /// @param message any message
     /// @param p any path
-    void to_console(const STRING& message,path p);
+    void to_console(const STRING& message,path p) noexcept;
 
     /// @brief processes a file_queue_info object to be copied or removed
     /// @param entry any entry
-    void process_file_queue_info_entry(const application::file_queue_info& entry);
+    void process_file_queue_info_entry(const application::file_queue_info& entry) noexcept;
 
     /// @brief wrapper for ext::rename_entry().
     /// @param old_entry must exist on the system
     /// @param new_entry any path (this should be checked?)
-    void rename_entry(path old_entry,path new_entry);
+    void rename_entry(path old_entry,path new_entry) noexcept;
 
     /// @brief checks if entry is a directory on the system. wrapper for ext::is_directory().
     /// @param entry any path
     /// @return true if it is a valid directory on the system and false if it is not.
-    bool is_directory(path entry);
+    bool is_directory(path entry) noexcept;
 
     /// @brief checks if entry exists on the system. wrapper for ext::exists().
     /// @param entry any path
     /// @return true if it exists on the system and false for not.
-    bool exists(path entry);
+    bool exists(path entry) noexcept;
 }
