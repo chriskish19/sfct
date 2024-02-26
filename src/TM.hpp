@@ -35,7 +35,7 @@ namespace application{
             // Capture any exception into an std::exception_ptr
             eptr = std::current_exception();
             // Optionally log that an exception was captured
-            std::cerr << "Exception captured\n";
+            std::cerr << "Exception captured \n";
         }
 
         // Return the exception pointer for further handling
@@ -53,17 +53,17 @@ namespace application{
     public:
         // default constructor
         // sets the number of workers to use
-        TM();
+        TM() noexcept;
 
         // joins all joinable threads
         // causes main thread to wait until all threads finish work
-        void join_all();
+        void join_all() noexcept;
 
         // joins the first launched thread from do_work
         // this is used to keep the number of working threads (m_Workers) continuously
         // working when one thread has finished its work a new thread is launched, the total
         // working threads will be m_Workers at any given time
-        bool join_one(); 
+        bool join_one() noexcept; 
 
         // jobs to do for the threads
         template <typename Function, typename... Args>
@@ -76,11 +76,42 @@ namespace application{
             }
         }
 
+        // jobs to do for the threads
+        template <typename Function, typename... Args>
+        void do_work(Function fp, Args&&... args) noexcept {
+            if (m_Threads.size() < m_Workers) {
+                try{
+                    // Start a new thread that calls the exceptions function with fp and args...
+                    m_Threads.emplace_back(fp,std::forward<Args>(args)...);
+                }
+                catch (const std::filesystem::filesystem_error& e) {
+                    // Handle filesystem related errors
+                    std::cerr << "Filesystem error: " << e.what() << "\n";
+                }
+                catch(const std::runtime_error& e){
+                    // the error message
+                    std::cerr << e.what() << "\n";
+                }
+                catch(const std::bad_alloc& e){
+                    // the error message
+                    std::cerr << e.what() << "\n";
+                }
+                catch (const std::exception& e) {
+                    // Catch other standard exceptions
+                    std::cerr << "Standard exception: " << e.what() << "\n";
+                } catch (...) {
+                    // Catch any other exceptions
+                    std::cerr << "Unknown exception caught \n";
+                }
+            }
+        }
+
+
         // returns the number of workers used by TM class specified by the pc spec
-        size_t GetNumberOfWorkers(){return m_Workers;}
+        size_t GetNumberOfWorkers() noexcept {return m_Workers;}
     private:
         // set the number of worker to use
-        void SetWorkers();
+        void SetWorkers() noexcept;
         
         // workers to initialize
         size_t m_Workers;
@@ -89,7 +120,7 @@ namespace application{
         const inline static unsigned int m_TotalThreads{std::thread::hardware_concurrency()};
 
         // holds the worker threads
-        std::vector<std::thread> m_Threads;
+        std::vector<std::jthread> m_Threads;
 
         // using the total threads, it determines the SystemPerformance enum
         static SystemPerformance GetPCspec() noexcept;
@@ -107,22 +138,22 @@ namespace application{
         }
         catch (const std::filesystem::filesystem_error& e) {
             // Handle filesystem related errors
-            std::cerr << "Filesystem error: " << e.what() << '\n';
+            std::cerr << "Filesystem error: " << e.what() << "\n";
         }
         catch(const std::runtime_error& e){
             // the error message
-            std::cerr << e.what() << std::endl;
+            std::cerr << e.what() << "\n";
         }
         catch(const std::bad_alloc& e){
             // the error message
-            std::cerr << e.what() << std::endl;
+            std::cerr << e.what() << "\n";
         }
         catch (const std::exception& e) {
             // Catch other standard exceptions
-            std::cerr << "Standard exception: " << e.what() << '\n';
+            std::cerr << "Standard exception: " << e.what() << "\n";
         } catch (...) {
             // Catch any other exceptions
-            std::cerr << "Unknown exception caught\n";
+            std::cerr << "Unknown exception caught \n";
         }
 
-        */
+*/

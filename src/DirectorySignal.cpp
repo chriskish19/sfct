@@ -5,52 +5,75 @@
 //////////////////////////////////////////////////////////
 #if WINDOWS_BUILD
 
-application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto>> dirs_to_watch)
+application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto>> dirs_to_watch) noexcept
 :m_dirs(dirs_to_watch){
-    
-    if(!dirs_to_watch){
-        logger log(App_MESSAGE("nullptr"),Error::FATAL);
-        log.to_console();
-        log.to_log_file();
-        throw std::runtime_error("");
-    }
-    
-    if(dirs_to_watch->empty()){
-        no_watch = true;
-    }
 
-    STDOUT << "\n";
-    for(const auto &dir:*dirs_to_watch){
-        STDOUT << App_MESSAGE("Monitoring directory: ") << dir.source << App_MESSAGE(" to: ") << dir.destination << "\n";
-        
-        HANDLE hDir = CreateFile(
-            dir.source.c_str(), FILE_LIST_DIRECTORY,
-            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-            NULL, OPEN_EXISTING,
-            FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-            NULL);
-
-        if (hDir == INVALID_HANDLE_VALUE) {
-            logger log(Error::WARNING);
+    try{
+        if(!dirs_to_watch){
+            logger log(App_MESSAGE("nullptr"),Error::FATAL);
             log.to_console();
             log.to_log_file();
-            log.to_output();
-            continue;
+            // create an object to safely exit the DirectorySignal class
+            m_dirs = std::make_shared<std::vector<copyto>>();
+        }
+        
+        if(m_dirs->empty()){
+            no_watch = true;
         }
 
-        DS_resources* monitor = new DS_resources{hDir, {}, {}, {{dir.source},{dir.destination},{dir.commands},{dir.co}}};
-        
-        
-        if(!CreateIoCompletionPort(hDir, m_hCompletionPort, (ULONG_PTR)monitor, 0)){
-            logger log(Error::WARNING);
-            log.to_console();
-            log.to_log_file();
-            log.to_output();
-        }
+        STDOUT << "\n";
+        for(const auto &dir:*m_dirs){
+            STDOUT << App_MESSAGE("Monitoring directory: ") << dir.source << App_MESSAGE(" to: ") << dir.destination << "\n";
+            
+            HANDLE hDir = CreateFile(
+                dir.source.c_str(), FILE_LIST_DIRECTORY,
+                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                NULL, OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+                NULL);
 
-        UpdateWatcher(monitor);
-        m_pMonitors.push_back(monitor);
+            if (hDir == INVALID_HANDLE_VALUE) {
+                logger log(Error::WARNING);
+                log.to_console();
+                log.to_log_file();
+                log.to_output();
+                continue;
+            }
+
+            DS_resources* monitor = new DS_resources{hDir, {}, {}, {{dir.source},{dir.destination},{dir.commands},{dir.co}}};
+            
+            
+            if(!CreateIoCompletionPort(hDir, m_hCompletionPort, (ULONG_PTR)monitor, 0)){
+                logger log(Error::WARNING);
+                log.to_console();
+                log.to_log_file();
+                log.to_output();
+            }
+
+            UpdateWatcher(monitor);
+            m_pMonitors.push_back(monitor);
+        }
     }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+    }
+
 }
 
 application::DirectorySignal::~DirectorySignal(){
@@ -64,38 +87,25 @@ application::DirectorySignal::~DirectorySignal(){
     CloseHandle(m_hCompletionPort);
 }
 
-void application::DirectorySignal::monitor(){
+void application::DirectorySignal::monitor() noexcept{
     // no monitor directories set so exit the monitor function
     if(no_watch) return;
 
-
-
-    std::promise<std::exception_ptr> promise;
-    auto future = promise.get_future();
-    std::atomic<bool> exception_occurred{false};
-    std::thread q_sys_thread([this,&promise,&exception_occurred]() {
-        auto eptr = exceptions(&application::queue_system<file_queue_info>::process, &m_queue_processor);
-        promise.set_value(eptr); // Pass the exception pointer to the future
-        exception_occurred = true;
+    std::thread q_sys_thread([this]() {
+        &application::queue_system<file_queue_info>::process, &m_queue_processor;
     });
-
-
 
     // Process notifications
     DWORD bytesTransferred;
     DS_resources* pMonitor;
     LPOVERLAPPED pOverlapped;
     
-
-
     timer t;
     std::atomic<bool> start_timer{false};
     std::condition_variable timer_thread_notify_cv;
     std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processor.m_ready_to_process,&m_queue_processor.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
 
-
-
-    while (!exception_occurred.load() && GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
+    while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
         Overflow(bytesTransferred);
         
         // Process change notification in pMonitor->buffer
@@ -122,14 +132,9 @@ void application::DirectorySignal::monitor(){
         m_queue_processor.m_local_thread_cv.notify_one();
         q_sys_thread.join();
     }
-
-    std::exception_ptr eptr = future.get();
-    if(eptr){
-        std::rethrow_exception(eptr);
-    }
 }
 
-bool application::DirectorySignal::Overflow(DWORD bytes_returned)
+bool application::DirectorySignal::Overflow(DWORD bytes_returned) noexcept
 {
     if(bytes_returned == 0){
         STDOUT << App_MESSAGE("The monitoring buffer has overflowed");
@@ -138,7 +143,7 @@ bool application::DirectorySignal::Overflow(DWORD bytes_returned)
     return false;
 }
 
-void application::DirectorySignal::UpdateWatcher(DS_resources* p_monitor)
+void application::DirectorySignal::UpdateWatcher(DS_resources* p_monitor) noexcept
 {
     if(!ReadDirectoryChangesW(
             p_monitor->m_hDir, 
@@ -149,14 +154,35 @@ void application::DirectorySignal::UpdateWatcher(DS_resources* p_monitor)
             NULL, 
             &p_monitor->m_ol, 
             NULL)){
-                logger log(Error::WARNING);
-                log.to_console();
-                log.to_log_file();
-                log.to_output();
+                try{
+                    logger log(Error::WARNING);
+                    log.to_console();
+                    log.to_log_file();
+                    log.to_output();
+                }
+                catch (const std::filesystem::filesystem_error& e) {
+                    // Handle filesystem related errors
+                    std::cerr << "Filesystem error: " << e.what() << "\n";
+                }
+                catch(const std::runtime_error& e){
+                    // the error message
+                    std::cerr << e.what() << "\n";
+                }
+                catch(const std::bad_alloc& e){
+                    // the error message
+                    std::cerr << e.what() << "\n";
+                }
+                catch (const std::exception& e) {
+                    // Catch other standard exceptions
+                    std::cerr << "Standard exception: " << e.what() << "\n";
+                } catch (...) {
+                    // Catch any other exceptions
+                    std::cerr << "Unknown exception caught \n";
+                }
             }
 }
 
-void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION *pNotify,DS_resources* pMonitor)
+void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION *pNotify,DS_resources* pMonitor) noexcept
 {
     // Process each notification
     do{
@@ -169,9 +195,22 @@ void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATI
         // fill the structure with data
         entry.src = pMonitor->directory.source/fileName;
         entry.dst = pMonitor->directory.destination/fileName;
+        auto gfs_src = sfct_api::get_file_status(entry.src);
+        auto gfs_dst = sfct_api::get_file_status(entry.dst);
+
+        // if gfs_src or gfs_dst is std::nullopt then entry.fs_src and entry.fs_dst will be std::filesystem::file_type::none
+        // The none value is used for default-constructed file_status objects or when the file type has not been determined, 
+        // whereas not_found indicates that a path does not exist or cannot be accessed.
+
+        if(gfs_src.has_value()){
+            entry.fs_src = gfs_src.value();
+        }
+        
+        if(gfs_dst.has_value()){
+            entry.fs_dst = gfs_dst.value();
+        }
+        
         entry.co = pMonitor->directory.co;
-        entry.fs_src = std::filesystem::status(entry.src);
-        entry.fs_dst = std::filesystem::status(entry.dst);
         entry.commands = pMonitor->directory.commands;
         entry.main_dst = pMonitor->directory.destination;
         entry.main_src = pMonitor->directory.source;

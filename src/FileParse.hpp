@@ -31,29 +31,29 @@ namespace application{
         // use this constructor if you need to use a file not in the current working directory
         // must be an absolute path
         // std::filesystem::path path: the file name including extension and full path
-        FileParse(const std::filesystem::path& path);
+        FileParse(const std::filesystem::path& path) noexcept;
 
         // use this constructor if the file being parsed is in the current working directory
-        FileParse(const std::string& filename);
+        FileParse(const std::string& filename) noexcept;
 
         // parse the file into m_Data
-        void ExtractData();
+        void ExtractData() noexcept;
         
         // opens m_File
         // if the path is valid but opening the file fails std::runtime_error exception is thrown
         // if the path is invalid the function returns false
-        bool OpenFile();
+        bool OpenFile() noexcept;
         
         // changes m_FilePath to a new path and resets the class members
         // then its safe to call OpenFile agian and ExtractData with the same object
-        void SetFilePath(const std::filesystem::path& new_path);
+        void SetFilePath(const std::filesystem::path& new_path) noexcept;
 
         // checks for valid data
-        void CheckData();
+        void CheckData() noexcept;
 
         // data will need to be used elsewhere in the program
         // TODO: template this class to handle any type of data for future use in making cli programs
-        const std::shared_ptr<std::vector<copyto>> GetSPdata(){return m_Data;}
+        const std::shared_ptr<std::vector<copyto>> GetSPdata() noexcept {return m_Data;}
 
     private:
         void ParseSyntax();
@@ -75,9 +75,9 @@ namespace application{
 
         // checks m_Data for valid directory entries
         // if no valid directories are found it throws an exception std::runtime_error()
-        void CheckDirectories();
+        void CheckDirectories() noexcept;
 
-        bool ValidCommands(cs commands);
+        bool ValidCommands(cs commands) noexcept;
 
         cs ParseCopyArgs(std::istringstream& lineStream);
 

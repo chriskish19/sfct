@@ -1,13 +1,35 @@
 #include "directory_copy.hpp"
 
-application::directory_copy::directory_copy(std::shared_ptr<std::vector<copyto>> dirs)
+application::directory_copy::directory_copy(std::shared_ptr<std::vector<copyto>> dirs) noexcept
 :m_dirs(dirs)
 {
-    if(!dirs){
-        logger log(App_MESSAGE("nullptr"),Error::FATAL);
-        log.to_console();
-        log.to_log_file();
-        throw std::runtime_error("");
+    try{
+        if(!dirs){
+            logger log(App_MESSAGE("nullptr"),Error::FATAL);
+            log.to_console();
+            log.to_log_file();
+            // make a blank object so directory copy can exit safely
+            m_dirs = std::make_shared<std::vector<copyto>>();
+        }
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
     }
 }
 
@@ -48,7 +70,7 @@ void application::directory_copy::copy()
         benchmark test;
         test.start_clock();
         if(sfct_api::recursive_flag_check(dir.commands)){
-
+            
             for(const auto& entry:std::filesystem::recursive_directory_iterator(dir.source)){
                 std::optional<std::filesystem::path> succeeded = sfct_api::create_file_relative_path(entry.path(),dir.destination,dir.source,true);
                 if(succeeded.has_value()){
@@ -96,8 +118,6 @@ void application::directory_copy::copy()
         STDOUT << App_MESSAGE("Transfer speed in MB/s: ") << rate << "\n";
     }
     
-
-
 }
 
 

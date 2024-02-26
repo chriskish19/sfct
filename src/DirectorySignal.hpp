@@ -37,14 +37,14 @@ namespace application{
 
     class DirectorySignal{
     public:
-        DirectorySignal(std::shared_ptr<std::vector<copyto>> dirs_to_watch);
+        DirectorySignal(std::shared_ptr<std::vector<copyto>> dirs_to_watch) noexcept;
         ~DirectorySignal();
         DirectorySignal(const DirectorySignal&) = delete;
         DirectorySignal& operator=(const DirectorySignal&) = delete;
         
-        void monitor();
-        DWORD GetNotifyFilter(){return m_NotifyFilter;}
-        HANDLE GetCompletionPort(){return m_hCompletionPort;}
+        void monitor() noexcept;
+        DWORD GetNotifyFilter() noexcept {return m_NotifyFilter;}
+        HANDLE GetCompletionPort() noexcept {return m_hCompletionPort;}
     private:
         DWORD m_NotifyFilter{FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME|FILE_NOTIFY_CHANGE_SIZE};
         HANDLE m_hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
@@ -53,13 +53,13 @@ namespace application{
         bool no_watch{false}; 
 
         // check if the monitored directory buffer has overflowed
-        bool Overflow(DWORD bytes_returned);
+        bool Overflow(DWORD bytes_returned) noexcept;
 
         // calls ReadDirectoryChanges
-        void UpdateWatcher(DS_resources* p_monitor);
+        void UpdateWatcher(DS_resources* p_monitor) noexcept;
 
         // go through all the notifications from the watched directory
-        void ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION* pNotify,DS_resources* pMonitor);
+        void ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION* pNotify,DS_resources* pMonitor) noexcept;
 
         queue_system<file_queue_info> m_queue_processor;
     };

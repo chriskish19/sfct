@@ -201,7 +201,16 @@ namespace sfct_api{
             /// @return if there was an error nothing is returned and the error is logged.
             /// if there was no error then the file_status object is returned.
             static std::optional<fs::file_status> file_status(path entry) noexcept;
+
+            /// @brief gets the current working directory. wrapper for private_current_path().
+            /// @return nothing if an exception is thrown. The current working directory path if no errors and no exceptions.
+            static std::optional<fs::path> get_current_path() noexcept;
         private:
+            /// @brief gets the current working directory. wrapper for std::filesystem::current_path().
+            /// @return a path_ext object with current working directory and error code.
+            /// if an exception is thrown, nothing is returned.
+            static std::optional<application::path_ext> private_current_path() noexcept;
+
             /// @brief gets the status of an entry path. wrapper for std::filesystem::status().
             /// @param entry any path
             /// @return a file_status_ext object with the file status and error code.
@@ -456,4 +465,19 @@ namespace sfct_api{
     /// @param entry any path
     /// @return true if it exists on the system and false for not.
     bool exists(path entry) noexcept;
+
+    /// @brief gets the current working directory path.
+    /// @return if any errors occur or exceptions nothing is returned.
+    /// if no errors or exceptions then the current working directory path is returned.
+    std::optional<fs::path> get_current_path() noexcept;
+
+    /// @brief gets the status of an entry path. wrapper for ext::file_status().
+    /// @param entry any path
+    /// @return if there was an error nothing is returned and the error is logged.
+    /// if there was no error then the file_status object is returned.
+    std::optional<fs::file_status> get_file_status(path entry);
+
+    /// @brief multithreaded safe function version of process_file_queue_info_entry. A copy of entry is made.
+    /// @param entry any entry
+    void mt_process_file_queue_info_entry(application::file_queue_info entry);
 }

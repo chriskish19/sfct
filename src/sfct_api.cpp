@@ -983,6 +983,21 @@ bool sfct_api::exists(path entry) noexcept
     return ext::exists(entry);
 }
 
+std::optional<sfct_api::fs::path> sfct_api::get_current_path() noexcept
+{
+    return ext::get_current_path();
+}
+
+std::optional<sfct_api::fs::file_status> sfct_api::get_file_status(path entry)
+{
+    return ext::file_status(entry);
+}
+
+void sfct_api::mt_process_file_queue_info_entry(application::file_queue_info entry)
+{
+    return process_file_queue_info_entry(entry);
+}
+
 void sfct_api::to_console(const STRING& message,path p) noexcept
 {
     STDOUT << message << p << "\n";
@@ -1242,6 +1257,90 @@ std::optional<sfct_api::fs::file_status> sfct_api::ext::file_status(path entry) 
 	} catch (...) {
 		// Catch any other exceptions
 		std::cerr << "Unknown exception caught\n";
+
+		return std::nullopt;
+	}
+}
+
+std::optional<sfct_api::fs::path> sfct_api::ext::get_current_path() noexcept
+{
+    try{
+		auto _p = private_current_path();
+        if(_p.has_value()){
+            if(_p.value().e){
+                application::logger log(_p.value().e,application::Error::WARNING,_p.value().p);
+                log.to_console();
+                log.to_log_file();
+                return std::nullopt;
+            }
+            return _p.value().p;
+        }
+        return std::nullopt;
+	}
+	catch (const std::filesystem::filesystem_error& e) {
+		// Handle filesystem related errors
+		std::cerr << "Filesystem error: " << e.what() << "\n";
+
+		return std::nullopt;
+	}
+	catch(const std::runtime_error& e){
+		// the error message
+		std::cerr << "Runtime error :" << e.what() << "\n";
+		
+		return std::nullopt;
+	}
+	catch(const std::bad_alloc& e){
+		// the error message
+		std::cerr << "Allocation error: " << e.what() << "\n";
+
+		return std::nullopt;
+	}
+	catch (const std::exception& e) {
+		// Catch other standard exceptions
+		std::cerr << "Standard exception: " << e.what() << "\n";
+
+		return std::nullopt;
+	} catch (...) {
+		// Catch any other exceptions
+		std::cerr << "Unknown exception caught \n";
+
+		return std::nullopt;
+	}
+}
+
+std::optional<application::path_ext> sfct_api::ext::private_current_path() noexcept
+{
+    try{
+		application::path_ext _p;
+        _p.p = fs::current_path(_p.e);
+        return _p;
+	}
+	catch (const std::filesystem::filesystem_error& e) {
+		// Handle filesystem related errors
+		std::cerr << "Filesystem error: " << e.what() << "\n";
+
+		return std::nullopt;
+	}
+	catch(const std::runtime_error& e){
+		// the error message
+		std::cerr << "Runtime error :" << e.what() << "\n";
+		
+		return std::nullopt;
+	}
+	catch(const std::bad_alloc& e){
+		// the error message
+		std::cerr << "Allocation error: " << e.what() << "\n";
+
+		return std::nullopt;
+	}
+	catch (const std::exception& e) {
+		// Catch other standard exceptions
+		std::cerr << "Standard exception: " << e.what() << "\n";
+
+		return std::nullopt;
+	} catch (...) {
+		// Catch any other exceptions
+		std::cerr << "Unknown exception caught \n";
 
 		return std::nullopt;
 	}

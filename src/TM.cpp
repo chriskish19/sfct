@@ -1,9 +1,31 @@
 #include "TM.hpp"
 
-void application::TM::join_all(){
+void application::TM::join_all() noexcept{
     for(auto& t:m_Threads){
         if(t.joinable()){
-            t.join();
+            try{
+                t.join();
+            }
+            catch (const std::filesystem::filesystem_error& e) {
+                // Handle filesystem related errors
+                std::cerr << "Filesystem error: " << e.what() << "\n";
+            }
+            catch(const std::runtime_error& e){
+                // the error message
+                std::cerr << e.what() << "\n";
+            }
+            catch(const std::bad_alloc& e){
+                // the error message
+                std::cerr << e.what() << "\n";
+            }
+            catch (const std::exception& e) {
+                // Catch other standard exceptions
+                std::cerr << "Standard exception: " << e.what() << "\n";
+            } catch (...) {
+                // Catch any other exceptions
+                std::cerr << "Unknown exception caught \n";
+            }
+
         }
     }
 
@@ -27,11 +49,11 @@ application::SystemPerformance application::TM::GetPCspec() noexcept{
     }
 }
 
-application::TM::TM(){
+application::TM::TM() noexcept{
     SetWorkers();
 }
 
-void application::TM::SetWorkers(){
+void application::TM::SetWorkers() noexcept{
     switch(m_PC_SPEC){
         case SystemPerformance::SLOW:{
             m_Workers = 1;
@@ -52,10 +74,32 @@ void application::TM::SetWorkers(){
     }
 }
 
-bool application::TM::join_one(){
+bool application::TM::join_one() noexcept{
     // only allow m_Workers threads to run at a time
     if (m_Threads.size() >= m_Workers && m_Threads.front().joinable()) {
-        m_Threads.front().join();  // Join the oldest thread
+        try{
+            m_Threads.front().join();  // Join the oldest thread
+        }
+        catch (const std::filesystem::filesystem_error& e) {
+            // Handle filesystem related errors
+            std::cerr << "Filesystem error: " << e.what() << "\n";
+        }
+        catch(const std::runtime_error& e){
+            // the error message
+            std::cerr << e.what() << "\n";
+        }
+        catch(const std::bad_alloc& e){
+            // the error message
+            std::cerr << e.what() << "\n";
+        }
+        catch (const std::exception& e) {
+            // Catch other standard exceptions
+            std::cerr << "Standard exception: " << e.what() << "\n";
+        } catch (...) {
+            // Catch any other exceptions
+            std::cerr << "Unknown exception caught \n";
+        }
+        
         m_Threads.erase(m_Threads.begin());  // Remove it from the vector
         return true;
     }

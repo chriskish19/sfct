@@ -1,109 +1,249 @@
 #include "FileParse.hpp"
 
-application::FileParse::FileParse(const std::filesystem::path& path):m_FilePath(path){
+application::FileParse::FileParse(const std::filesystem::path& path) noexcept 
+:m_FilePath(path){
     // check if the file exists
-    m_FileExists = std::filesystem::exists(m_FilePath);
+    m_FileExists = sfct_api::exists(m_FilePath);
 }
 
-void application::FileParse::ExtractData(){
-    if(!m_File.is_open()){
-        logger log(App_MESSAGE("You need to Open the file before extracting the data, ExtractData will return to the caller without executing further"),Error::DEBUG);
-        log.to_console();
-        log.to_log_file();
+void application::FileParse::ExtractData() noexcept{
+    try{
+        if(!m_File.is_open()){
+            logger log(App_MESSAGE("You need to Open the file before extracting the data, ExtractData will return to the caller without executing further"),Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+            return;
+        }
+
+        // if m_Data has data in it, it means the data has already been extracted
+        if(!m_Data->empty() || m_DataExtracted){
+            logger log(App_MESSAGE("Data has already been extracted, returning to function caller"),Error::INFO);
+            log.to_console();
+            log.to_log_file();
+            return;
+        }
+
+        ParseSyntax();
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+
+        m_DataExtracted = false;
+
         return;
     }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << e.what() << "\n";
 
-    // if m_Data has data in it, it means the data has already been extracted
-    if(!m_Data->empty() || m_DataExtracted){
-        logger log(App_MESSAGE("Data has already been extracted, returning to function caller"),Error::INFO);
-        log.to_console();
-        log.to_log_file();
+        m_DataExtracted = false;
+
         return;
     }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << e.what() << "\n";
 
-    ParseSyntax();
+        m_DataExtracted = false;
+
+        return;
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+
+        m_DataExtracted = false;
+
+        return;
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+
+        m_DataExtracted = false;
+
+        return;
+    }
 
     // this function should only be called once per object unless a new valid path is set with 
     // SetFilePath() 
     m_DataExtracted = true;
 }
 
-bool application::FileParse::OpenFile(){
-    // the file does not exist
-    // dont execute the function instead return false to the caller
-    if(!m_FileExists){
-        logger log(App_MESSAGE("File does not exist, use SetFilePath() to set a new valid path"),Error::DEBUG);
-        log.to_console();
-        log.to_log_file();
+bool application::FileParse::OpenFile() noexcept{
+    try{
+        // the file does not exist
+        // dont execute the function instead return false to the caller
+        if(!m_FileExists){
+            logger log(App_MESSAGE("File does not exist, use SetFilePath() to set a new valid path"),Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+            return false;
+        }
+        
+        // open the file for reading
+        m_File.open(m_FilePath,std::ios::in);
+
+        if(!m_File.is_open()){
+            logger log(App_MESSAGE("Failed to open file for reading"),Error::FATAL);
+            log.to_console();
+            log.to_log_file();
+            return false;
+        }
+        else{
+            logger log(App_MESSAGE("Succesfully opened sfct_list.txt"),Error::INFO);
+            log.to_console();
+            log.to_log_file();
+        }
+
+        return true;
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+
         return false;
     }
-    
-    // open the file for reading
-    m_File.open(m_FilePath,std::ios::in);
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << e.what() << "\n";
 
-    if(!m_File.is_open()){
-        logger log(App_MESSAGE("Failed to open file for reading"),Error::FATAL);
-        log.to_console();
-        log.to_log_file();
-        throw std::runtime_error("std::fstream fail");
+        return false;
     }
-    else{
-        logger log(App_MESSAGE("Succesfully opened sfct_list.txt"),Error::INFO);
-        log.to_console();
-        log.to_log_file();
-    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << e.what() << "\n";
 
-    return true;
+        return false;
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+
+        return false;
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+
+        return false;
+    }
 }
 
-application::FileParse::FileParse(const std::string& filename){
-    // set m_FilePath to the current working directory
-    m_FilePath = std::filesystem::current_path();
+application::FileParse::FileParse(const std::string& filename) noexcept{
+    // get the current working directory
+    auto gcp = sfct_api::get_current_path();
 
-    // append the file name to m_FilePath
-    m_FilePath/=filename;
+    if(gcp.has_value()){
+        m_FilePath = gcp.value();
+    }
+    
+    
+    try{
+        // try to append the file name to m_FilePath
+        m_FilePath/=filename;
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+    }
+
 
     // check if the file exists
-    m_FileExists = std::filesystem::exists(m_FilePath);
+    m_FileExists = sfct_api::exists(m_FilePath);
 }
 
-void application::FileParse::SetFilePath(const std::filesystem::path& new_path){
-    // check if the new_path is valid
-    bool path_exists = std::filesystem::exists(new_path);
+void application::FileParse::SetFilePath(const std::filesystem::path& new_path) noexcept{
+    try{
+        // check if the new_path is valid
+        bool path_exists = sfct_api::exists(new_path);
 
-    if(!path_exists){
-        logger log(App_MESSAGE("New path is not valid"),Error::DEBUG);
-        log.to_console();
-        log.to_log_file();
+        if(!path_exists){
+            logger log(App_MESSAGE("New path is not valid"),Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+        }
+        else{
+            // the path is valid
+            // set the member variables now
+            m_FileExists = path_exists;
+            m_FilePath = new_path;
+
+            // reset 
+            m_DataExtracted = false;
+
+            // clear the data
+            m_Data->clear();
+
+            // close the file
+            // if close fails an exception is thrown automatically by fstream
+            m_File.close();
+        }
     }
-    else{
-        // the path is valid
-        // set the member variables now
-        m_FileExists = path_exists;
-        m_FilePath = new_path;
-
-        // reset 
-        m_DataExtracted = false;
-
-        // clear the data
-        m_Data->clear();
-
-        // close the file
-        // if close fails an exception is thrown automatically by fstream
-        m_File.close();
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
     }
-
-    
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+    }
 }
 
-void application::FileParse::CheckData(){
-    if(!m_DataExtracted){
-        logger log(App_MESSAGE("Data has not been extracted, you need to call ExtractData() before calling CheckData()"),Error::DEBUG);
-        log.to_console();
-        log.to_log_file();
-        return;
+void application::FileParse::CheckData() noexcept{
+    try{
+        if(!m_DataExtracted){
+            logger log(App_MESSAGE("Data has not been extracted, you need to call ExtractData() before calling CheckData()"),Error::DEBUG);
+            log.to_console();
+            log.to_log_file();
+            return;
+        }
     }
-    
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+    }
+
     CheckDirectories();
 }
 
@@ -156,7 +296,7 @@ void application::FileParse::ParseSyntax()
     }   
 }
 
-void application::FileParse::CheckDirectories(){
+void application::FileParse::CheckDirectories() noexcept{
     for(auto it{m_Data->begin()};it!=m_Data->end();){
         if((it->commands & cs::create) != cs::none){
             // create the paths for benchmarking
@@ -166,13 +306,36 @@ void application::FileParse::CheckDirectories(){
         
         
         
-        if(!std::filesystem::exists(it->source) || 
-        !std::filesystem::exists(it->destination) || 
+        if(!sfct_api::exists(it->source) || 
+        !sfct_api::exists(it->destination) || 
         !ValidCommands(it->commands) ||
         it->source == it->destination){
-            logger log(App_MESSAGE("Invalid entry"),Error::WARNING,it->source);
-            log.to_console();
-            log.to_log_file();
+
+            try{
+                logger log(App_MESSAGE("Invalid entry"),Error::WARNING,it->source);
+                log.to_console();
+                log.to_log_file();
+            }
+            catch (const std::filesystem::filesystem_error& e) {
+                // Handle filesystem related errors
+                std::cerr << "Filesystem error: " << e.what() << "\n";
+            }
+            catch(const std::runtime_error& e){
+                // the error message
+                std::cerr << e.what() << "\n";
+            }
+            catch(const std::bad_alloc& e){
+                // the error message
+                std::cerr << e.what() << "\n";
+            }
+            catch (const std::exception& e) {
+                // Catch other standard exceptions
+                std::cerr << "Standard exception: " << e.what() << "\n";
+            } catch (...) {
+                // Catch any other exceptions
+                std::cerr << "Unknown exception caught \n";
+            }
+
             it = m_Data->erase(it);
         }
         else{
@@ -180,21 +343,42 @@ void application::FileParse::CheckDirectories(){
         }
     }
 
-    // remove duplicates
-    std::sort(m_Data->begin(),m_Data->end(),copyto_comparison);
-    auto last = std::unique(m_Data->begin(), m_Data->end(), copyto_equal);
-    m_Data->erase(last, m_Data->end());
+    
+    try{
+        // remove duplicates
+        std::sort(m_Data->begin(),m_Data->end(),copyto_comparison);
+        auto last = std::unique(m_Data->begin(), m_Data->end(), copyto_equal);
+        m_Data->erase(last, m_Data->end());
 
 
-    if(m_Data->empty()){
-        logger log(App_MESSAGE("No Valid directories"),Error::FATAL);
-        log.to_console();
-        log.to_log_file();
-        throw std::runtime_error("");
+        if(m_Data->empty()){
+            logger log(App_MESSAGE("No Valid directories"),Error::FATAL);
+            log.to_console();
+            log.to_log_file();
+        }
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
     }
 }
 
-bool application::FileParse::ValidCommands(cs commands)
+bool application::FileParse::ValidCommands(cs commands) noexcept
 {
     // regular copy commands
     cs copy_combo1 = cs::copy | cs::recursive | cs::update;
