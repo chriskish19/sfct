@@ -8,9 +8,9 @@
 namespace application{
     class timer{
     public:
-        void reset();
-        void start_clock();
-        void end_clock();
+        void reset() noexcept;
+        void start_clock() noexcept;
+        void end_clock() noexcept;
         double_t get_time() noexcept;
 
         void wait_timer(double_t seconds_to_wait) noexcept; 

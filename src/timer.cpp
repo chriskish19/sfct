@@ -1,6 +1,6 @@
 #include "timer.hpp"
 
-void application::timer::reset()
+void application::timer::reset() noexcept
 {
     // calling blank constructors to reset timer
     m_start = std::chrono::steady_clock::time_point();
@@ -8,12 +8,12 @@ void application::timer::reset()
     m_duration = std::chrono::duration<double_t>();
 }
 
-void application::timer::start_clock()
+void application::timer::start_clock() noexcept
 {
     m_start = std::chrono::high_resolution_clock::now();
 }
 
-void application::timer::end_clock()
+void application::timer::end_clock() noexcept
 {
     m_end = std::chrono::high_resolution_clock::now();
 }

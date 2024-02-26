@@ -67,7 +67,7 @@ namespace application{
 
         // jobs to do for the threads
         template <typename Function, typename... Args>
-        void do_work(Function fp, Args&&... args) {
+        void do_work_exceptions(Function fp, Args&&... args) {
             if (m_Threads.size() < m_Workers) {
                 // Start a new thread that calls the exceptions function with fp and args...
                 m_Threads.emplace_back([fp, args...](){

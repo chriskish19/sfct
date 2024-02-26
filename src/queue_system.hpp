@@ -99,53 +99,118 @@ namespace application{
     template<>
     class queue_system<file_queue_info>{
         public:
-        void process(){
+        void process() noexcept{
             while(m_running){
-                if(m_ready_to_process.load()){
-                    while(!m_queue.empty()){
-                        file_queue_info entry = m_queue.front();
-                        process_entry(entry);
-                        m_queue.pop();
-                    }
-                    m_ready_to_process = false;
-                    m_main_thread_cv.notify_one();
-                }
-                else{
-
-                    if(!m_still_wait_data.empty()){
-                        m_wait_data.swap(m_still_wait_data);
-
-                        while(!m_wait_data.empty()){
-                            file_queue_info entry = m_wait_data.front();
+                
+                try{
+                    
+                    if(m_ready_to_process.load()){
+                        while(!m_queue.empty()){
+                            file_queue_info entry = m_queue.front();
                             process_entry(entry);
-                            m_wait_data.pop();
+                            m_queue.pop();
                         }
+                        m_ready_to_process = false;
+                        m_main_thread_cv.notify_one();
                     }
-                    
-                    check();
+                    else{
 
-                    {   
-                        std::unique_lock<std::mutex> local_lock(m_local_thread_guard);
-                        m_local_thread_cv.wait(local_lock, [this] {return m_ready_to_process.load();});
+                        if(!m_still_wait_data.empty()){
+                            m_wait_data.swap(m_still_wait_data);
+
+                            while(!m_wait_data.empty()){
+                                file_queue_info entry = m_wait_data.front();
+                                process_entry(entry);
+                                m_wait_data.pop();
+                            }
+                        }
+                        
+                        check();
+
+                        {   
+                            std::unique_lock<std::mutex> local_lock(m_local_thread_guard);
+                            m_local_thread_cv.wait(local_lock, [this] {return m_ready_to_process.load();});
+                        }
+                        
+                        std::lock_guard<std::mutex> local_lock(m_queue_buffer_mtx);
+                        m_queue.swap(m_queue_buffer);
                     }
-                    
-                    std::lock_guard<std::mutex> local_lock(m_queue_buffer_mtx);
-                    m_queue.swap(m_queue_buffer);
+                }
+                catch (const std::filesystem::filesystem_error& e) {
+                    // Handle filesystem related errors
+                    std::cerr << "Filesystem error: " << e.what() << "\n";
+                }
+                catch(const std::runtime_error& e){
+                    // the error message
+                    std::cerr << "Runtime error :" << e.what() << "\n";
+                }
+                catch(const std::bad_alloc& e){
+                    // the error message
+                    std::cerr << "Allocation error: " << e.what() << "\n";
+                }
+                catch (const std::exception& e) {
+                    // Catch other standard exceptions
+                    std::cerr << "Standard exception: " << e.what() << "\n";
+                } catch (...) {
+                    // Catch any other exceptions
+                    std::cerr << "Unknown exception caught \n";
                 }
             }
         }
 
-        void add_to_queue(const file_queue_info& entry){
-            std::lock_guard<std::mutex> local_lock(m_queue_buffer_mtx);
-            m_queue_buffer.emplace(entry);
+        void add_to_queue(const file_queue_info& entry) noexcept{
+            try{
+                std::lock_guard<std::mutex> local_lock(m_queue_buffer_mtx);
+                m_queue_buffer.emplace(entry);
+            }
+            catch (const std::filesystem::filesystem_error& e) {
+                // Handle filesystem related errors
+                std::cerr << "Filesystem error: " << e.what() << "\n";
+            }
+            catch(const std::runtime_error& e){
+                // the error message
+                std::cerr << "Runtime error :" << e.what() << "\n";
+            }
+            catch(const std::bad_alloc& e){
+                // the error message
+                std::cerr << "Allocation error: " << e.what() << "\n";
+            }
+            catch (const std::exception& e) {
+                // Catch other standard exceptions
+                std::cerr << "Standard exception: " << e.what() << "\n";
+            } catch (...) {
+                // Catch any other exceptions
+                std::cerr << "Unknown exception caught \n";
+            }
         }
 
         void exit(){
-            // process remaining buffer
-            std::unique_lock<std::mutex> local_lock(m_main_thread_guard);
-            m_main_thread_cv.wait(local_lock, [this] {return !m_ready_to_process.load(); });
+            try{
+                // process remaining buffer
+                std::unique_lock<std::mutex> local_lock(m_main_thread_guard);
+                m_main_thread_cv.wait(local_lock, [this] {return !m_ready_to_process.load(); });
 
-            m_running = false;
+                m_running = false;
+            }
+            catch (const std::filesystem::filesystem_error& e) {
+                // Handle filesystem related errors
+                std::cerr << "Filesystem error: " << e.what() << "\n";
+            }
+            catch(const std::runtime_error& e){
+                // the error message
+                std::cerr << "Runtime error :" << e.what() << "\n";
+            }
+            catch(const std::bad_alloc& e){
+                // the error message
+                std::cerr << "Allocation error: " << e.what() << "\n";
+            }
+            catch (const std::exception& e) {
+                // Catch other standard exceptions
+                std::cerr << "Standard exception: " << e.what() << "\n";
+            } catch (...) {
+                // Catch any other exceptions
+                std::cerr << "Unknown exception caught \n";
+            }
         }
 
         // used to notify the waiting thread
@@ -177,43 +242,64 @@ namespace application{
         std::unordered_set<file_queue_info> m_all_seen_entries,m_all_seen_main_directory_entries;
 
         // we only check once
-        void check(){
-            bool exit__{false};
-            for(auto entry{m_new_main_directory_entries.begin()};entry != m_new_main_directory_entries.end() && !exit__;entry++){
-                if(std::filesystem::exists(entry->src)){
-                    for(const auto& _entry:std::filesystem::recursive_directory_iterator(entry->src)){
-                        auto dst_path = sfct_api::create_file_relative_path(_entry.path(),entry->dst,entry->src,false);
-                        if(dst_path.has_value()){
-                            file_queue_info _file_info;
-                            _file_info.co = entry->co;
-                            _file_info.commands = entry->commands;
-                            _file_info.dst = dst_path.value();
-                            _file_info.fqs = file_queue_status::file_added;
-                            _file_info.fs_dst = std::filesystem::status(dst_path.value());
-                            _file_info.fs_src = std::filesystem::status(_entry.path());
-                            _file_info.main_dst = entry->main_dst;
-                            _file_info.main_src = entry->main_src;
-                            _file_info.src = _entry.path();
+        void check() noexcept{
+            try{
+                bool exit__{false};
+                for(auto entry{m_new_main_directory_entries.begin()};entry != m_new_main_directory_entries.end() && !exit__;entry++){
+                    if(sfct_api::exists(entry->src)){
+                        for(const auto& _entry:std::filesystem::recursive_directory_iterator(entry->src)){
+                            auto dst_path = sfct_api::create_file_relative_path(_entry.path(),entry->dst,entry->src,false);
+                            if(dst_path.has_value()){
+                                file_queue_info _file_info;
+                                _file_info.co = entry->co;
+                                _file_info.commands = entry->commands;
+                                _file_info.dst = dst_path.value();
+                                _file_info.fqs = file_queue_status::file_added;
+                                _file_info.fs_dst = std::filesystem::status(dst_path.value());
+                                _file_info.fs_src = std::filesystem::status(_entry.path());
+                                _file_info.main_dst = entry->main_dst;
+                                _file_info.main_src = entry->main_src;
+                                _file_info.src = _entry.path();
 
-                            // true if not in the set
-                            // false if in the set
-                            if(m_all_seen_entries.insert(_file_info).second){
-                                process_entry(_file_info);
-                            }
-                            else{
-                                // lets not check everything
-                                // if one entry exists most likley they all do
-                                // but may change this in the future for more robust checking
-                                // exit__ = true;
+                                // true if not in the set
+                                // false if in the set
+                                if(m_all_seen_entries.insert(_file_info).second){
+                                    process_entry(_file_info);
+                                }
+                                else{
+                                    // lets not check everything
+                                    // if one entry exists most likley they all do
+                                    // but may change this in the future for more robust checking
+                                    // exit__ = true;
+                                }
                             }
                         }
                     }
+                    
+                    
                 }
-                
-                
-            }
 
-            m_new_main_directory_entries.clear();
+                m_new_main_directory_entries.clear(); 
+            }
+            catch (const std::filesystem::filesystem_error& e) {
+                // Handle filesystem related errors
+                std::cerr << "Filesystem error: " << e.what() << "\n";
+            }
+            catch(const std::runtime_error& e){
+                // the error message
+                std::cerr << "Runtime error :" << e.what() << "\n";
+            }
+            catch(const std::bad_alloc& e){
+                // the error message
+                std::cerr << "Allocation error: " << e.what() << "\n";
+            }
+            catch (const std::exception& e) {
+                // Catch other standard exceptions
+                std::cerr << "Standard exception: " << e.what() << "\n";
+            } catch (...) {
+                // Catch any other exceptions
+                std::cerr << "Unknown exception caught \n";
+            }
         }
 
         
