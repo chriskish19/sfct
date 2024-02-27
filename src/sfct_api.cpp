@@ -947,6 +947,10 @@ std::optional<sfct_api::fs::path> sfct_api::get_current_path() noexcept
 
 std::optional<sfct_api::fs::file_status> sfct_api::get_file_status(path entry)
 {
+    if(!ext::exists(entry)){
+        return std::nullopt;
+    }
+
     return ext::file_status(entry);
 }
 

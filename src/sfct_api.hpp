@@ -472,9 +472,10 @@ namespace sfct_api{
     std::optional<fs::path> get_current_path() noexcept;
 
     /// @brief gets the status of an entry path. wrapper for ext::file_status().
-    /// @param entry any path
+    /// @param entry must exist on system 
     /// @return if there was an error nothing is returned and the error is logged.
     /// if there was no error then the file_status object is returned.
+    /// if entry doesnt exist then nothing is returned.
     std::optional<fs::file_status> get_file_status(path entry);
 
     /// @brief multithreaded safe function version of process_file_queue_info_entry. A copy of entry is made.

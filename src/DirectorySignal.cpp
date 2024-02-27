@@ -91,9 +91,7 @@ void application::DirectorySignal::monitor() noexcept{
     // no monitor directories set so exit the monitor function
     if(no_watch) return;
 
-    std::jthread q_sys_thread([this]() {
-        &application::queue_system<file_queue_info>::process, &m_queue_processor;
-    });
+    std::jthread q_sys_thread(&application::queue_system<file_queue_info>::process, &m_queue_processor);
 
     // Process notifications
     DWORD bytesTransferred;
@@ -103,7 +101,7 @@ void application::DirectorySignal::monitor() noexcept{
     timer t;
     std::atomic<bool> start_timer{false};
     std::condition_variable timer_thread_notify_cv;
-    std::thread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processor.m_ready_to_process,&m_queue_processor.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
+    std::jthread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processor.m_ready_to_process,&m_queue_processor.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
 
     while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
         Overflow(bytesTransferred);
