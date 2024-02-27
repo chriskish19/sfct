@@ -60,11 +60,11 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
     }
     catch(const std::runtime_error& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
         // Catch other standard exceptions
@@ -166,11 +166,11 @@ void application::DirectorySignal::UpdateWatcher(DS_resources* p_monitor) noexce
                 }
                 catch(const std::runtime_error& e){
                     // the error message
-                    std::cerr << e.what() << "\n";
+                    std::cerr << "Runtime error: " << e.what() << "\n";
                 }
                 catch(const std::bad_alloc& e){
                     // the error message
-                    std::cerr << e.what() << "\n";
+                    std::cerr << "Allocation error: " << e.what() << "\n";
                 }
                 catch (const std::exception& e) {
                     // Catch other standard exceptions

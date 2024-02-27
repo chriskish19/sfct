@@ -35,7 +35,7 @@ void application::FileParse::ExtractData() noexcept{
     }
     catch(const std::runtime_error& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Runtime error: " << e.what() << "\n";
 
         m_DataExtracted = false;
 
@@ -43,7 +43,7 @@ void application::FileParse::ExtractData() noexcept{
     }
     catch(const std::bad_alloc& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Allocation error: " << e.what() << "\n";
 
         m_DataExtracted = false;
 
@@ -106,13 +106,13 @@ bool application::FileParse::OpenFile() noexcept{
     }
     catch(const std::runtime_error& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Runtime error: " << e.what() << "\n";
 
         return false;
     }
     catch(const std::bad_alloc& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Allocation error: "<< e.what() << "\n";
 
         return false;
     }
@@ -148,11 +148,11 @@ application::FileParse::FileParse(const std::string& filename) noexcept{
     }
     catch(const std::runtime_error& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Allocation error: "<< e.what() << "\n";
     }
     catch (const std::exception& e) {
         // Catch other standard exceptions
@@ -200,11 +200,11 @@ void application::FileParse::SetFilePath(const std::filesystem::path& new_path) 
     }
     catch(const std::runtime_error& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Allocation error: "<< e.what() << "\n";
     }
     catch (const std::exception& e) {
         // Catch other standard exceptions
@@ -230,11 +230,11 @@ void application::FileParse::CheckData() noexcept{
     }
     catch(const std::runtime_error& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Allocation error: "<< e.what() << "\n";
     }
     catch (const std::exception& e) {
         // Catch other standard exceptions
@@ -322,11 +322,11 @@ void application::FileParse::CheckDirectories() noexcept{
             }
             catch(const std::runtime_error& e){
                 // the error message
-                std::cerr << e.what() << "\n";
+                std::cerr << "Runtime error: " << e.what() << "\n";
             }
             catch(const std::bad_alloc& e){
                 // the error message
-                std::cerr << e.what() << "\n";
+                std::cerr << "Allocation error: "<< e.what() << "\n";
             }
             catch (const std::exception& e) {
                 // Catch other standard exceptions
@@ -363,11 +363,11 @@ void application::FileParse::CheckDirectories() noexcept{
     }
     catch(const std::runtime_error& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
         // the error message
-        std::cerr << e.what() << "\n";
+        std::cerr << "Allocation error: "<< e.what() << "\n";
     }
     catch (const std::exception& e) {
         // Catch other standard exceptions

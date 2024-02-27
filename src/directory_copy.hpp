@@ -9,8 +9,8 @@ namespace application{
     public:
         directory_copy(std::shared_ptr<std::vector<copyto>> dirs) noexcept;
 
-        void fast_copy();
-        void copy();
+        void fast_copy() noexcept;
+        void copy() noexcept;
     private:
         std::shared_ptr<std::vector<copyto>> m_dirs;
     };
