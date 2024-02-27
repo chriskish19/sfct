@@ -3,16 +3,48 @@
 /* narrow string version of ConsoleTM class definitions */
 //////////////////////////////////////////////////////////
 
-void application::ConsoleTM::to_console(){
+void application::ConsoleTM::to_console() noexcept{
     if(m_release){
-        std::lock_guard<std::mutex> local_lock(m_Message_mtx);
-        while(!m_MessageQueue.empty()){
-            std::cout << m_MessageQueue.front() << "\n";
+    
+        try{
+            std::lock_guard<std::mutex> local_lock(m_Message_mtx);
+            while(!m_MessageQueue.empty()){
+                std::cout << m_MessageQueue.front() << "\n";
 
-            m_MessageQueue.pop();
+                m_MessageQueue.pop();
+            }
+            m_release = false;
+            m_main_thread_cv.notify_one();
         }
-        m_release = false;
-        m_main_thread_cv.notify_one();
+        catch (const std::filesystem::filesystem_error& e) {
+            // Handle filesystem related errors
+            std::cerr << "Filesystem error: " << e.what() << "\n";
+
+            return;
+        }
+        catch(const std::runtime_error& e){
+            // the error message
+            std::cerr << "Runtime error: " << e.what() << "\n";
+
+            return;
+        }
+        catch(const std::bad_alloc& e){
+            // the error message
+            std::cerr << "Allocation error: " << e.what() << "\n";
+
+            return;
+        }
+        catch (const std::exception& e) {
+            // Catch other standard exceptions
+            std::cerr << "Standard exception: " << e.what() << "\n";
+
+            return;
+        } catch (...) {
+            // Catch any other exceptions
+            std::cerr << "Unknown exception caught \n";
+
+            return;
+        }
     }
     else{
         std::cout << "\r" <<  m_AnimationChars[m_AnimationIndex++];
@@ -25,27 +57,69 @@ void application::ConsoleTM::to_console(){
     }
 }
 
-void application::ConsoleTM::SetMessage(const std::string& m){
-    std::lock_guard<std::mutex> local_lock(m_Message_mtx);
-    m_MessageQueue.emplace(m);
+void application::ConsoleTM::SetMessage(const std::string& m) noexcept{
+    try{
+        std::lock_guard<std::mutex> local_lock(m_Message_mtx);
+        m_MessageQueue.emplace(m);
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << "Runtime error: " << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << "Allocation error: " << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+    }
 }
 
-void application::ConsoleTM::RunMessages(){
+void application::ConsoleTM::RunMessages() noexcept{
     while(m_Running){
         to_console();
     }
 }
 
-void application::ConsoleTM::ReleaseBuffer(){
+void application::ConsoleTM::ReleaseBuffer() noexcept{
     m_release = true;
 }
 
-void application::ConsoleTM::end(){
-    ReleaseBuffer();
-    m_main_thread_lock = std::unique_lock<std::mutex>(m_main_thread_guard);
-    m_main_thread_cv.wait(m_main_thread_lock, [this] {return !m_release; });
+void application::ConsoleTM::end() noexcept{
+    try{
+        ReleaseBuffer();
+        m_main_thread_lock = std::unique_lock<std::mutex>(m_main_thread_guard);
+        m_main_thread_cv.wait(m_main_thread_lock, [this] {return !m_release; });
 
-    m_Running = false;
+        m_Running = false;
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << "Runtime error: " << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << "Allocation error: " << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+    }
 }
 
 
@@ -53,16 +127,48 @@ void application::ConsoleTM::end(){
 /* wide string version of ConsoleTM definitions*/
 /////////////////////////////////////////////////
 
-void application::wConsoleTM::to_console(){
+void application::wConsoleTM::to_console() noexcept{
     if(m_release){
-        std::lock_guard<std::mutex> local_lock(m_Message_mtx);
-        while(!m_MessageQueue.empty()){
-            std::wcout << m_MessageQueue.front() << "\n";
+        
+        try{
+            std::lock_guard<std::mutex> local_lock(m_Message_mtx);
+            while(!m_MessageQueue.empty()){
+                std::wcout << m_MessageQueue.front() << "\n";
 
-            m_MessageQueue.pop();
+                m_MessageQueue.pop();
+            }
+            m_release = false;
+            m_main_thread_cv.notify_one();
         }
-        m_release = false;
-        m_main_thread_cv.notify_one();
+        catch (const std::filesystem::filesystem_error& e) {
+            // Handle filesystem related errors
+            std::cerr << "Filesystem error: " << e.what() << "\n";
+
+            return;
+        }
+        catch(const std::runtime_error& e){
+            // the error message
+            std::cerr << "Runtime error: " << e.what() << "\n";
+
+            return;
+        }
+        catch(const std::bad_alloc& e){
+            // the error message
+            std::cerr << "Allocation error: " << e.what() << "\n";
+
+            return;
+        }
+        catch (const std::exception& e) {
+            // Catch other standard exceptions
+            std::cerr << "Standard exception: " << e.what() << "\n";
+
+            return;
+        } catch (...) {
+            // Catch any other exceptions
+            std::cerr << "Unknown exception caught \n";
+
+            return;
+        }
     }
     else{
         // animate the output
@@ -76,25 +182,67 @@ void application::wConsoleTM::to_console(){
     }
 }
 
-void application::wConsoleTM::SetMessage(const std::wstring& m){
-    std::lock_guard<std::mutex> local_lock(m_Message_mtx);
-    m_MessageQueue.emplace(m);
+void application::wConsoleTM::SetMessage(const std::wstring& m) noexcept{
+    try{
+        std::lock_guard<std::mutex> local_lock(m_Message_mtx);
+        m_MessageQueue.emplace(m);
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << "Runtime error: " << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << "Allocation error: " << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+    }
 }
 
-void application::wConsoleTM::RunMessages(){
+void application::wConsoleTM::RunMessages() noexcept{
     while(m_Running){
         to_console();
     }
 }
 
-void application::wConsoleTM::ReleaseBuffer(){
+void application::wConsoleTM::ReleaseBuffer() noexcept{
     m_release = true;
 }
 
-void application::wConsoleTM::end(){
-    ReleaseBuffer();
-    m_main_thread_lock = std::unique_lock<std::mutex>(m_main_thread_guard);
-    m_main_thread_cv.wait(m_main_thread_lock, [this] {return !m_release; });
+void application::wConsoleTM::end() noexcept{
+    try{
+        ReleaseBuffer();
+        m_main_thread_lock = std::unique_lock<std::mutex>(m_main_thread_guard);
+        m_main_thread_cv.wait(m_main_thread_lock, [this] {return !m_release; });
 
-    m_Running = false;
+        m_Running = false;
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        // Handle filesystem related errors
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        // the error message
+        std::cerr << "Runtime error: " << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        // the error message
+        std::cerr << "Allocation error: " << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        // Catch other standard exceptions
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } catch (...) {
+        // Catch any other exceptions
+        std::cerr << "Unknown exception caught \n";
+    }
 }
