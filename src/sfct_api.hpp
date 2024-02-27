@@ -403,7 +403,7 @@ namespace sfct_api{
     /// If src includes a file name then the dst must also include that same name to be copyable.
     /// The destination directory tree will not be created in this case. Only when src is a directory and dst is a directory will
     /// it get created then copied.
-    /// @param src must exist
+    /// @param src any path
     /// @param dst if it does not exist it may get created. see description.
     /// @param co any copy options
     /// @param create_dst specifies whether to create the dst directory explictly or not. If it is false the directory may still get created, see description.

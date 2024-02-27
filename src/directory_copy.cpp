@@ -84,18 +84,11 @@ void application::directory_copy::copy() noexcept
                         _file_info.dst = dst_path.value();
                         _file_info.fqs = file_queue_status::file_added;
                         auto gfs_src = sfct_api::get_file_status(entry.path());
-                        auto gfs_dst = sfct_api::get_file_status(dst_path.value());
                         _file_info.src = entry.path();
 
                         if(gfs_src.has_value()){
                             _file_info.fs_src = gfs_src.value();
                         }
-
-                        if(gfs_dst.has_value()){
-                            _file_info.fs_dst = gfs_dst.value();
-                        }
-
-                        sfct_api::mt_process_file_queue_info_entry(_file_info);
 
                         worker.do_work(&sfct_api::mt_process_file_queue_info_entry,_file_info);
                     }

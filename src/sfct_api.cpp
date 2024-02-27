@@ -324,54 +324,11 @@ bool sfct_api::recursive_flag_check(application::cs commands) noexcept
 
 void sfct_api::copy_entry(path src, path dst, fs::copy_options co,bool create_dst) noexcept
 {
-    try{
-		if(!ext::exists(src)){
-            application::logger log(App_MESSAGE("does not exist on system"),application::Error::WARNING,src);
-            log.to_console();
-            log.to_log_file();
-            return;
-        }
-        
-        fs::path dst_dir = dst;
-        if(ext::is_directory(src) && !ext::is_directory(dst_dir)){
-            dst_dir.remove_filename();
-            return ext::copy_entry(src,dst_dir,co);
-        }
-        
-        if(create_dst){
-            if(!ext::is_directory(dst_dir)){
-                dst_dir.remove_filename();
-            }
-
-            if(!ext::exists(dst_dir)){
-                ext::create_directory_paths(dst_dir);
-            }
-            
-            return ext::copy_entry(src,dst,co);
-        }
-
-        return ext::copy_entry(src,dst,co);
-	}
-	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
-		std::cerr << "Filesystem error: " << e.what() << "\n";
-	}
-	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-	}
-	catch(const std::bad_alloc& e){
-		// the error message
-		std::cerr << "Allocation error: " << e.what() << "\n";
-	}
-	catch (const std::exception& e) {
-		// Catch other standard exceptions
-		std::cerr << "Standard exception: " << e.what() << "\n";
-	} catch (...) {
-		// Catch any other exceptions
-		std::cerr << "Unknown exception caught \n";
-	}
-
+    if(create_dst){
+        ext::create_directory_paths(dst);
+    }
+    
+    return ext::copy_entry(src,dst,co);
 }
 
 std::optional<std::shared_ptr<std::unordered_map<sfct_api::fs::path,sfct_api::fs::path>>> sfct_api::are_directories_synced(path src, path dst, bool recursive_sync) noexcept
@@ -1556,7 +1513,7 @@ std::optional<sfct_api::fs::path> sfct_api::ext::create_relative_path(path src, 
 
     
     fs::path file_dst_dir = file_dst; 
-    if(!ext::is_directory(file_dst)){
+    if(file_dst.has_filename() && !ext::is_directory(src)){
         file_dst_dir.remove_filename();
     }
 

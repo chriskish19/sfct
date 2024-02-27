@@ -91,7 +91,7 @@ void application::DirectorySignal::monitor() noexcept{
     // no monitor directories set so exit the monitor function
     if(no_watch) return;
 
-    std::thread q_sys_thread([this]() {
+    std::jthread q_sys_thread([this]() {
         &application::queue_system<file_queue_info>::process, &m_queue_processor;
     });
 
