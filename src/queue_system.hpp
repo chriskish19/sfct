@@ -15,6 +15,9 @@ namespace application{
     template<typename data_t>
     class queue_system{
     public:
+        // default constructor
+        queue_system()= default;
+
         // default destructor
         ~queue_system()= default;
         
@@ -116,6 +119,9 @@ namespace application{
     template<>
     class queue_system<file_queue_info>{
     public:
+        // default constructor
+        queue_system() = default;
+
         // default destructor
         ~queue_system()= default;
         

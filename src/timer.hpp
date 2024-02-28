@@ -9,7 +9,10 @@ namespace application{
     class timer{
     public:
         // default destructor
-        ~timer()= default;
+        timer() = default;
+
+        // default destructor
+        ~timer() = default;
         
         // Copy constructor
         timer(const timer&) = delete;
