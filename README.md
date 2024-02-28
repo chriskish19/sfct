@@ -72,7 +72,7 @@ Checks that files are available and then copies the files. Each file entry that 
 Does not check if the files are available. Simply attempts to copy the files.
 
 ### monitor
-Monitors a directory for changes, when changes occur the program wakes up and performs the arguments specified. Typically recursive, update, and sync. Any changes to dst will not affect src. Changes are not relfected in dst directory immediately their is a delay before actual processing takes place. Each file entry that is processed is displayed in the console window.
+Monitors a directory for changes, when changes occur the program wakes up and performs the arguments specified. Typically recursive, update, and sync. Any changes to dst will not affect src. Changes are not relfected in dst directory immediately there is a delay before actual processing takes place. Each file entry that is processed is displayed in the console window.
 
 ### benchmark
 Performs a speed test of the copy operation, currently uses std::filesystem::copy under the hood to copy the files. When -4k arg is supplied a large number of small files are created and copied. If -create arg is supplied the directories will be created.
@@ -96,10 +96,11 @@ The existing file is replaced.
 Creates src and dst directories.
 
 ### -sync
-Syncs a src directory to a dst directory. When a file or directory is added to src it is added to dst and when a directory or file is removed from src, it is removed from dst. It is a one-way sync.
+Syncs a src directory to a dst directory. When a file or directory is added to src it is added to dst and when a directory or file is removed from src, it is removed from dst. It is a one-way sync. Any existing files in src before monitoring will not be added to dst. Only files added or removed from src while monitoring will be added or removed from dst. To achieve a sync in the sense of a mirroring of src to dst. First copy the contents of src to dst. Use fast_copy or copy command in your sfct_list.txt file, it gets executed before a monitor command.
 
 ### -sync_add
 Syncs a src directory to a dst directory. When a file or directory is added to src it is also added to dst but when a file or directory is removed from src it is not removed from dst.
+Any existing files in src before monitoring will not be added to dst. Only files added to src while monitoring will be added to dst. To achieve a sync in the sense of a mirroring of src to dst. First copy the contents of src to dst. Use fast_copy or copy command in your sfct_list.txt file, it gets executed before a monitor command.
 
 ### -single
 Sub-directories not included only the files in the directory.
