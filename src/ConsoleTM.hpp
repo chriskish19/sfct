@@ -25,6 +25,24 @@ namespace application{
     // ConsoleThreadedMessages
     class ConsoleTM{
     public:
+        // default constructor
+        ConsoleTM() = default;
+
+        // default destructor
+        ~ConsoleTM()= default;
+        
+        // Copy constructor
+        ConsoleTM(const ConsoleTM&) = delete;
+
+        // Copy assignment operator
+        ConsoleTM& operator=(const ConsoleTM&) = delete;
+
+        // Move constructor
+        ConsoleTM(ConsoleTM&&) = delete;
+
+        // Move assignment operator
+        ConsoleTM& operator=(ConsoleTM&&) = delete;   
+
         // give this function to a TM object and call do_work()
         // to_console() to run in a loop
         void RunMessages() noexcept;
@@ -67,6 +85,24 @@ namespace application{
     // wide string version of ConsoleTM class
     class wConsoleTM{
     public:
+        // default constructor
+        wConsoleTM() = default;
+
+        // default destructor
+        ~wConsoleTM()= default;
+        
+        // Copy constructor
+        wConsoleTM(const wConsoleTM&) = delete;
+
+        // Copy assignment operator
+        wConsoleTM& operator=(const wConsoleTM&) = delete;
+
+        // Move constructor
+        wConsoleTM(wConsoleTM&&) = delete;
+
+        // Move assignment operator
+        wConsoleTM& operator=(wConsoleTM&&) = delete;
+
         // give this function to a TM object and call do_work()
         // to_console() to run in a loop
         void RunMessages() noexcept;

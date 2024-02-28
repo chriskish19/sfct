@@ -15,6 +15,22 @@ namespace application{
     template<typename data_t>
     class queue_system{
     public:
+        // default destructor
+        ~queue_system()= default;
+        
+        // Copy constructor
+        queue_system(const queue_system&) = delete;
+
+        // Copy assignment operator
+        queue_system& operator=(const queue_system&) = delete;
+
+        // Move constructor
+        queue_system(queue_system&&) = delete;
+
+        // Move assignment operator
+        queue_system& operator=(queue_system&&) = delete;
+
+
         void process(){
             while(m_running){
                 if(m_ready_to_process.load()){
@@ -99,7 +115,24 @@ namespace application{
 
     template<>
     class queue_system<file_queue_info>{
-        public:
+    public:
+        // default destructor
+        ~queue_system()= default;
+        
+        // Copy constructor
+        queue_system(const queue_system&) = delete;
+
+        // Copy assignment operator
+        queue_system& operator=(const queue_system&) = delete;
+
+        // Move constructor
+        queue_system(queue_system&&) = delete;
+
+        // Move assignment operator
+        queue_system& operator=(queue_system&&) = delete;
+
+
+
         void process() noexcept{
             while(m_running){
             

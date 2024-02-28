@@ -28,6 +28,21 @@ namespace application{
     // 3. CheckData() 
     class FileParse{
     public:
+        // default destructor
+        ~FileParse()= default;
+        
+        // Copy constructor
+        FileParse(const FileParse&) = delete;
+
+        // Copy assignment operator
+        FileParse& operator=(const FileParse&) = delete;
+
+        // Move constructor
+        FileParse(FileParse&&) = delete;
+
+        // Move assignment operator
+        FileParse& operator=(FileParse&&) = delete;
+
         // use this constructor if you need to use a file not in the current working directory
         // must be an absolute path
         // std::filesystem::path path: the file name including extension and full path

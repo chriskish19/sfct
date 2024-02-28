@@ -60,6 +60,21 @@ namespace application{
     // simple logger class that handles writing to a log file and posting messages
     class logger{
     public:
+        // default destructor
+        ~logger()= default;
+        
+        // Copy constructor
+        logger(const logger&) = delete;
+
+        // Copy assignment operator
+        logger& operator=(const logger&) = delete;
+
+        // Move constructor
+        logger(logger&&) = delete;
+
+        // Move assignment operator
+        logger& operator=(logger&&) = delete;
+
         // logger constructor that takes an std::error_code, filepath, and location
         logger(const std::error_code& ec,Error type,const std::filesystem::path& filepath,const std::source_location& location = std::source_location::current());
 

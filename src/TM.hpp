@@ -51,6 +51,22 @@ namespace application{
     // thread manager class
     class TM{
     public:
+        // default destructor
+        ~TM()= default;
+        
+        // Copy constructor
+        TM(const TM&) = delete;
+
+        // Copy assignment operator
+        TM& operator=(const TM&) = delete;
+
+        // Move constructor
+        TM(TM&&) = delete;
+
+        // Move assignment operator
+        TM& operator=(TM&&) = delete;
+
+
         // default constructor
         // sets the number of workers to use
         TM() noexcept;

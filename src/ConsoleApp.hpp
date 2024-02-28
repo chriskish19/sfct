@@ -23,7 +23,22 @@ namespace application{
         ConsoleApp(); 
 
         // main app loop                                  
-        void Go();                                      
+        void Go(); 
+
+        // destructor
+        ~ConsoleApp()= default;
+        
+        // Copy constructor
+        ConsoleApp(const ConsoleApp&) = delete;
+
+        // Copy assignment operator
+        ConsoleApp& operator=(const ConsoleApp&) = delete;
+
+        // Move constructor
+        ConsoleApp(ConsoleApp&&) = delete;
+
+        // Move assignment operator
+        ConsoleApp& operator=(ConsoleApp&&) = delete;                                     
     private:
         // name of the file to get the commands from
         std::string m_FileName{"sfct_list.txt"};

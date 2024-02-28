@@ -8,6 +8,22 @@
 namespace application{
     class timer{
     public:
+        // default destructor
+        ~timer()= default;
+        
+        // Copy constructor
+        timer(const timer&) = delete;
+
+        // Copy assignment operator
+        timer& operator=(const timer&) = delete;
+
+        // Move constructor
+        timer(timer&&) = delete;
+
+        // Move assignment operator
+        timer& operator=(timer&&) = delete;
+
+
         void reset() noexcept;
         void start_clock() noexcept;
         void end_clock() noexcept;

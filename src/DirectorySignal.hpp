@@ -39,9 +39,19 @@ namespace application{
     public:
         DirectorySignal(std::shared_ptr<std::vector<copyto>> dirs_to_watch) noexcept;
         ~DirectorySignal();
+
+        // Copy constructor
         DirectorySignal(const DirectorySignal&) = delete;
+
+        // Copy assignment operator
         DirectorySignal& operator=(const DirectorySignal&) = delete;
         
+        // Move constructor
+        DirectorySignal(DirectorySignal&&) = delete;
+
+        // Move assignment operator
+        DirectorySignal& operator=(DirectorySignal&&) = delete;
+
         void monitor() noexcept;
         DWORD GetNotifyFilter() noexcept {return m_NotifyFilter;}
         HANDLE GetCompletionPort() noexcept {return m_hCompletionPort;}

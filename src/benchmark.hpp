@@ -16,6 +16,24 @@
 namespace application{
     class benchmark{
     public:
+        // default constructor
+        benchmark() = default;
+
+        // default destructor
+        ~benchmark()= default;
+        
+        // Copy constructor
+        benchmark(const benchmark&) = delete;
+
+        // Copy assignment operator
+        benchmark& operator=(const benchmark&) = delete;
+
+        // Move constructor
+        benchmark(benchmark&&) = delete;
+
+        // Move assignment operator
+        benchmark& operator=(benchmark&&) = delete;   
+
         void start_clock() noexcept;
         void end_clock() noexcept;
         double_t speed(std::uintmax_t totalSize) noexcept;
