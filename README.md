@@ -27,8 +27,8 @@ cmake --build .
 ```
 
 # Getting Started
-## No releases
-Currently the program is not ready for use, it does work somewhat but their is alot of issues to fix and the whole code base needs to be redesigned. I am working on the issues in the dev branch. That being said if you still wish to try sfct in the main branch. See Build from source code or if you are interested in the project and have know some c++ email me chriskish19@gmail.com and lets work together and get this project rolling.
+## Releases
+Download the latest binary release from the releases page.
 
 ## Setup
 Run sfct.exe for the first time and it will create an sfct_list.txt file in the current directory. This is where you specify the directories you want synced, copied or benchmarked.
@@ -37,26 +37,26 @@ sftc_list.txt Example:
 ```
 copy -recursive -update
 {
-    src C:/test example;
-    dst D:/test example;
+    src C:\test example;
+    dst D:\test example;
 }
 
 fast_copy -recursive -update
 {
-    src C:/test;
-    dst D:/test;
+    src C:\test;
+    dst D:\test;
 }
 
 benchmark -create -fast
 {
-    src C:/benchtest/src;
-    dst C:/benchtest/dst;
+    src C:\benchtest\src;
+    dst C:\benchtest\dst;
 }
 
 monitor -recursive -update -sync
 {
-    src C:/test example;
-    dst D:/test example;
+    src C:\test example;
+    dst D:\test example;
 }
 ```
 
@@ -66,17 +66,16 @@ Add your directories to the sfct_list.txt file, save it and re-run sfct.exe you 
 
 ## Commands and Args
 ### copy
-Checks that files are available and then copies the files using std::filesystem::copy.
+Checks that files are available and then copies the files.
 
 ### fast_copy
-Does not check if the files are available. Performs a copy using OS specific fast copy function depending on the amount of files and their average size. Many small files are better handled by std::filesystem::copy.
-If the average file size is above a threashold OS specific FastCopy is used and it is multithreaded. The amount of threads used is determined by the TM class, 8 is the max.
+Does not check if the files are available. Simply attempts to copy the files.
 
 ### monitor
 Monitors a directory for changes, when changes occur the program wakes up and performs the arguments specified. Typically recursive, update, and sync. Any changes to dst will not affect src. 
 
 ### benchmark
-Performs a speed test of the copy operation, currently defaults to use std::filesystem::copy unless -fast arg is supplied then OS specific function is used and it is multithreaded. When -4k arg is supplied a large number of small files are created and copied. If -create arg is supplied the directories will be created.
+Performs a speed test of the copy operation, currently uses std::filesystem::copy under the hood to copy the files. When -4k arg is supplied a large number of small files are created and copied. If -create arg is supplied the directories will be created.
 
 ### src
 Specify the source directory after this keyword followed by a semi-colon to signify the end of the line.
@@ -103,13 +102,13 @@ Syncs a src directory to a dst directory. When a file or directory is added to s
 Syncs a src directory to a dst directory. When a file or directory is added to src it is also added to dst but when a file or directory is removed from src it is not removed from dst.
 
 ### -single
-Sub-directories not included only the files and folders in the directory.
+Sub-directories not included only the files in the directory.
 
 ### -4k
 Performs a benchmark to test copy speed using many small files.
 
 ### -fast
-Uses the OS specific fast copy instead of std::filesystem::copy.
+This argument is currently not used. It will be implemented in the future.
 
 ## Valid combinations of commands and args
 ### copy
@@ -146,27 +145,19 @@ benchmark -fast<br>
 
 # Info
 ## Current Limitations
-1. ~~Single threaded copying(its still really fast at copying it maxes out my gen3 ssd +2GB/s)~~
-2. ~~No control over copying flags~~
-3. No GUI.
-4. Windows Only.
-5. ~~No control over syncing(currently updates existing files)~~
-6. Lacks robust error handling.
-7. Needs a terminal window to stay running.
-8. Cannot copy a cloud drive folder, program crashes.
-9. Checks if a file is available by pooling fstream and if the file is locked the program will pause indefinitely until the file becomes available.
-10. No checks to avoid sub-directory recursive monitoring. Currently depends on the user not to double monitor.
-11. Unpolished program still in the early stages of development.  
+1. No GUI.
+2. Windows Only.
+3. Needs a terminal window to stay running.
+4. No checks to avoid sub-directory recursive monitoring. Currently depends on the user not to double monitor.
+ 
 
 ## Future Plans
-1. ~~Add more control over syncing and copying(sftc_list.txt will have more commands and arguments)~~
-2. ~~Implement multithreaded copying~~
-3. Linux support.
-4. Mac support.
-5. Add GUI.
-6. Address current limitations.
-7. Add more features.
-8. Packaged installer.
+1. Linux support.
+2. Mac support.
+3. Add GUI.
+4. Address current limitations.
+5. Add more features.
+6. Packaged installer.
 
 ## Benchmarks
 My laptop specs:<br>
