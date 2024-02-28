@@ -33,7 +33,7 @@ Download the latest binary release from the releases page.
 ## Setup
 Run sfct.exe for the first time and it will create an sfct_list.txt file in the current directory. This is where you specify the directories you want synced, copied or benchmarked.
 
-sftc_list.txt Example:
+sfct_list.txt Example:
 ```
 copy -recursive -update
 {
@@ -72,7 +72,7 @@ Checks that files are available and then copies the files. Each file entry that 
 Does not check if the files are available. Simply attempts to copy the files.
 
 ### monitor
-Monitors a directory for changes, when changes occur the program wakes up and performs the arguments specified. Typically recursive, update, and sync. Any changes to dst will not affect src. Changes are not relfected in dst directory immediately there is a delay before actual processing takes place. Each file entry that is processed is displayed in the console window.
+Monitors a directory for changes, when changes occur the program wakes up and performs the arguments specified. Typically recursive, update, and sync. Any changes to dst will not affect src. Changes are not reflected in the dst directory immediately, there is a delay before actual processing takes place. Each file entry that is processed is displayed in the console window.
 
 ### benchmark
 Performs a speed test of the copy operation, currently uses std::filesystem::copy under the hood to copy the files. When -4k arg is supplied a large number of small files are created and copied. If -create arg is supplied the directories will be created.
