@@ -6,9 +6,10 @@
 #include "DirectorySignal.hpp"
 #include <filesystem>
 #include "appMacros.hpp"
-#include "winHelper.hpp"
-#include "FastFileCopy.hpp"
+#include "windows_helper.hpp"
 #include "benchmark.hpp"
+#include "constants.hpp"
+#include "directory_copy.hpp"
 
 /////////////////////////////////////////////////////////////////
 // This header is responsible for the main object used to run the program.
@@ -36,18 +37,10 @@ namespace application{
         // the object that monitors directories                   
         std::unique_ptr<DirectorySignal> m_Monitor;
 
-        // monitor only directories
+        
         std::shared_ptr<std::vector<copyto>> m_monitor_dirs{std::make_shared<std::vector<copyto>>()};
-
-        // copy only directories
-        std::shared_ptr<std::vector<copyto>> m_copy_dirs{std::make_shared<std::vector<copyto>>()};  
-
-        // fast copy directories
-        std::shared_ptr<std::vector<copyto>> m_fast_copy_dirs{std::make_shared<std::vector<copyto>>()}; 
-
-        std::unique_ptr<FastFileCopy> m_fastcopy;  
-
-        // fast copy directories
-        std::shared_ptr<std::vector<copyto>> m_bench_dirs{std::make_shared<std::vector<copyto>>()}; 
+        std::shared_ptr<std::vector<copyto>> m_fast_copy_dirs{std::make_shared<std::vector<copyto>>()};
+        std::shared_ptr<std::vector<copyto>> m_copy_dirs{std::make_shared<std::vector<copyto>>()};
+        std::vector<copyto> m_bench_dirs;
     };
 }

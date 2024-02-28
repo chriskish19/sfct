@@ -24,14 +24,19 @@ set(SOURCE_FILES    src/main.cpp
                     src/ConsoleApp.hpp
                     src/ConsoleApp.cpp
                     src/appMacros.hpp
-                    src/winHelper.hpp
-                    src/FastFileCopy.hpp
-                    src/FastFileCopy.cpp
-                    src/helper.hpp
+                    src/windows_helper.hpp
                     src/obj.hpp
                     src/args.hpp
                     src/benchmark.hpp
-                    src/benchmark.cpp)
+                    src/benchmark.cpp
+                    src/constants.hpp
+                    src/sfct_api.hpp
+                    src/sfct_api.cpp
+                    src/queue_system.hpp
+                    src/timer.hpp
+                    src/timer.cpp
+                    src/directory_copy.hpp
+                    src/directory_copy.cpp)
 
 
 add_executable(sfct ${SOURCE_FILES})
@@ -47,6 +52,9 @@ target_link_options(sfct PRIVATE
 if(WIN32)
     # Define UNICODE for Windows builds
     add_definitions(-DUNICODE -D_UNICODE)
+
+    # link the manifest to the project
+    target_sources(sfct PRIVATE win32/sfct.exe.manifest)
 endif()
 
 

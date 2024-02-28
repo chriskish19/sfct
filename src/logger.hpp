@@ -8,6 +8,7 @@
 #include <format>
 #include <mutex>
 #include <source_location>
+#include <system_error>
 
 ///////////////////////////////////////////////////////////////////
 // This header is responsible for logging messages to the console, logfile and output window
@@ -59,6 +60,10 @@ namespace application{
     // simple logger class that handles writing to a log file and posting messages
     class logger{
     public:
+        // logger constructor that takes an std::error_code, filepath, and location
+        logger(const std::error_code& ec,Error type,const std::filesystem::path& filepath,const std::source_location& location = std::source_location::current());
+
+        // standard logger constructor with custom message
         logger(const std::wstring& s, Error type, const std::source_location& location = std::source_location::current());
 
         // special logger constructor useful for working with file paths

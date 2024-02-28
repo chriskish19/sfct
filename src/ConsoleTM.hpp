@@ -8,6 +8,9 @@
 #include <atomic>
 #include "appMacros.hpp"
 #include <queue>
+#include <condition_variable>
+#include <exception>
+#include <filesystem>
 
 //////////////////////////////////////////////////////////////////
 // This header handles messages sent to the console.
@@ -24,19 +27,19 @@ namespace application{
     public:
         // give this function to a TM object and call do_work()
         // to_console() to run in a loop
-        void RunMessages();
+        void RunMessages() noexcept;
 
         // changes m_Message to m
-        void SetMessage(const std::string& m);
+        void SetMessage(const std::string& m) noexcept;
 
         // causes the queue the output all messages
-        void ReleaseBuffer();
+        void ReleaseBuffer() noexcept;
 
         // ends the message stream
-        void end();
+        void end() noexcept;
     private:
         // output m_Message to the console
-        void to_console();
+        void to_console() noexcept;
         
         // prevent concurrent access to m_Message
         std::mutex m_Message_mtx;
@@ -66,19 +69,19 @@ namespace application{
     public:
         // give this function to a TM object and call do_work()
         // to_console() to run in a loop
-        void RunMessages();
+        void RunMessages() noexcept;
 
         // adds a message to the queue
-        void SetMessage(const std::wstring& m);
+        void SetMessage(const std::wstring& m) noexcept;
 
         // causes the queue the output all messages
-        void ReleaseBuffer();
+        void ReleaseBuffer() noexcept;
 
         // ends the message stream
-        void end();
+        void end() noexcept;
     private:
         // output m_Message to the console
-        void to_console();
+        void to_console() noexcept;
         
         // prevent concurrent access to m_MessageQueue
         std::mutex m_Message_mtx;
@@ -101,7 +104,4 @@ namespace application{
 		std::unique_lock<std::mutex> m_main_thread_lock;
 		std::condition_variable m_main_thread_cv;
     };
-
-    // global message stream object for outputing to the console
-    inline CONSOLETM m_MessageStream;
 }

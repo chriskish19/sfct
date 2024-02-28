@@ -75,6 +75,4 @@ namespace application{
                                                             {"-4k",cs::four_k},
                                                             {"fast",cs::fast} };
     };
-
-    inline args_maps global_tokenizer;
 }
