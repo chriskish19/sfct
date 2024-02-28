@@ -9,6 +9,7 @@
 #include <type_traits>
 #include "sfct_api.hpp"
 #include <filesystem>
+#include "TM.hpp"
 
 namespace application{
     template<typename data_t>
@@ -101,9 +102,8 @@ namespace application{
         public:
         void process() noexcept{
             while(m_running){
-                
+            
                 try{
-                    
                     if(m_ready_to_process.load()){
                         while(!m_queue.empty()){
                             file_queue_info entry = m_queue.front();
@@ -213,6 +213,7 @@ namespace application{
             }
         }
 
+
         // used to notify the waiting thread
         std::condition_variable m_local_thread_cv;
 
@@ -302,7 +303,6 @@ namespace application{
             }
         }
 
-        
         // for renaming a path
         std::filesystem::path m_rename_old;
         
@@ -329,7 +329,7 @@ namespace application{
                             break;
                         }
                         case std::filesystem::file_type::directory:{
-                            if(std::filesystem::exists(entry.src)){
+                            if(sfct_api::exists(entry.src)){
                                 sfct_api::create_directory_paths(entry.dst);
                                 if(entry.src.parent_path() == entry.main_src && sfct_api::recursive_flag_check(entry.commands) && m_all_seen_main_directory_entries.insert(entry).second){
                                     m_new_main_directory_entries.push_back(entry);
@@ -533,6 +533,12 @@ namespace application{
                     break;
                 }
                 case file_queue_status::rename_new:{
+                    if(!sfct_api::exists(entry.dst)){
+                        file_queue_info _file_info = entry;
+                        _file_info.fqs = file_queue_status::file_added;
+                        process_entry(_file_info);
+                    }
+
                     sfct_api::rename_entry(m_rename_old,entry.dst);
                     break;
                 }

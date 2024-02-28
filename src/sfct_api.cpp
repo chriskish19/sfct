@@ -23,12 +23,7 @@ bool sfct_api::create_directory_paths(path src) noexcept
         return false;
     }
     
-    fs::path dir = src;
-    if(!ext::is_directory(dir)){
-        dir.remove_filename();
-    }
-
-    std::optional<bool> succeded = ext::create_directory_paths(dir);
+    std::optional<bool> succeded = ext::create_directory_paths(src);
 
     if(succeded.has_value()){
         return succeded.value();
