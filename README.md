@@ -66,13 +66,13 @@ Add your directories to the sfct_list.txt file, save it and re-run sfct.exe you 
 
 ## Commands and Args
 ### copy
-Checks that files are available and then copies the files.
+Checks that files are available and then copies the files. Each file entry that is processed is displayed in the console window.
 
 ### fast_copy
 Does not check if the files are available. Simply attempts to copy the files.
 
 ### monitor
-Monitors a directory for changes, when changes occur the program wakes up and performs the arguments specified. Typically recursive, update, and sync. Any changes to dst will not affect src. 
+Monitors a directory for changes, when changes occur the program wakes up and performs the arguments specified. Typically recursive, update, and sync. Any changes to dst will not affect src. Changes are not relfected in dst directory immediately their is a delay before actual processing takes place. Each file entry that is processed is displayed in the console window.
 
 ### benchmark
 Performs a speed test of the copy operation, currently uses std::filesystem::copy under the hood to copy the files. When -4k arg is supplied a large number of small files are created and copied. If -create arg is supplied the directories will be created.
