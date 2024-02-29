@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 # Create a project named sfct
-project(sfct VERSION 1.0.0.2)
+project(sfct VERSION 1.0.0.1)
 
 # Set the variable CMAKE_CXX_STANDARD to c++20
 # and the variable CMAKE_CXX_STANDARD_REQUIRED to True
@@ -46,22 +46,44 @@ set(SOURCE_FILES    src/app/main.cpp
                     src/app/directory_copy.cpp)
 
 
-add_executable(sfct ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
+# OpenGL package is required for GUI
+find_package(OpenGL REQUIRED)
 
-target_link_options(sfct PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/SUBSYSTEM:CONSOLE>
-    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wl,/subsystem:console>
+# Include directories for GLEW and GLFW using target_include_directories
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/opengl/glew
+    ${CMAKE_SOURCE_DIR}/src/opengl/glfw
+)
+
+# Link against GLEW, GLFW, and OpenGL libraries
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/opengl/glew/glew32.lib # this is x64 version release
+    ${CMAKE_SOURCE_DIR}/src/opengl/glfw/glfw3.lib # this is x64 version release
+    OpenGL::GL
 )
 
 
 # Check if the build is for Windows
 if(WIN32)
+    target_link_options(${PROJECT_NAME} PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/SUBSYSTEM:CONSOLE>
+    )
+
     # Define UNICODE for Windows builds
     add_definitions(-DUNICODE -D_UNICODE)
 
     # link the manifest to the project
-    target_sources(sfct PRIVATE win32/sfct.exe.manifest)
+    target_sources(${PROJECT_NAME} PRIVATE win32/sfct.exe.manifest)
 endif()
 
+# Path to the glew DLL file
+set(GLEW_DLL_PATH ${CMAKE_SOURCE_DIR}/src/opengl/glew/glew32.dll)
 
+
+# Post-build command to copy GLEW DLL
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${GLEW_DLL_PATH}
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>)
