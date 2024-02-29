@@ -2,17 +2,33 @@
 #include <exception>
 #include <glew.h>
 #include <glfw3.h>
+#include "AppMacros.hpp"
+
+#if WINDOWS_BUILD
+#include <windows.h>
+#endif
+
 
 // Main entry point for the application
 int main(){
 	GLFWwindow* window;
 
     /* Initialize the library */
-    if (!glfwInit())
-        return -1;
+    if (!glfwInit()){
+		return -1;
+	}
+    
+	int window_width{};
+	int window_height{};
+#if WINDOWS_BUILD
+	window_width = GetSystemMetrics(SM_CXSCREEN)/2;
+	window_height = GetSystemMetrics(SM_CYSCREEN)/2;
+#endif		
+
+
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(window_width, window_height, "Hello World", NULL, NULL);
     if (!window)
     {
         glfwTerminate();

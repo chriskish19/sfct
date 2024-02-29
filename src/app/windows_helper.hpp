@@ -1,5 +1,5 @@
 #pragma once
-#include "../logger/logger.hpp"
+#include "logger.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////
 // This header contains windows specific functions

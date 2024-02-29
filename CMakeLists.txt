@@ -18,31 +18,16 @@ include_directories(src/opengl)
 
 # Add the source files here
 set(SOURCE_FILES    src/app/main.cpp
-                    src/app/TM.hpp
                     src/app/TM.cpp
-                    src/logger/Logger.hpp
                     src/logger/Logger.cpp
-                    src/app/FileParse.hpp
                     src/app/FileParse.cpp
-                    src/app/DirectorySignal.hpp
                     src/app/DirectorySignal.cpp
-                    src/app/ConsoleTM.hpp
                     src/app/ConsoleTM.cpp
-                    src/app/ConsoleApp.hpp
                     src/app/ConsoleApp.cpp
-                    src/app/appMacros.hpp
-                    src/app/windows_helper.hpp
-                    src/app/obj.hpp
-                    src/app/args.hpp
-                    src/app/benchmark.hpp
                     src/app/benchmark.cpp
-                    src/app/constants.hpp
                     src/app/sfct_api.hpp
                     src/app/sfct_api.cpp
-                    src/app/queue_system.hpp
-                    src/app/timer.hpp
                     src/app/timer.cpp
-                    src/app/directory_copy.hpp
                     src/app/directory_copy.cpp)
 
 
