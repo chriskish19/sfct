@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <vector>
-#include "../logger/logger.hpp"
+#include "logger.hpp"
 #include "ConsoleTM.hpp"
 #include "AppMacros.hpp"
 #include "obj.hpp"

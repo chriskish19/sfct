@@ -1,6 +1,6 @@
 #pragma once
 #include "TM.hpp"
-#include "../logger/logger.hpp"
+#include "logger.hpp"
 #include "FileParse.hpp"
 #include "ConsoleTM.hpp"
 #include "DirectorySignal.hpp"

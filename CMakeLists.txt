@@ -9,6 +9,13 @@ project(sfct VERSION 1.0.0.2)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
+
+
+# makes for simple include paths in headers
+include_directories(src/logger)
+include_directories(src/opengl)
+
+
 # Add the source files here
 set(SOURCE_FILES    src/app/main.cpp
                     src/app/TM.hpp

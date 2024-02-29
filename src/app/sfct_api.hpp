@@ -3,7 +3,7 @@
 #include <fstream>
 #include <chrono>
 #include <thread>
-#include "../logger/logger.hpp"
+#include "logger.hpp"
 #include "AppMacros.hpp"
 #include "obj.hpp"
 #include "TM.hpp"

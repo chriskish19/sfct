@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 #include "appMacros.hpp"
-#include "../logger/logger.hpp"
+#include "logger.hpp"
 #include "FileParse.hpp"
 #include "ConsoleTM.hpp"
 #include <queue>

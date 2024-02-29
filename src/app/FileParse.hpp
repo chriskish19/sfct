@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 #include <filesystem>
-#include "../logger/logger.hpp"
+#include "logger.hpp"
 #include <sstream>
 #include "args.hpp"
 #include <optional>
