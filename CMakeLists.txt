@@ -33,7 +33,7 @@ set(SOURCE_FILES    src/app/main.cpp
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-# OpenGL package is required for GUI
+# OpenGL package is required
 find_package(OpenGL REQUIRED)
 
 # Include directories for GLEW and GLFW using target_include_directories
@@ -44,10 +44,14 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 # Link against GLEW, GLFW, and OpenGL libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/opengl/glew/glew32.lib # this is x64 version release
-    ${CMAKE_SOURCE_DIR}/src/opengl/glfw/glfw3.lib # this is x64 version release
+   debug ${CMAKE_SOURCE_DIR}/src/opengl/glew/glew-sharedd.lib # this is x64 debug version
+   optimized ${CMAKE_SOURCE_DIR}/src/opengl/glew/glew-shared.lib #this is x64 release version
+   
+   optimized ${CMAKE_SOURCE_DIR}/src/opengl/glfw/glfw3.lib # this is x64 release version
+   debug ${CMAKE_SOURCE_DIR}/src/opengl/glfw/glfw3-d.lib # this is x64 debug version
     OpenGL::GL
 )
+
 
 
 # Check if the build is for Windows
@@ -64,11 +68,11 @@ if(WIN32)
 endif()
 
 # Path to the glew DLL file
-set(GLEW_DLL_PATH ${CMAKE_SOURCE_DIR}/src/opengl/glew/glew32.dll)
-
+set(GLEW_DLL_PATH_DEBUG ${CMAKE_SOURCE_DIR}/src/opengl/glew/glew-sharedd.dll)
+set(GLEW_DLL_PATH_RELEASE ${CMAKE_SOURCE_DIR}/src/opengl/glew/glew-shared.dll)
 
 # Post-build command to copy GLEW DLL
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${GLEW_DLL_PATH}
+    $<$<CONFIG:Debug>:${GLEW_DLL_PATH_DEBUG}>$<$<CONFIG:Release>:${GLEW_DLL_PATH_RELEASE}>
     $<TARGET_FILE_DIR:${PROJECT_NAME}>)

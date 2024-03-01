@@ -83,12 +83,8 @@ int main(){
 		/* Poll for and process events */
 		glfwPollEvents();
 	}
-
-
-	if(sfct_t.joinable()){
-		sfct_t.join();
-	}
 	
+	// sfct_t thread will auto join
 
 	glfwSetWindowShouldClose(window, GL_TRUE);
 	glfwDestroyWindow(window);
