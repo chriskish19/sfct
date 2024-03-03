@@ -1,14 +1,7 @@
 #pragma once
-#include <queue>
+#include "w32cpplib.hpp"
 #include "w32obj.hpp"
-#include <mutex>
-#include <atomic>
-#include <chrono>
-#include <thread>
-#include <concepts>
-#include <type_traits>
 #include "w32sfct_api.hpp"
-#include <filesystem>
 #include "w32tm.hpp"
 
 namespace application{

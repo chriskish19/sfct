@@ -1,15 +1,5 @@
 #pragma once
-#include <string>
-#include <thread>
-#include <memory>
-#include <mutex>
-#include <format>
-#include <iostream>
-#include <atomic>
-#include <queue>
-#include <condition_variable>
-#include <exception>
-#include <filesystem>
+#include "w32cpplib.hpp"
 
 //////////////////////////////////////////////////////////////////
 // This header handles messages sent to the console.

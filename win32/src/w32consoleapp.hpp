@@ -1,9 +1,9 @@
 #pragma once
+#include "w32cpplib.hpp"
 #include "w32tm.hpp"
 #include "w32logger.hpp"
 #include "w32fileparse.hpp"
 #include "w32directorysignal.hpp"
-#include <filesystem>
 #include "w32appmacros.hpp"
 #include "w32benchmark.hpp"
 #include "w32constants.hpp"

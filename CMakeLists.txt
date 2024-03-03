@@ -24,23 +24,33 @@ if(WIN32)
                         win32/src/w32sfct_api.cpp
                         win32/src/w32timer.cpp
                         win32/src/w32directorycopy.cpp
-                        win32/src/w32specific_api.cpp)
+                        win32/src/w32specific_api.cpp
+                        win32/src/w32cpplib.cpp)
+
+
+    add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+
+    # Link against the Direct2D library
+    target_link_libraries(${PROJECT_NAME} d2d1)
+
+    target_link_options(${PROJECT_NAME} PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/SUBSYSTEM:CONSOLE>
+    )
+
+    # Define UNICODE for Windows builds
+    add_definitions(-DUNICODE -D_UNICODE)
+
+    # link the manifest to the project
+    target_sources(${PROJECT_NAME} PRIVATE win32/manifest/sfct.exe.manifest)
 
 # if linux
 elseif(UNIX AND NOT APPLE)
     # Add the linux src files here
     set(SOURCE_FILES    linux/src/lxspecific.cpp )
 
+    
+    add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-
-endif()
-
-
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-
-
-# if linux use opengl
-if(UNIX AND NOT APPLE)
     # OpenGL package is required
     find_package(OpenGL REQUIRED)
 
@@ -70,22 +80,4 @@ if(UNIX AND NOT APPLE)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<$<CONFIG:Debug>:${GLEW_DLL_PATH_DEBUG}>$<$<CONFIG:Release>:${GLEW_DLL_PATH_RELEASE}>
         $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-
-# if windows
-elseif(WIN32)
-    target_link_options(${PROJECT_NAME} PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/SUBSYSTEM:CONSOLE>
-    )
-
-    # Define UNICODE for Windows builds
-    add_definitions(-DUNICODE -D_UNICODE)
-
-    # link the manifest to the project
-    target_sources(${PROJECT_NAME} PRIVATE win32/manifest/sfct.exe.manifest)
-
-
 endif()
-
-
-
-

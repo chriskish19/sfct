@@ -1,8 +1,7 @@
 #pragma once
+#include "w32cpplib.hpp"
 #include "w32logger.hpp"
 #include "w32appmacros.hpp"
-#include <fcntl.h>
-#include <io.h>
 #include <windows.h>
 
 

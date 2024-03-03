@@ -1,7 +1,7 @@
 #pragma once
-#include <string>
+#include "w32cpplib.hpp"
 #include "w32consoletm.hpp"
-#include <fstream>
+
 
 #define TOSTRING std::to_wstring
 #define STDOUT std::wcout

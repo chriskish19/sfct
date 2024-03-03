@@ -1,11 +1,6 @@
 #pragma once
-#include <thread>
-#include <vector>
-#include <utility>
-#include <exception>
-#include <functional>
-#include <filesystem>
-#include <iostream>
+#include "w32cpplib.hpp"
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This header is responsible for managing threads, its a wrapper for std::thread.                    //

@@ -1,9 +1,5 @@
 #pragma once
-#include <chrono>
-#include <cmath>
-#include <thread>
-#include <atomic>
-#include <condition_variable>
+#include "w32cpplib.hpp"
 
 ////////////////////////////////////////////////
 // This header contains a simple timer class. //                                           

@@ -1,13 +1,5 @@
 #pragma once
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <chrono>
-#include <filesystem>
-#include <format>
-#include <mutex>
-#include <source_location>
-#include <system_error>
+#include "w32cpplib.hpp"
 #include <Windows.h>
 #include "w32appmacros.hpp"
 

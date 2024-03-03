@@ -1,17 +1,14 @@
 #pragma once
-#include <filesystem>
+#include "w32cpplib.hpp"
 #include "w32logger.hpp"
 #include "w32fileparse.hpp"
 #include "w32consoletm.hpp"
-#include <queue>
 #include "w32constants.hpp"
-#include <unordered_set>
 #include "w32sfct_api.hpp"
 #include "w32queue_system.hpp"
 #include "w32timer.hpp"
 #include "w32tm.hpp"
-#include <future>
-#include <Windows.h>
+#include <windows.h>
 
 ///////////////////////////////////////////////////////////////////////
 // This header is responsible for monitoring directories for changes //                                                                                                 

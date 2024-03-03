@@ -1,14 +1,7 @@
 #pragma once
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <memory>
-#include <filesystem>
+#include "w32cpplib.hpp"
 #include "w32logger.hpp"
-#include <sstream>
 #include "w32args.hpp"
-#include <optional>
 #include "w32obj.hpp"
 #include "w32sfct_api.hpp"
 

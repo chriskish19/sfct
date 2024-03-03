@@ -1,0 +1,32 @@
+#pragma once
+
+// c++ std library includes
+#include <string>
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <type_traits>
+#include <concepts>
+#include <condition_variable>
+#include <fstream>
+#include <unordered_map>
+#include <optional>
+#include <filesystem>
+#include <algorithm>
+#include <vector>
+#include <chrono>
+#include <atomic>
+#include <queue>
+#include <memory>
+#include <cstdint>
+#include <exception>
+#include <unordered_set>
+#include <future>
+#include <format>
+#include <sstream>
+#include <source_location>
+#include <system_error>
+#include <functional>
+#include <cmath>
+#include <utility>
+#include <exception>

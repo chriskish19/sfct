@@ -1,7 +1,5 @@
 #pragma once
-#include <unordered_map>
-#include <string>
-#include <optional>
+#include "w32cpplib.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // This header contains everything needed for tokenizing the commands from strings into enum values. //

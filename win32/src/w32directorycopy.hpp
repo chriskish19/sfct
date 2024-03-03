@@ -1,4 +1,5 @@
 #pragma once
+#include "w32cpplib.hpp"
 #include "w32sfct_api.hpp"
 #include "w32timer.hpp"
 #include "w32benchmark.hpp"

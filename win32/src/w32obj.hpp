@@ -1,8 +1,7 @@
 #pragma once
-#include <filesystem>
+#include "w32cpplib.hpp"
 #include "w32args.hpp"
-#include <functional>
-#include <chrono>
+
 
 /////////////////////////////////////////////////////////////////
 // This header contains common structures that are used throughout the program.

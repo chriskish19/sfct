@@ -1,9 +1,5 @@
 #pragma once
-#include <chrono>
-#include <fstream>
-#include <filesystem>
-#include <algorithm>
-#include <vector>
+#include "w32cpplib.hpp"
 #include "w32constants.hpp"
 #include "w32sfct_api.hpp"
 
