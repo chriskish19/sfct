@@ -3,24 +3,18 @@
 #include "w32args.hpp"
 
 
-/////////////////////////////////////////////////////////////////
-// This header contains common structures that are used throughout the program.
-/////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+// This header contains common structures that are used throughout the program. //
+//////////////////////////////////////////////////////////////////////////////////
 
 
 namespace application{
-     struct copyto{
-        // source directory path to monitor or copy from
-        std::filesystem::path source;
-
-        // destination directory path to copy or sync to
-        std::filesystem::path destination; 
-
-        // holds the arguments whether to copy or monitor, sync, update ect.         
-        cs commands = cs::none; 
-
-        // holds the arguments in std::filesystem::copy_options format                    
-        std::filesystem::copy_options co = std::filesystem::copy_options::none;          
+    // used as the main struct for holding the directories to be proccessed
+    struct copyto{
+        std::filesystem::path source;                                               // source directory path to monitor or copy from 
+        std::filesystem::path destination;                                          // destination directory path to copy or sync to         
+        cs commands = cs::none;                                                     // holds the arguments whether to copy or monitor, sync, update ect.                   
+        std::filesystem::copy_options co = std::filesystem::copy_options::none;     // holds the arguments in std::filesystem::copy_options format       
     };
 
     inline bool copyto_equal(const copyto& a, const copyto& b){
@@ -37,9 +31,9 @@ namespace application{
     }
 
     struct directory_info{
-        std::uintmax_t TotalSize;
-        std::uintmax_t FileCount;
-        double_t AvgFileSize;
+        std::uintmax_t TotalSize;           // total size of the directory in bytes
+        std::uintmax_t FileCount;           // number of files in the directory
+        double_t AvgFileSize;               // average file size in bytes
 
          // Overload the += operator
         directory_info& operator+=(const directory_info& other) {
@@ -60,22 +54,22 @@ namespace application{
         }
     };
 
+    // used in functions that return a path in sfct_api
     struct path_ext{
-        std::filesystem::path p;
-        std::error_code e;
+        std::filesystem::path p;            // the file path
+        std::error_code e;                  // error code
     };
 
+    // used in the get file size function in sfct_api
     struct file_size_ext{
-        std::uintmax_t size;
-        std::error_code e;
+        std::uintmax_t size;                // size of the file in bytes
+        std::error_code e;                  // error code
     };
 
+    // used in the copy file functions in sfct_api
     struct copy_file_ext{
-        // returned value from the function std::filesystem::copy_file()
-        bool rv;
-
-        // error code from the function std::filesystem::copy_file() 
-        std::error_code e;
+        bool rv;                            // return value
+        std::error_code e;                  // error code
     };
 
     enum class file_queue_status{
@@ -105,33 +99,39 @@ namespace application{
         }
     };
 
+    // used in the remove file functions in sfct_api
     struct remove_file_ext{
-        bool rv;
-        std::uintmax_t files_removed;
-        std::error_code e;
+        bool rv;                                // return value
+        std::uintmax_t files_removed;           // number of files removed from the system
+        std::error_code e;                      // error code
     };
 
+    // used in the copy symlink function in sfct_api
     struct copy_sym_ext{
-        std::filesystem::path target;
-        std::error_code e;
+        std::filesystem::path target;           // the target link
+        std::error_code e;                      // error code
     };
 
+    // used in the is functions in sfct_api
     struct is_entry_ext{
-        std::error_code e;
-        bool rv;
+        std::error_code e;                      // error code
+        bool rv;                                // return value
     };
 
+    // used in the last_write functions in sfct_api
     struct last_write_ext{
-        std::filesystem::file_time_type t;
-        std::error_code e;
+        std::filesystem::file_time_type t;      // the time of last write
+        std::error_code e;                      // error code
     };
 
+    // used in get_file_status function in sfct_api
     struct file_status_ext{
-        std::filesystem::file_status s;
-        std::error_code e;
+        std::filesystem::file_status s;         // file status (the type of file)
+        std::error_code e;                      // error code
     };
 }
 
+// used in queue_system.hpp to tell the difference between two file_queue_info objects
 namespace std {
     template<>
     struct hash<application::file_queue_info> {

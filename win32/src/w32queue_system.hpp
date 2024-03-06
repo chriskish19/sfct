@@ -383,11 +383,19 @@ namespace application{
                                 _file_info.commands = entry->commands;
                                 _file_info.dst = dst_path.value();
                                 _file_info.fqs = file_queue_status::file_added;
-                                _file_info.fs_dst = std::filesystem::status(dst_path.value());
-                                _file_info.fs_src = std::filesystem::status(_entry.path());
+                                auto gfs_dst = sfct_api::get_file_status(dst_path.value());
+                                auto gfs_src = sfct_api::get_file_status(_entry.path());
                                 _file_info.main_dst = entry->main_dst;
                                 _file_info.main_src = entry->main_src;
                                 _file_info.src = _entry.path();
+
+                                if(gfs_dst.has_value()){
+                                    _file_info.fs_dst = gfs_dst.value();
+                                }
+
+                                if(gfs_src.has_value()){
+                                    _file_info.fs_src = gfs_src.value();
+                                }
 
                                 // true if not in the set
                                 // false if in the set
@@ -396,7 +404,7 @@ namespace application{
                                 }
                                 else{
                                     // lets not check everything
-                                    // if one entry exists most likley they all do
+                                    // if one entry exists most likely they all do
                                     // but may change this in the future for more robust checking
                                     // exit__ = true;
                                 }

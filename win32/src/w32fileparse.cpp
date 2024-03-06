@@ -131,12 +131,7 @@ bool application::FileParse::OpenFile() noexcept{
 
 application::FileParse::FileParse(const std::string& filename) noexcept{
     // get the current working directory
-    auto gcp = sfct_api::get_current_path();
-
-    if(gcp.has_value()){
-        m_FilePath = gcp.value();
-    }
-    
+    m_FilePath = sfct_api::get_current_path();
     
     try{
         // try to append the file name to m_FilePath

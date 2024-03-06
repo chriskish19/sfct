@@ -55,48 +55,48 @@ namespace application{
         /// @param type type of error, INFO, FATAL, ect..
         /// @param filepath the file path which is part of the error
         /// @param location the file, line number, column number, and function that logger() was constructed in.
-        logger(const std::error_code& ec,Error type,const std::filesystem::path& filepath,const std::source_location& location = std::source_location::current());
+        logger(const std::error_code& ec,Error type,const std::filesystem::path& filepath,const std::source_location& location = std::source_location::current()) noexcept;
 
         /// @brief standard logger constructor with custom message
         /// @param s custom message
         /// @param type type of error, INFO, FATAL, ect..
         /// @param location the file, line number, column number, and function that logger() was constructed in.
-        logger(const std::wstring& s, Error type, const std::source_location& location = std::source_location::current());
+        logger(const std::wstring& s, Error type, const std::source_location& location = std::source_location::current()) noexcept;
 
         /// @brief special logger constructor useful for working with file paths
         /// @param s custom message
         /// @param type error severity, INFO ect..
         /// @param filepath the file path which is part of the error
         /// @param location the file, line number, column number, and function that logger() was constructed in.
-        logger(const std::wstring& s,Error type, const std::filesystem::path& filepath,const std::source_location& location = std::source_location::current());
+        logger(const std::wstring& s,Error type, const std::filesystem::path& filepath,const std::source_location& location = std::source_location::current()) noexcept;
 
         /// @brief log windows errors with this constructor
         /// @param type type of error, INFO, FATAL, ect..
         /// @param location the file, line number, column number, and function that logger() was constructed in.
         /// @param Win32error the windows specific error code
-        logger(Error type, const std::source_location& location = std::source_location::current(), DWORD Win32error = GetLastError());
+        logger(Error type, const std::source_location& location = std::source_location::current(), DWORD Win32error = GetLastError()) noexcept;
 
         /// @brief output mMessage to output window in visual studio
-        void to_output() const;
+        void to_output() const noexcept;
 
         /// @brief output mMessage to console
-        void to_console() const;
+        void to_console() const noexcept;
 
         /// @brief output mMessage to a log file
-        void to_log_file() const;
+        void to_log_file() const noexcept;
     private:
         /// @brief default initialization for logger class
         /// timestamps mMessage with the current date and time
-        void initLogger(); 
+        void initLogger() noexcept; 
 
         /// @brief adds the time to mMessage
-        void time_stamp();
+        void time_stamp() noexcept;
 
         /// @brief adds the location to mMessage
-        void location_stamp();
+        void location_stamp() noexcept;
 
-        /// @brief adds the type of error to the begining of mMessage 
-        void initErrorType();
+        /// @brief adds the type of error to the beginning of mMessage 
+        void initErrorType() noexcept;
 
         /// @brief the main log message
         std::wstring mMessage;
