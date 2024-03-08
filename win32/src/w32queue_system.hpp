@@ -202,8 +202,6 @@ namespace application{
     };
 
 
-
-
     template<>
     class queue_system<file_queue_info>{
     public:
@@ -213,16 +211,16 @@ namespace application{
         // default destructor
         ~queue_system()= default;
         
-        // Copy constructor
+        // delete the Copy constructor
         queue_system(const queue_system&) = delete;
 
-        // Copy assignment operator
+        // delete Copy assignment operator
         queue_system& operator=(const queue_system&) = delete;
 
-        // Move constructor
+        // delete Move constructor
         queue_system(queue_system&&) = delete;
 
-        // Move assignment operator
+        // delete Move assignment operator
         queue_system& operator=(queue_system&&) = delete;
 
 
@@ -290,10 +288,6 @@ namespace application{
                 std::lock_guard<std::mutex> local_lock(m_queue_buffer_mtx);
                 m_queue_buffer.emplace(entry);
             }
-            catch (const std::filesystem::filesystem_error& e) {
-                // Handle filesystem related errors
-                std::cerr << "Filesystem error: " << e.what() << "\n";
-            }
             catch(const std::runtime_error& e){
                 // the error message
                 std::cerr << "Runtime error :" << e.what() << "\n";
@@ -311,32 +305,42 @@ namespace application{
             }
         }
 
-        void exit(){
+        void exit() noexcept{
             try{
-                // process remaining buffer
+                // this code is unlikely to throw an exception only under exceptional circumstances
+                // but for robustness its wrapped in a try catch block
+                // wait to process remaining buffer
                 std::unique_lock<std::mutex> local_lock(m_main_thread_guard);
                 m_main_thread_cv.wait(local_lock, [this] {return !m_ready_to_process.load(); });
 
                 m_running = false;
             }
-            catch (const std::filesystem::filesystem_error& e) {
-                // Handle filesystem related errors
-                std::cerr << "Filesystem error: " << e.what() << "\n";
-            }
             catch(const std::runtime_error& e){
                 // the error message
                 std::cerr << "Runtime error :" << e.what() << "\n";
+
+                // exit anyway
+                m_running = false;
             }
             catch(const std::bad_alloc& e){
                 // the error message
                 std::cerr << "Allocation error: " << e.what() << "\n";
+
+                // exit anyway
+                m_running = false;
             }
             catch (const std::exception& e) {
                 // Catch other standard exceptions
                 std::cerr << "Standard exception: " << e.what() << "\n";
+
+                // exit anyway
+                m_running = false;
             } catch (...) {
                 // Catch any other exceptions
                 std::cerr << "Unknown exception caught \n";
+
+                // exit anyway
+                m_running = false;
             }
         }
 

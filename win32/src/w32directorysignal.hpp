@@ -102,12 +102,17 @@ namespace application{
         bool no_watch{false}; 
 
         /// @brief Check if the monitored directory buffer has overflowed.
+        /// @param bytes_returned number of bytes returned by GetQueueCompletionStatus()
+        /// zero indicates buffer overflow
         bool Overflow(DWORD bytes_returned) noexcept;
 
         /// @brief Calls ReadDirectoryChanges() from the windows api.
+        /// @param p_monitor pointer to the buffer and monitored directory
         void UpdateWatcher(DS_resources* p_monitor) noexcept;
 
         /// @brief Go through all the notifications from the watched directory.
+        /// @param pNotify pointer to the notifcations
+        /// @param pMonitor pointer to the buffer and monitored directory
         void ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION* pNotify,DS_resources* pMonitor) noexcept;
 
         /// @brief processes the entries on a seperate thread

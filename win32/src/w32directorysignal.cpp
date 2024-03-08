@@ -164,31 +164,63 @@ void application::DirectorySignal::monitor() noexcept{
     
     // create a jthread which is an auto joining thread which when out of scope will cause the thread to join
     // using the m_queue_processor.m_ready_to_process and m_queue_processor.m_local_thread_cv to signal the waiting thread in the queue_system class to begin processing entries
-    // 
+    // currently set to wait 30 seconds
     std::jthread timer_thread(&timer::notify_timer,&t,30.0,&m_queue_processor.m_ready_to_process,&m_queue_processor.m_local_thread_cv,&start_timer,&timer_thread_notify_cv);
 
+    // waits indefinitely for a notification, when a notification is received GetQueuedCompletionStatus() returns true
+    // and the while loop executes. If bytesTransferred is zero it indicates a buffer overflow.
+    // a 10MB buffer could approximately hold 40,329 file paths of average length 260 characters. 
+    // Keep in mind that this is a simplified calculation. 
+    // The actual number could vary based on the actual average path length, the character encoding used, 
+    // and any additional data or metadata that you store alongside each path in the buffer. 
+    // So in theory if 40,000+ files were moved and not copied into the monitored directory then the buffer could overflow. 
+    // This could only occur if all 40,000+ files were all file entries with no sub-directories and only possible if the root drive is the same.
+    // If the root drive is not the same then the files would need to be copied in order to move them and this would cause a notification to be sent only when the
+    // file is created at the monitored directory so the buffer would only receive notifications as fast as the copying process can create the file entries.
+    // Which means it would not be possible even with the fastest ssd to overflow the buffer in the latter case.
     while (GetQueuedCompletionStatus(m_hCompletionPort, &bytesTransferred, (PULONG_PTR)&pMonitor, &pOverlapped, INFINITE)) {
+        // sends a message to the console indicating a buffer overflow has occurred
         Overflow(bytesTransferred);
         
-        // Process change notification in pMonitor->buffer
-        // Pointer to the first notification
+        // create a FILE_NOTIFY_INFORMATION pointer with the returned buffer.
+        // it points to the first notification.
         FILE_NOTIFY_INFORMATION* pNotify = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(&pMonitor->m_buffer);
+        
+        // creates a file_queue_info object with relevant data and adds it to queue system.
+        // uses pNotify to get the file name and action.
         ProcessDirectoryChanges(pNotify,pMonitor);
 
+        // reissue a call to ReadDirectoryChanges() to monitor the directory for changes
         UpdateWatcher(pMonitor);
 
+        // open the gate for the waiting thread to begin waiting
         start_timer = true;
+
+        // notify the thread to check if the gate is open and begin waiting
+        // for the time set in timer_thread. When it completes the waiting period
+        // it notifies the waiting thread in queue system to begin processing entries
+        // which hold data necessary for copy operations, renames ect.
         timer_thread_notify_cv.notify_one();
     }
 
 
-
+    // end the notify timer while loop
     t.end_notify_timer();
+
+    // check if timer_thread can be joined
     if(timer_thread.joinable()){
+        // open the gate to allow timer thread to exit
+        start_timer = true;
+        
+        // notify the timer thread to continue and exit the while loop
+        // so that it can be joined
         timer_thread_notify_cv.notify_one();
+
+        // join the timer_thread
         timer_thread.join();
     }
 
+    
     m_queue_processor.exit();
     if(q_sys_thread.joinable()){
         m_queue_processor.m_local_thread_cv.notify_one();
@@ -216,31 +248,10 @@ void application::DirectorySignal::UpdateWatcher(DS_resources* p_monitor) noexce
             NULL, 
             &p_monitor->m_ol, 
             NULL)){
-                try{
-                    logger log(Error::WARNING);
-                    log.to_console();
-                    log.to_log_file();
-                    log.to_output();
-                }
-                catch (const std::filesystem::filesystem_error& e) {
-                    // Handle filesystem related errors
-                    std::cerr << "Filesystem error: " << e.what() << "\n";
-                }
-                catch(const std::runtime_error& e){
-                    // the error message
-                    std::cerr << "Runtime error: " << e.what() << "\n";
-                }
-                catch(const std::bad_alloc& e){
-                    // the error message
-                    std::cerr << "Allocation error: " << e.what() << "\n";
-                }
-                catch (const std::exception& e) {
-                    // Catch other standard exceptions
-                    std::cerr << "Standard exception: " << e.what() << "\n";
-                } catch (...) {
-                    // Catch any other exceptions
-                    std::cerr << "Unknown exception caught \n";
-                }
+                logger log(Error::WARNING);
+                log.to_console();
+                log.to_log_file();
+                log.to_output();
             }
 }
 
