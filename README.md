@@ -30,6 +30,17 @@ cmake --build .
 ## Releases
 Download the latest binary release from the releases page.
 
+## Run sfct
+In your terminal:
+```powershell
+# change directory to your downloads folder or where ever you saved sfct
+cd downloads
+
+# run the sfct executable in the terminal
+.\sfct
+
+```
+
 ## Setup
 Run sfct.exe for the first time and it will create an sfct_list.txt file in the current directory. This is where you specify the directories you want synced, copied or benchmarked.
 
