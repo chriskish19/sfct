@@ -37,8 +37,29 @@ void application::timer::notify_timer(double_t seconds_until_notify, std::atomic
 {
     while(m_running.load()){
         std::mutex local_mtx;
-        std::unique_lock<std::mutex> local_lock(local_mtx);
-        start_timer_cv->wait(local_lock, [start_timer] {return start_timer->load();});
+        
+        // we attempt to cause the thread to wait
+        // if that throws we exit the timer loop
+        try{
+            std::unique_lock<std::mutex> local_lock(local_mtx);
+            start_timer_cv->wait(local_lock, [start_timer] {return start_timer->load();});
+        }
+        catch(const std::runtime_error& e){
+            std::cerr << "Runtime error: " << e.what() << "\n";
+            m_running = false; // exit
+        }
+        catch(const std::bad_alloc& e){
+            std::cerr << "Allocation error: " << e.what() << "\n";
+            m_running = false; // exit
+        }
+        catch (const std::exception& e) {
+            std::cerr << "Standard exception: " << e.what() << "\n";
+            m_running = false; // exit
+        } catch (...) {
+            std::cerr << "Unknown exception caught \n";
+            m_running = false; // exit
+        }
+
 
         if(m_running.load()){
             wait_timer(seconds_until_notify);
