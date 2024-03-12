@@ -198,19 +198,19 @@ bool sfct_api::copy_file_create_path(path src, path dst, fs::copy_options co) no
     return false;
 }
 
-std::uintmax_t sfct_api::remove_all(path dir) noexcept
+application::remove_all_ext sfct_api::remove_all(path dir) noexcept
 {
     if(!ext::is_directory(dir)){
-        return 0;
+        return {{0},{},{application::remove_all_ext::remove_all_status::invalid_directory}};
     }
 
     return ext::remove_all(dir);
 }
 
-bool sfct_api::remove_entry(path entry) noexcept
+application::remove_file_ext sfct_api::remove_entry(path entry) noexcept
 {
     if(!ext::exists(entry)){
-        return false;
+        return {{},{},{application::remove_file_ext::remove_file_status::invalid_entry}};
     }
     
     return ext::remove_entry(entry);
@@ -370,6 +370,33 @@ std::optional<std::uintmax_t> sfct_api::get_entry_size(path entry) noexcept
         return std::nullopt;
     }
     return ext::get_file_size(entry);
+}
+
+void sfct_api::to_console(const STRING &message, path p, std::uintmax_t entries_removed) noexcept
+{
+    try{
+        STDOUT << message << p << App_MESSAGE("- Total removed entries: ") << TOSTRING(entries_removed) << "\n";
+    
+        if(STDOUT.fail()){
+            STDOUT.clear();
+            STDOUT << "\n";
+        }
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        std::cerr << "Runtime error: " << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        std::cerr << "Allocation error: " << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } 
+    catch (...) {
+        std::cerr << "Unknown exception caught \n";
+    }
 }
 
 void sfct_api::process_file_queue_info_entry(const application::file_queue_info &entry) noexcept
@@ -655,6 +682,15 @@ void sfct_api::mt_process_file_queue_info_entry(application::file_queue_info ent
     return process_file_queue_info_entry(entry);
 }
 
+application::is_directory_empty_ext sfct_api::is_directory_empty(path dir) noexcept
+{
+    if(!ext::is_directory(dir)){
+        return {{application::is_directory_empty_ext::directory_status::invalid_directory},{}};
+    }
+    
+    return ext::is_directory_empty(dir);
+}
+
 void sfct_api::to_console(const STRING& message,path p) noexcept
 {
     try{
@@ -767,6 +803,47 @@ std::optional<sfct_api::fs::path> sfct_api::ext::get_current_path() noexcept
         return _p.value().p;
     }
     return std::nullopt;
+}
+
+application::is_directory_empty_ext sfct_api::ext::is_directory_empty(path dir) noexcept
+{
+    return private_is_directory_empty(dir);
+}
+
+application::is_directory_empty_ext sfct_api::ext::private_is_directory_empty(path dir) noexcept
+{
+    application::is_directory_empty_ext _ide;
+    try{
+        // if the directory is empty this for loop is skipped
+        for(const auto& entry:fs::recursive_directory_iterator(dir)){
+            _ide.rv = false;
+            _ide.s = application::is_directory_empty_ext::directory_status::has_entries;
+            return _ide;
+        }
+        _ide.rv = true;
+        _ide.s = application::is_directory_empty_ext::directory_status::empty;
+        return _ide;
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        std::cerr << "Runtime error: " << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        std::cerr << "Allocation error: " << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } 
+    catch (...) {
+        std::cerr << "Unknown exception caught \n";
+    }
+
+    // an exception was thrown
+    _ide.rv = false;
+    _ide.s = application::is_directory_empty_ext::directory_status::exception_thrown;
+    return _ide;
 }
 
 std::optional<application::path_ext> sfct_api::ext::private_current_path() noexcept
@@ -1001,19 +1078,24 @@ std::optional<sfct_api::fs::path> sfct_api::ext::get_last_folder(path entry) noe
     return parent_path.filename();
 }
 
-bool sfct_api::ext::remove_entry(path entry) noexcept
+application::remove_file_ext sfct_api::ext::remove_entry(path entry) noexcept
 {
     application::remove_file_ext _rfe = private_remove_entry(entry);
     if(_rfe.e){
         application::logger log(_rfe.e,application::Error::WARNING,entry);
         log.to_console();
         log.to_log_file();
-        return false;
+        _rfe.s = application::remove_file_ext::remove_file_status::error_code_present;
+        return _rfe;
     }
-    return _rfe.rv;
+
+    if(_rfe.rv){
+        _rfe.s = application::remove_file_ext::remove_file_status::removal_success;
+    }
+    return _rfe;
 }
 
-std::uintmax_t sfct_api::ext::remove_all(path dir) noexcept
+application::remove_all_ext sfct_api::ext::remove_all(path dir) noexcept
 {
     auto _rfe = private_remove_all(dir);
     if(_rfe.has_value()){
@@ -1021,10 +1103,13 @@ std::uintmax_t sfct_api::ext::remove_all(path dir) noexcept
             application::logger log(_rfe.value().e,application::Error::WARNING,dir);
             log.to_console();
             log.to_log_file();
+            _rfe.value().s = application::remove_all_ext::remove_all_status::error_code_present;
+            return _rfe.value();
         }
-        return _rfe.value().files_removed;
+        _rfe.value().s = application::remove_all_ext::remove_all_status::removal_success;
+        return _rfe.value();
     }
-    return 0;
+    return {{0},{},{application::remove_all_ext::remove_all_status::exception_thrown}};
 }
 
 std::optional<double_t> sfct_api::ext::file_get_transfer_rate(path filepath) noexcept
@@ -1497,10 +1582,10 @@ bool sfct_api::ext::private_open_file(path filepath) noexcept
 	}
 }
 
-std::optional<application::remove_file_ext> sfct_api::ext::private_remove_all(path dir) noexcept
+std::optional<application::remove_all_ext> sfct_api::ext::private_remove_all(path dir) noexcept
 {
     try{
-		application::remove_file_ext _rfe;
+		application::remove_all_ext _rfe;
         _rfe.files_removed = fs::remove_all(dir,_rfe.e);
         return _rfe;
 	}
@@ -1527,7 +1612,8 @@ std::optional<application::remove_file_ext> sfct_api::ext::private_remove_all(pa
 		std::cerr << "Standard exception: " << e.what() << "\n";
 
 		return std::nullopt;
-	} catch (...) {
+	} 
+    catch (...) {
 		// Catch any other exceptions
 		std::cerr << "Unknown exception caught \n";
 

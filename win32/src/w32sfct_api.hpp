@@ -86,15 +86,16 @@ namespace sfct_api{
             /// returned: parent
             static std::optional<fs::path> get_last_folder(path entry) noexcept;
 
-            /// @brief wrapper for private_remove_entry(). If there is an error it is logged and false is returned.
+            /// @brief wrapper for private_remove_entry(). If there is an error it is logged.
             /// @param entry any path
-            /// @return true for successful removal and false for no removal.
-            static bool remove_entry(path entry) noexcept;
+            /// @return an application::remove_file_ext object defined in w32obj.hpp.
+            /// 
+            static application::remove_file_ext remove_entry(path entry) noexcept;
 
             /// @brief wrapper for private_remove_all(). If there is an error it is logged.
             /// @param dir any path
-            /// @return the number of removed files
-            static std::uintmax_t remove_all(path dir) noexcept;
+            /// @return an application::remove_all_ext object with its members set with data
+            static application::remove_all_ext remove_all(path dir) noexcept;
 
             /// @brief Gets the transfer speed of a file if its currently being copied to filepath
             /// it does a quick check difference in file size over a 10ms interval and then calculates the speed in MB/s
@@ -199,7 +200,17 @@ namespace sfct_api{
             /// @brief gets the current working directory. wrapper for private_current_path().
             /// @return nothing if an exception is thrown. The current working directory path if no errors and no exceptions.
             static std::optional<fs::path> get_current_path() noexcept;
+
+            /// @brief checks whether a directory is empty or not. wrapper for private_is_directory_empty().
+            /// @param dir any path (meant to check a directory, an exception will throw within if its not a valid directory)
+            /// @return an application::is_directory_empty_ext object which is defined in w32obj.hpp.
+            static application::is_directory_empty_ext is_directory_empty(path dir) noexcept;
         private:
+            /// @brief checks whether a directory is empty or not
+            /// @param dir any path (meant to check a directory, an exception will throw within if its not a valid directory)
+            /// @return an application::is_directory_empty_ext object which is defined in w32obj.hpp.
+            static application::is_directory_empty_ext private_is_directory_empty(path dir) noexcept;
+
             /// @brief gets the current working directory. wrapper for std::filesystem::current_path().
             /// @return a path_ext object with current working directory and error code.
             /// if an exception is thrown, nothing is returned.
@@ -247,8 +258,8 @@ namespace sfct_api{
 
             /// @brief wrapper for std::filesystem::remove_all().
             /// @param dir any path
-            /// @return a remove_file_ext object which contains the error code, return value boolean, and the number of files removed.
-            static std::optional<application::remove_file_ext> private_remove_all(path dir) noexcept;
+            /// @return a remove_all_ext object which contains the error code, the number of files removed and a status enum.
+            static std::optional<application::remove_all_ext> private_remove_all(path dir) noexcept;
             
             /// @brief wrapper for std::filesystem::remove().
             /// @param entry any path
@@ -363,15 +374,18 @@ namespace sfct_api{
     /// ext::copy_file(): true is returned for no error and false for error.
     bool copy_file_create_path(path src,path dst,fs::copy_options co) noexcept;
 
-    /// @brief wrapper for ext::remove_all(). given a directory, all the files in the directory are deleted recursively
-    /// @param dir must be a valid directory on the system
-    /// @return the number of removed files
-    std::uintmax_t remove_all(path dir) noexcept;
+    /// @brief wrapper for ext::remove_all(). given a directory, all the files in the directory are deleted recursively.
+    /// @param dir must be a valid directory on the system.
+    /// @return an application::remove_all_ext object with necessary information see w32obj.hpp for definition.
+    /// number of files removed.
+    /// status of the removal.
+    /// error code if any.
+    application::remove_all_ext remove_all(path dir) noexcept;
     
     /// @brief wrapper for ext::remove_entry(). Removes a file or entry given a path.
     /// @param entry path must exist on the system
     /// @return ext::remove_entry(): true for removal and false for no removal. False if path does not exist on the system.
-    bool remove_entry(path entry) noexcept;
+    application::remove_file_ext remove_entry(path entry) noexcept;
 
     /// @brief wrapper for ext::copy_symlink(). Copies the target file that sym_link points to, to dst.
     /// checks that src_link is valid. Since it calls copy_entry() that means if the target is a directory the whole
@@ -441,6 +455,14 @@ namespace sfct_api{
     /// @param p any path
     void to_console(const STRING& message,path p) noexcept;
 
+    /// @brief plainly send a message to the console with a path name and a number
+    /// This function is used when removing files with sfct_api::remove_all() to display 
+    /// to the console how many file entries were removed
+    /// @param message any message
+    /// @param p any path
+    /// @param entries_removed any number
+    void to_console(const STRING& message,path p,std::uintmax_t entries_removed) noexcept;
+
     /// @brief processes a file_queue_info object to be copied or removed
     /// @param entry any entry
     void process_file_queue_info_entry(const application::file_queue_info& entry) noexcept;
@@ -473,6 +495,13 @@ namespace sfct_api{
     std::optional<fs::file_status> get_file_status(path entry) noexcept;
 
     /// @brief multithreaded safe function version of process_file_queue_info_entry. A copy of entry is made.
+    /// This is needed since the lifetime of entry must exist aslong as the thread needs it. Once the thread exits
+    /// the function the entry is no longer needed. This is a much better method than using new and delete.
     /// @param entry any entry
     void mt_process_file_queue_info_entry(application::file_queue_info entry) noexcept;
+
+    /// @brief checks if a directory contains file entries
+    /// @param dir must be a valid directory
+    /// @return an application::is_directory_empty_ext object which is defined in w32obj.hpp.
+    application::is_directory_empty_ext is_directory_empty(path dir) noexcept;
 }

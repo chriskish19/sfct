@@ -4,6 +4,16 @@
 #include "w32sfct_api.hpp"
 #include "w32tm.hpp"
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This header defines the template class queue_system.                                                             //
+// queue_system<file_queue_info> is used in the DirectorySignal class to process all its notifications.             //
+// The process() function is designed to be run on a dedicated thread. While the add_to_queue() function            //
+// is called from different thread, it adds data to the queue. The queue is then processed in the function          //
+// process(). The template with the typename data_t is meant to be a skeleton for template specialization types.    //
+// The template class with the type file_queue_info is the class type used in the DirectorySignal class.            //
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 namespace application{
     /**
      * @brief A thread-safe queue system for managing and processing tasks in a multi-threaded environment.
@@ -431,7 +441,7 @@ namespace application{
         }
 
 
-        // used to notify the waiting thread
+        // used to notify the waiting thread in the process() function
         std::condition_variable m_local_thread_cv;
 
         // signifies that m_queue is ready to be processed
@@ -485,35 +495,72 @@ namespace application{
         /// child directory entries and files will get entries created and added to m_queue_buffer. Any sub directories and files within them will get ignored.
         /// So the check() function will recursively iterate through the sub directories that were missed and produce new entries to be processed.
         void check() noexcept{
+            // only two functions might throw, std::filesystem::recursive_directory_iterator(entry->src) and m_all_seen_entries.insert(_file_info).second 
+            // m_all_seen_entries.insert(_file_info).second is unlikely to throw only on exceptional circumstances probably on system memory exhaustion
+            // std::filesystem::recursive_directory_iterator(entry->src) will throw if it cant access the directory, it doesnt exist or its not a valid directory.
+            // if an exception is thrown we log it to the console and exit the check() function
             try{
+                // exit the check early
+                // currently not used
                 bool exit__{false};
+
+                // m_new_main_directory_entries is a vector of file_queue_info objects
+                // It contains newly added directories in the monitored directory(main_src) 
                 for(auto entry{m_new_main_directory_entries.begin()};entry != m_new_main_directory_entries.end() && !exit__;entry++){
+                    // this is is needed since the user could have removed a directory entry
+                    // std::filesystem::recursive_directory_iterator would throw if entry->src didnt exist
                     if(sfct_api::exists(entry->src)){
-                        for(const auto& _entry:std::filesystem::recursive_directory_iterator(entry->src)){
-                            auto dst_path = sfct_api::create_file_relative_path(_entry.path(),entry->dst,entry->src,false);
+                        
+                        // iterate through the directory recursively
+                        // On windows I think std::filesystem will lock the directory so the user cannot delete or modify it 
+                        // once the recursive_directory_iterator is initialized. I havent found any documentation for this, only 
+                        // in testing I tried to delete a directory that was being copied. It was being copied using sfct copy command. Otherwise if the
+                        // user was able to delete the directory while it was being traversed by std::filesystem::recursive_directory_iterator
+                        // it would throw an exception or fail in some way.
+                        for(const auto& rdi_entry:std::filesystem::recursive_directory_iterator(entry->src)){
+                            // Create the new destination path but dont create the needed directories.
+                            // The directories will get created as the directory entries are processed in the process_entry() function.
+                            // This relies on the behavior of std::filesystem::recursive_directory_iterator and the way it iterates
+                            // through the directory tree, Depth-First Traversal. This means an entry for a directory is always generated before 
+                            // entering the directory which is why we don't need to create the directories for each dst_path.
+                            auto dst_path = sfct_api::create_file_relative_path(rdi_entry.path(),entry->dst,entry->src,false);
+                            
+                            // if it returns a nullopt we just skip the entry and try the next
                             if(dst_path.has_value()){
+                                // create a file_queue_info entry
                                 file_queue_info _file_info;
-                                _file_info.co = entry->co;
-                                _file_info.commands = entry->commands;
-                                _file_info.dst = dst_path.value();
-                                _file_info.fqs = file_queue_status::file_added;
-                                auto gfs_dst = sfct_api::get_file_status(dst_path.value());
-                                auto gfs_src = sfct_api::get_file_status(_entry.path());
-                                _file_info.main_dst = entry->main_dst;
-                                _file_info.main_src = entry->main_src;
-                                _file_info.src = _entry.path();
+                                _file_info.src = rdi_entry.path();              // set the src path
+                                _file_info.dst = dst_path.value();              // set the dst path
 
-                                if(gfs_dst.has_value()){
-                                    _file_info.fs_dst = gfs_dst.value();
-                                }
+                                // the reason only src and dst are set in _file_info is, that is all that is needed to check
+                                // if its in the m_all_seen_entries set. This is because the src and dst values are used 
+                                // to produce the hash value for the unordered_set.
 
-                                if(gfs_src.has_value()){
-                                    _file_info.fs_src = gfs_src.value();
-                                }
 
                                 // true if not in the set
                                 // false if in the set
                                 if(m_all_seen_entries.insert(_file_info).second){
+                                    // if _file_info is not in the set we fill the whole entry with data and process it
+                                    _file_info.co = entry->co;                                          // std::filesystem copy options
+                                    _file_info.commands = entry->commands;                              // sfct commands
+                                    _file_info.fqs = file_queue_status::file_added;                     // set as a file_added
+                                    // auto gfs_dst = sfct_api::get_file_status(dst_path.value());      // this is only used if a file is removed   
+                                    auto gfs_src = sfct_api::get_file_status(rdi_entry.path());         // determines what type of file entry
+                                    _file_info.main_dst = entry->main_dst;                              // upper most destination directory
+                                    _file_info.main_src = entry->main_src;                              // upper most source directory
+
+                                    // not needed
+                                    //if(gfs_dst.has_value()){
+                                    //    _file_info.fs_dst = gfs_dst.value();
+                                    //}
+
+                                    // if gfs_src was successfull set the value
+                                    // if this fails the entry will get skipped
+                                    if(gfs_src.has_value()){
+                                        _file_info.fs_src = gfs_src.value();
+                                    }
+                                    
+                                    // send the entry for processing
                                     process_entry(_file_info);
                                 }
                                 else{
@@ -525,10 +572,9 @@ namespace application{
                             }
                         }
                     }
-                    
-                    
                 }
 
+                // since we checked all the new main directories we can reset it
                 m_new_main_directory_entries.clear(); 
             }
             catch (const std::filesystem::filesystem_error& e) {
@@ -542,18 +588,23 @@ namespace application{
             }
             catch (const std::exception& e) {
                 std::cerr << "Standard exception: " << e.what() << "\n";
-            } catch (...) {
+            } 
+            catch (...) {
                 std::cerr << "Unknown exception caught \n";
             }
         }
 
-        // for renaming a path
+        // for renaming a path, this holds the old path name
         std::filesystem::path m_rename_old;
         
-        /// @brief 
+        /// @brief this function will check each entry and perform the correct function, creating directories,
+        /// copying files, renaming a file, or removing files.
         /// @param entry file_queue_info object
         void process_entry(const file_queue_info& entry) noexcept{
+            
+            // send info to the console for each entry
             sfct_api::to_console(App_MESSAGE("Processing entry: "),entry.src);
+            
             
             switch(entry.fqs){
                 case file_queue_status::file_added:{
@@ -569,33 +620,39 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
                         }
                         case std::filesystem::file_type::directory:{
+                            // we must check if the src exists since the user could have removed it
+                            // during the time before processing. If it doesnt exist we skip it.
                             if(sfct_api::exists(entry.src)){
                                 sfct_api::create_directory_paths(entry.dst);
                                 
+                                // it is possible for this code to throw
+                                // I think if the system can't allocate memory it will throw
+                                // also if entry.src.parent_path() cannot obtain the parent path it will throw a 
+                                // filesystem_error. In the case it throws which ever function doesnt matter we hit the break
+                                // statement and process_entry() function ends.
                                 try{
+                                    // if entry.src is a directory and if its path is a parent of entry.main_src
+                                    // Example:
+                                    // path a = C:\test and path b = C:\test\mydir then path b's parent path is path a.
+                                    // this is because we only want the directories in entry.main_src to be added to 
+                                    // m_new_main_directory_entries. They only get added if 
                                     if(entry.src.parent_path() == entry.main_src && 
+                                        // checks for recursive command in the entry
+                                        // if the command "single" is set instead of recursive we don't need to check anything
+                                        // and therefore the directory entry will not be added to m_new_main_directory_entries
                                         sfct_api::recursive_flag_check(entry.commands) && 
+
+                                        // true if not in the set
                                         m_all_seen_main_directory_entries.insert(entry).second){
+                                        
+                                        // add the entry to the vector to be used in the check() function
+                                        // which will check these directories for missed entries
                                         m_new_main_directory_entries.push_back(entry);
                                     }
                                 }
@@ -610,7 +667,8 @@ namespace application{
                                 }
                                 catch (const std::exception& e) {
                                     std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
+                                } 
+                                catch (...) {
                                     std::cerr << "Unknown exception caught \n";
                                 }
                             }
@@ -622,21 +680,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -646,21 +690,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -670,21 +700,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -694,21 +710,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -718,21 +720,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -759,21 +747,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             break;
                         }
@@ -785,21 +759,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -809,21 +769,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -833,21 +779,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -857,21 +789,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -881,21 +799,7 @@ namespace application{
                                 sfct_api::copy_entry(entry.src,entry.dst,entry.co);
                             }
                             else{
-                                
-                                try{
-                                    m_still_wait_data.emplace(entry);
-                                }
-                                catch(const std::runtime_error& e){
-                                    std::cerr << "Runtime error: " << e.what() << "\n";
-                                }
-                                catch(const std::bad_alloc& e){
-                                    std::cerr << "Allocation error: " << e.what() << "\n";
-                                }
-                                catch (const std::exception& e) {
-                                    std::cerr << "Standard exception: " << e.what() << "\n";
-                                } catch (...) {
-                                    std::cerr << "Unknown exception caught \n";
-                                }
+                                add_to_still_wait_data(entry);
                             }
                             
                             break;
@@ -923,9 +827,27 @@ namespace application{
                             break;
                         }
                         case std::filesystem::file_type::directory:{
-                            if(sfct_api::recursive_flag_check(entry.commands) && sfct_api::exists(entry.dst)){
-                                // if an exception is thrown(any exception) m_all_seen_entries gets a reset
-                                // this is okay since 
+                            // build a vector of entries of the entry.dst directory
+                            // this is needed because sfct_api::remove_all() can fail 
+                            // we only want to remove entries from m_all_seen_entries if the directory was sucessfully removed
+                            std::vector<file_queue_info> temp_to_be_removed;
+                            
+                            // if an exception is thrown we need to skip code that is part of normal operation
+                            // this allows parts of the code to be conditionally executed
+                            bool exception_thrown{false};
+
+                            // only applies if recursive flag is set and entry.dst exists and m_all_seen_entries has entries
+                            if(sfct_api::recursive_flag_check(entry.commands) && sfct_api::exists(entry.dst) && !m_all_seen_entries.empty()){
+                                // if an exception is thrown(any exception) m_all_seen_entries gets a reset.
+                                // this is okay since erase() can be safely called on an unordered_set where it does not exist.
+                                // So any future deletions will just be ignored since the m_all_seen_entries is empty.
+                                // But as a side effect when check() is called in process() under these conditions:
+                                // 1. if file entries were added and removed in the same buffer zone(the time between adding to the queue buffer and process() waking up
+                                // to process the queue).
+                                // 2. if recursive flag is set
+                                // 3. the added file entries include directories in main_src and those directories have sub-directories with file entries
+                                // Under these conditions then when process() calls check() double entries will get created that have previously been processed.
+                                // This results in re-copying. Especially if the overwrite command is set.
                                 try{
                                     for(const auto& rdi_entry_:std::filesystem::recursive_directory_iterator(entry.dst)){
                                         // we need to recreate the src path to produce the correct hash in order to erase it from
@@ -935,14 +857,191 @@ namespace application{
                                             file_queue_info _file_info;
                                             _file_info.src = recreated_src.value();
                                             _file_info.dst = rdi_entry_.path();
-                                            m_all_seen_entries.erase(_file_info);
+                                            temp_to_be_removed.push_back(_file_info);
                                         }
                                     }
                                 }
-                                catch (const std::filesystem::filesystem_error& e) {
-                                    std::cerr << "Filesystem error: " << e.what() << "\n";
+                                catch(const std::filesystem::filesystem_error& e){
+                                    // a filesystem error exception was just caught
+                                    // this is probably caused by the user deleting files while 
+                                    // entries are being processed in the try block or some other issue.
 
-                                    m_all_seen_entries.clear();
+                                    // set exception_thrown boolean to true
+                                    // this skips code for normal operation
+                                    exception_thrown = true;
+
+                                    // notify the user of the exception and what went wrong
+                                    std::cerr << "Filesystem error: " << e.what() << "\n";
+                                    
+
+                                    // To handle this we will attempt to remove the directory by using
+                                    // sfct_api::remove_all(). This function will handle any exceptions
+                                    // and errors and returns a nice enum to use indicating what happened.
+                                    remove_all_ext _rae = sfct_api::remove_all(entry.dst);
+
+
+                                    // process the removal status
+                                    switch(_rae.s){
+                                        case remove_all_ext::remove_all_status::error_code_present:{
+                                            // the error code will be logged and displayed in the console
+                                            // by sfct_api::remove_all().
+
+                                            // we want to make sure to erase entry only if entry.dst has been removed
+                                            // in this case it most likely has not been removed because an error usually indicates
+                                            // a problem with removal. entry.dst can only be removed if all its contents
+                                            // (sub-directories and file entries) are completely deleted.
+                                            if(!sfct_api::exists(entry.dst)){
+                                                // we want to erase the main directory entry 
+                                                // entry may or may not be present in m_all_seen_entries
+                                                // this is okay since erase() function can handle it
+                                                m_all_seen_entries.erase(entry);
+                                            
+                                                // entry may or may not be present
+                                                m_all_seen_main_directory_entries.erase(entry);
+                                            }
+                                            
+
+                                            // temp_to_be_removed may have some entries before the exception happened
+                                            // lets remove them from m_all_seen_entries making sure to check that they have been removed.
+                                            // If temp_to_be_removed is empty() this for loop will be skipped and nothing will happen
+                                            // so no need to check if temp_to_be_removed has data in it
+                                            for(const auto& temp_entry:temp_to_be_removed){
+                                                if(!sfct_api::exists(temp_entry.dst)){
+                                                    m_all_seen_entries.erase(temp_entry);
+                                                }
+                                            }
+
+                                            // now we have the problem of m_all_seen_entries having entries that don't
+                                            // exist, one solution is to check m_all_seen_entries and erase any entries that don't exist
+                                            for(auto it = m_all_seen_entries.begin(); it != m_all_seen_entries.end(); /* no increment here */) {
+                                                if(!sfct_api::exists(it->dst)) {
+                                                    it = m_all_seen_entries.erase(it);
+                                                } else {
+                                                    ++it;
+                                                }
+                                            }
+
+
+                                            // send info to the user indicating that an attempt was made to remove the directory along with 
+                                            // the number of file entries that were removed
+                                            sfct_api::to_console(App_MESSAGE("Attempted to remove directory but an error occurred "),entry.dst,_rae.files_removed);
+
+
+                                            break;
+                                        }
+                                        case remove_all_ext::remove_all_status::exception_thrown:{
+                                            // an exception was thrown and handled within sfct_api::remove_all()
+                                            // the exception info will be displayed in the console by sfct_api::remove_all().
+
+                                            // we want to make sure to erase entry only if entry.dst has been removed
+                                            // in this case it most likely has not been removed because an exception usually indicates
+                                            // a problem with removal. entry.dst can only be removed if all its contents
+                                            // (sub-directories and file entries) are completely deleted.
+                                            if(!sfct_api::exists(entry.dst)){
+                                                // we want to erase the main directory entry 
+                                                // entry may or may not be present in m_all_seen_entries
+                                                // this is okay since erase() function can handle it
+                                                m_all_seen_entries.erase(entry);
+                                            
+                                                // entry may or may not be present
+                                                m_all_seen_main_directory_entries.erase(entry);
+                                            }
+                                            
+
+                                            // temp_to_be_removed may have some entries before the exception happened(not the exception from sfct_api::remove_all())
+                                            // lets remove them from m_all_seen_entries making sure to check that they have been removed.
+                                            // If temp_to_be_removed is empty() this for loop will be skipped and nothing will happen
+                                            // so no need to check if temp_to_be_removed has data in it
+                                            for(const auto& temp_entry:temp_to_be_removed){
+                                                if(!sfct_api::exists(temp_entry.dst)){
+                                                    m_all_seen_entries.erase(temp_entry);
+                                                }
+                                            }
+
+                                            // now we have the problem of m_all_seen_entries having entries that don't
+                                            // exist, one solution is to check m_all_seen_entries and erase any entries that don't exist
+                                            for(auto it = m_all_seen_entries.begin(); it != m_all_seen_entries.end(); /* no increment here */) {
+                                                if(!sfct_api::exists(it->dst)) {
+                                                    it = m_all_seen_entries.erase(it);
+                                                } else {
+                                                    ++it;
+                                                }
+                                            }
+
+
+                                            // send info to the user indicating that an attempt was made to remove the directory along with 
+                                            // the number of file entries that were removed
+                                            sfct_api::to_console(App_MESSAGE("Attempted to remove directory but an exception occurred "),entry.dst,_rae.files_removed);
+
+
+                                            break;
+                                        }
+                                        case remove_all_ext::remove_all_status::invalid_directory:{
+                                            // directory was removed by the user and does not exist
+                                            // or the entry is not a directory. The latter is only possible if
+                                            // entry was not constructed properly. Lets assume sfct_api::get_file_status 
+                                            // was called and entry is properly constructed, in that case it means the user removed
+                                            // the directory prior to processing. 
+
+                                            // we want to erase the main directory entry 
+                                            // entry may or may not be present in m_all_seen_entries
+                                            // this is okay since erase() function can handle it
+                                            m_all_seen_entries.erase(entry);
+                                            
+                                            // entry may or may not be present
+                                            m_all_seen_main_directory_entries.erase(entry);
+
+                                            // temp_to_be_removed may have some entries before the exception happened
+                                            // lets remove them from m_all_seen_entries
+                                            for(const auto& temp_entry:temp_to_be_removed){
+                                                m_all_seen_entries.erase(temp_entry);
+                                            }
+
+                                            // now we have the problem of m_all_seen_entries having entries that don't
+                                            // exist, one solution is to check m_all_seen_entries and erase any entries that don't exist
+                                            for(auto it = m_all_seen_entries.begin(); it != m_all_seen_entries.end(); /* no increment here */) {
+                                                if(!sfct_api::exists(it->dst)) {
+                                                    it = m_all_seen_entries.erase(it);
+                                                } else {
+                                                    ++it;
+                                                }
+                                            }
+
+                                            break;
+                                        }
+                                        case remove_all_ext::remove_all_status::removal_success:{
+                                            // we want to erase the main directory entry 
+                                            // entry may or may not be present in m_all_seen_entries
+                                            // this is okay since erase() function can handle it
+                                            m_all_seen_entries.erase(entry);
+                                            
+                                            // entry may or may not be present
+                                            m_all_seen_main_directory_entries.erase(entry);
+
+                                            // erase any temporary entries before the exception occurred
+                                            for(const auto& temp_entry:temp_to_be_removed){
+                                                m_all_seen_entries.erase(temp_entry);
+                                            }
+
+                                            // now we have the problem of m_all_seen_entries having entries that don't
+                                            // exist, one solution is to check m_all_seen_entries and erase any entries that don't exist
+                                            for(auto it = m_all_seen_entries.begin(); it != m_all_seen_entries.end(); /* no increment here */) {
+                                                if(!sfct_api::exists(it->dst)) {
+                                                    it = m_all_seen_entries.erase(it);
+                                                } else {
+                                                    ++it;
+                                                }
+                                            }
+
+                                            // send info to the user indicating the directory was removed along with the number of file entries
+                                            sfct_api::to_console(App_MESSAGE("Directory removed "),entry.dst,_rae.files_removed);
+
+                                            break;
+                                        }
+                                        default:
+                                            // skip
+                                            break;
+                                    }
                                 }
                                 catch(const std::runtime_error& e){
                                     std::cerr << "Runtime error: " << e.what() << "\n";
@@ -954,22 +1053,81 @@ namespace application{
 
                                     m_all_seen_entries.clear();
                                 }
-                                catch (const std::exception& e) {
+                                catch(const std::exception& e){
                                     std::cerr << "Standard exception: " << e.what() << "\n";
 
                                     m_all_seen_entries.clear();
-                                } catch (...) {
+                                } 
+                                catch(...){
                                     std::cerr << "Unknown exception caught \n";
 
                                     m_all_seen_entries.clear();
                                 }
                             }
-                            else{
-                                m_all_seen_entries.erase(entry);
+                            
+
+
+
+                            // normal execution block
+                            if(!exception_thrown){
+                                
+                                remove_all_ext _rae = sfct_api::remove_all(entry.dst);
+                            
+                                switch(_rae.s){
+                                    case remove_all_ext::remove_all_status::error_code_present:
+                                        // skip
+                                        break;
+                                    case remove_all_ext::remove_all_status::exception_thrown:
+                                        // skip
+                                        break;
+                                    case remove_all_ext::remove_all_status::invalid_directory:{
+                                        // directory was removed by the user and does not exist
+                                        // or the entry is not a directory. The latter is only possible if
+                                        // entry was not constructed properly. Lets assume sfct_api::get_file_status 
+                                        // was called and entry is properly constructed, in that case it means the user removed
+                                        // the directory prior to processing. 
+
+                                        // we want to erase the main directory entry 
+                                        // entry may or may not be present in m_all_seen_entries
+                                        // this is okay since erase() function can handle it
+                                        m_all_seen_entries.erase(entry);
+                                        
+                                        // entry may or may not be present
+                                        m_all_seen_main_directory_entries.erase(entry);
+
+                                        // now we have the problem of m_all_seen_entries having entries that don't
+                                        // exist, one solution is to check m_all_seen_entries and erase any entries that don't exist
+                                        
+
+                                        break;
+                                    }
+                                    case remove_all_ext::remove_all_status::removal_success:{
+                                        // we want to erase the main directory entry 
+                                        // entry may or may not be present in m_all_seen_entries
+                                        // this is okay since erase() function can handle it
+                                        m_all_seen_entries.erase(entry);
+                                        
+                                        // entry may or may not be present
+                                        m_all_seen_main_directory_entries.erase(entry);
+
+                                        // erase the entries
+                                        for(const auto& temp_entry:temp_to_be_removed){
+                                            m_all_seen_entries.erase(temp_entry);
+                                        }
+
+                                        // send info to the user indicating the directory was removed along with the number of file entries
+                                        sfct_api::to_console(App_MESSAGE("Directory removed "),entry.dst,_rae.files_removed);
+
+                                        break;
+                                    }
+                                    default:
+                                        // skip
+                                        break;
+                                }
                             }
+                            
 
 
-                            sfct_api::remove_all(entry.dst);
                             break;
                         }
                         case std::filesystem::file_type::symlink:{
@@ -1069,6 +1227,30 @@ namespace application{
                 default:
                     // do nothing
                     break;
+            }
+        }
+
+        /// @brief wrapper for adding to the m_still_wait_data queue
+        /// handles any eceptions throw within the function
+        /// @param entry data for copying, renaming, or removing files
+        void add_to_still_wait_data(const file_queue_info& entry) noexcept{
+            // this could potentially throw but I think only under exceptional
+            // circumstances like system is running out of memory and cannot allocate
+            // if it does throw we just skip the entry and the function ends
+            try{
+                m_still_wait_data.emplace(entry);
+            }
+            catch(const std::runtime_error& e){
+                std::cerr << "Runtime error: " << e.what() << "\n";
+            }
+            catch(const std::bad_alloc& e){
+                std::cerr << "Allocation error: " << e.what() << "\n";
+            }
+            catch (const std::exception& e) {
+                std::cerr << "Standard exception: " << e.what() << "\n";
+            } 
+            catch (...) {
+                std::cerr << "Unknown exception caught \n";
             }
         }
     };

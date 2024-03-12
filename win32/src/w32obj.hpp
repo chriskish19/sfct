@@ -101,9 +101,15 @@ namespace application{
 
     // used in the remove file functions in sfct_api
     struct remove_file_ext{
+        enum class remove_file_status{
+            removal_success,
+            error_code_present,
+            invalid_entry
+        };
+        
         bool rv;                                // return value
-        std::uintmax_t files_removed;           // number of files removed from the system
         std::error_code e;                      // error code
+        remove_file_status s;                   // status of the operation
     };
 
     // used in the copy symlink function in sfct_api
@@ -128,6 +134,30 @@ namespace application{
     struct file_status_ext{
         std::filesystem::file_status s;         // file status (the type of file)
         std::error_code e;                      // error code
+    };
+
+    struct remove_all_ext{
+        enum class remove_all_status{
+            removal_success,
+            exception_thrown,
+            error_code_present,
+            invalid_directory
+        };
+        
+        std::uintmax_t files_removed;           // number of files removed from the system
+        std::error_code e;                      // error code
+        remove_all_status s;                    // state/status of the removal operation                 
+    };
+
+    struct is_directory_empty_ext{
+        enum class directory_status{
+            invalid_directory,
+            empty,
+            has_entries,
+            exception_thrown
+        };
+        directory_status s;
+        bool rv;
     };
 }
 
