@@ -822,8 +822,10 @@ namespace application{
                             // skip for now
                             break;
                         case std::filesystem::file_type::regular:{
-                            sfct_api::remove_entry(entry.dst);
-                            m_all_seen_entries.erase(entry);
+                            // check the status, if the status is success then erase the entry
+                            if(sfct_api::remove_entry(entry.dst).s == application::remove_file_ext::remove_file_status::removal_success){
+                                m_all_seen_entries.erase(entry);
+                            }
                             break;
                         }
                         case std::filesystem::file_type::directory:{
@@ -838,7 +840,7 @@ namespace application{
 
                             // only applies if recursive flag is set and entry.dst exists and m_all_seen_entries has entries
                             if(sfct_api::recursive_flag_check(entry.commands) && sfct_api::exists(entry.dst) && !m_all_seen_entries.empty()){
-                                // if an exception is thrown(any exception) m_all_seen_entries gets a reset.
+                                // if an exception is thrown(any exception except std::filesystem error) m_all_seen_entries gets a reset.
                                 // this is okay since erase() can be safely called on an unordered_set where it does not exist.
                                 // So any future deletions will just be ignored since the m_all_seen_entries is empty.
                                 // But as a side effect when check() is called in process() under these conditions:
@@ -981,7 +983,17 @@ namespace application{
                                             // or the entry is not a directory. The latter is only possible if
                                             // entry was not constructed properly. Lets assume sfct_api::get_file_status 
                                             // was called and entry is properly constructed, in that case it means the user removed
-                                            // the directory prior to processing. 
+                                            // the directory while being processed which caused an exception to be thrown. 
+                                            
+
+                                            // This should not occur on windows as the directory becomes locked once a recursive_directory_iterator is
+                                            // initialized. So this case statement should never happen, only in exceptional circumstances. 
+                                            // There is the case where the file lock system on windows can be bypassed. For example
+                                            // using the terminal to force delete files can cause the lock to be overridden. So if during iterating
+                                            // the directory a user uses the terminal to force delete the directory its iterating through then an exception
+                                            // would be thrown by the filesystem. Then sfct_api::remove_all() would return an invalid_directory since it does
+                                            // not exist and the code execution flow would end up in this case statement.
+                                            
 
                                             // we want to erase the main directory entry 
                                             // entry may or may not be present in m_all_seen_entries
@@ -1046,27 +1058,29 @@ namespace application{
                                 catch(const std::runtime_error& e){
                                     std::cerr << "Runtime error: " << e.what() << "\n";
 
+                                    exception_thrown = true;
                                     m_all_seen_entries.clear();
                                 }
                                 catch(const std::bad_alloc& e){
                                     std::cerr << "Allocation error: " << e.what() << "\n";
 
+                                    exception_thrown = true;
                                     m_all_seen_entries.clear();
                                 }
                                 catch(const std::exception& e){
                                     std::cerr << "Standard exception: " << e.what() << "\n";
 
+                                    exception_thrown = true;
                                     m_all_seen_entries.clear();
                                 } 
                                 catch(...){
                                     std::cerr << "Unknown exception caught \n";
 
+                                    exception_thrown = true;
                                     m_all_seen_entries.clear();
                                 }
                             }
                             
-
-
 
                             // normal execution block
                             if(!exception_thrown){
@@ -1074,12 +1088,71 @@ namespace application{
                                 remove_all_ext _rae = sfct_api::remove_all(entry.dst);
                             
                                 switch(_rae.s){
-                                    case remove_all_ext::remove_all_status::error_code_present:
-                                        // skip
+                                    case remove_all_ext::remove_all_status::error_code_present:{
+                                        // the error code will be logged and displayed in the console
+                                        // by sfct_api::remove_all().
+
+                                        // we want to make sure to erase entry only if entry.dst has been removed
+                                        // in this case it most likely has not been removed because an error usually indicates
+                                        // a problem with removal. entry.dst can only be removed if all its contents
+                                        // (sub-directories and file entries) are completely deleted.
+                                        if(!sfct_api::exists(entry.dst)){
+                                            // we want to erase the main directory entry 
+                                            // entry may or may not be present in m_all_seen_entries
+                                            // this is okay since erase() function can handle it
+                                            m_all_seen_entries.erase(entry);
+                                        
+                                            // entry may or may not be present
+                                            m_all_seen_main_directory_entries.erase(entry);
+                                        }
+                                        
+
+                                        // since we do not know which files have been removed because the operation
+                                        // errored. We must check and erase only if they no longer exist.
+                                        for(const auto& temp_entry:temp_to_be_removed){
+                                            if(!sfct_api::exists(temp_entry.dst)){
+                                                m_all_seen_entries.erase(temp_entry);
+                                            }
+                                        }
+
+                                        // send info to the user indicating that an attempt was made to remove the directory along with 
+                                        // the number of file entries that were removed
+                                        sfct_api::to_console(App_MESSAGE("Attempted to remove directory but an error occurred "),entry.dst,_rae.files_removed);
+
                                         break;
-                                    case remove_all_ext::remove_all_status::exception_thrown:
-                                        // skip
+                                    } 
+                                    case remove_all_ext::remove_all_status::exception_thrown:{
+                                        // an exception was thrown and handled within sfct_api::remove_all()
+                                        // the exception info will be displayed in the console by sfct_api::remove_all().
+                                        
+                                        // we want to make sure to erase entry only if entry.dst has been removed
+                                        // in this case it most likely has not been removed because an exception usually indicates
+                                        // a problem with removal. entry.dst can only be removed if all its contents
+                                        // (sub-directories and file entries) are completely deleted.
+                                        if(!sfct_api::exists(entry.dst)){
+                                            // we want to erase the main directory entry 
+                                            // entry may or may not be present in m_all_seen_entries
+                                            // this is okay since erase() function can handle it
+                                            m_all_seen_entries.erase(entry);
+                                        
+                                            // entry may or may not be present
+                                            m_all_seen_main_directory_entries.erase(entry);
+                                        }
+                                        
+                                        // since we do not know which files have been removed because the operation
+                                        // threw an exception. We must check and erase only if they no longer exist.
+                                        for(const auto& temp_entry:temp_to_be_removed){
+                                            if(!sfct_api::exists(temp_entry.dst)){
+                                                m_all_seen_entries.erase(temp_entry);
+                                            }
+                                        }
+
+                                        // send info to the user indicating that an attempt was made to remove the directory along with 
+                                        // the number of file entries that were removed
+                                        sfct_api::to_console(App_MESSAGE("Attempted to remove directory but an exception occurred "),entry.dst,_rae.files_removed);
+
                                         break;
+                                    }
                                     case remove_all_ext::remove_all_status::invalid_directory:{
                                         // directory was removed by the user and does not exist
                                         // or the entry is not a directory. The latter is only possible if
@@ -1097,11 +1170,19 @@ namespace application{
 
                                         // now we have the problem of m_all_seen_entries having entries that don't
                                         // exist, one solution is to check m_all_seen_entries and erase any entries that don't exist
-                                        
+                                        for(auto it = m_all_seen_entries.begin(); it != m_all_seen_entries.end(); /* no increment here */) {
+                                            if(!sfct_api::exists(it->dst)) {
+                                                it = m_all_seen_entries.erase(it);
+                                            } else {
+                                                ++it;
+                                            }
+                                        }
 
                                         break;
                                     }
                                     case remove_all_ext::remove_all_status::removal_success:{
+                                        // everything went according to plan
+                                        
                                         // we want to erase the main directory entry 
                                         // entry may or may not be present in m_all_seen_entries
                                         // this is okay since erase() function can handle it
@@ -1126,33 +1207,36 @@ namespace application{
                                 }
                             }
                             
-
-
                             break;
                         }
                         case std::filesystem::file_type::symlink:{
-                            sfct_api::remove_entry(entry.dst);
-                            m_all_seen_entries.erase(entry);
+                            if(sfct_api::remove_entry(entry.dst).s == application::remove_file_ext::remove_file_status::removal_success){
+                                m_all_seen_entries.erase(entry);
+                            }
                             break;
                         }
                         case std::filesystem::file_type::block:{
-                            sfct_api::remove_entry(entry.dst);
-                            m_all_seen_entries.erase(entry);
+                            if(sfct_api::remove_entry(entry.dst).s == application::remove_file_ext::remove_file_status::removal_success){
+                                m_all_seen_entries.erase(entry);
+                            }
                             break;
                         }
                         case std::filesystem::file_type::character:{
-                            sfct_api::remove_entry(entry.dst);
-                            m_all_seen_entries.erase(entry);
+                            if(sfct_api::remove_entry(entry.dst).s == application::remove_file_ext::remove_file_status::removal_success){
+                                m_all_seen_entries.erase(entry);
+                            }
                             break;
                         }
                         case std::filesystem::file_type::fifo:{
-                            sfct_api::remove_entry(entry.dst);
-                            m_all_seen_entries.erase(entry);
+                            if(sfct_api::remove_entry(entry.dst).s == application::remove_file_ext::remove_file_status::removal_success){
+                                m_all_seen_entries.erase(entry);
+                            }
                             break;
                         }
                         case std::filesystem::file_type::socket:{
-                            sfct_api::remove_entry(entry.dst);
-                            m_all_seen_entries.erase(entry);
+                            if(sfct_api::remove_entry(entry.dst).s == application::remove_file_ext::remove_file_status::removal_success){
+                                m_all_seen_entries.erase(entry);
+                            }
                             break;
                         }
                         case std::filesystem::file_type::unknown:
@@ -1166,9 +1250,14 @@ namespace application{
                 }
                 case file_queue_status::rename_old:{
                     
+                    // this is dependant on the DirectorySignal class and the windows api to process
+                    // rename notfications with the old name first and then the new name 
+                    // as the next notification. Anything different and the rename operations
+                    // will fail.
                     try{
                         // if this fails not much can be done
-                        // other than skip it
+                        // other than skip it but I think the whole program
+                        // is doomed if a copy operation throws an exception
                         m_rename_old = entry.dst;
                     }
                     catch (const std::filesystem::filesystem_error& e) {
@@ -1182,12 +1271,21 @@ namespace application{
                     }
                     catch (const std::exception& e) {
                         std::cerr << "Standard exception: " << e.what() << "\n";
-                    } catch (...) {
+                    } 
+                    catch (...) {
                         std::cerr << "Unknown exception caught \n";
                     }
                     break;
                 }
                 case file_queue_status::rename_new:{
+                    
+                    // a rename operation changes the entry path which causes a newly renamed added file within the same buffer zone
+                    // (the time before processing begins when entries are added to the queue buffer) to skip the file_added entry. 
+                    // This causes the problem of the newly added file entry getting processed before the rename operation entry and at this
+                    // point the file has a different name so its considered non-existent on the file system and is skipped. 
+                    // To mitigate this we check if the entry.dst exists if it does not exist we create a file_added entry and recursively process it. 
+                    // Then after that, the rename operation can be called and successfully rename the file. 
+
                     if(!sfct_api::exists(entry.dst)){
                         
                         file_queue_info _file_info;
@@ -1209,11 +1307,10 @@ namespace application{
                         }
                         catch (const std::exception& e) {
                             std::cerr << "Standard exception: " << e.what() << "\n";
-                        } catch (...) {
+                        } 
+                        catch (...) {
                             std::cerr << "Unknown exception caught \n";
                         }
-                        
-                        
                         
                         process_entry(_file_info);
                     }

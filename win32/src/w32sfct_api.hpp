@@ -383,8 +383,9 @@ namespace sfct_api{
     application::remove_all_ext remove_all(path dir) noexcept;
     
     /// @brief wrapper for ext::remove_entry(). Removes a file or entry given a path.
-    /// @param entry path must exist on the system
-    /// @return ext::remove_entry(): true for removal and false for no removal. False if path does not exist on the system.
+    /// @param entry path must exist on the system. If entry is a directory and the directory is not empty
+    /// the function will fail with an error code. Use remove_all() for non empty directories.
+    /// @return an application::remove_file_ext object defined in w32obj.hpp.
     application::remove_file_ext remove_entry(path entry) noexcept;
 
     /// @brief wrapper for ext::copy_symlink(). Copies the target file that sym_link points to, to dst.
