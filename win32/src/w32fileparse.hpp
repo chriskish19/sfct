@@ -24,16 +24,16 @@ namespace application{
         /// @brief default destructor
         ~FileParse()= default;
         
-        /// @brief Copy constructor
+        /// @brief delete the Copy constructor
         FileParse(const FileParse&) = delete;
 
-        /// @brief Copy assignment operator
+        /// @brief delete the Copy assignment operator
         FileParse& operator=(const FileParse&) = delete;
 
-        /// @brief Move constructor
+        /// @brief delete the Move constructor
         FileParse(FileParse&&) = delete;
 
-        /// @brief Move assignment operator
+        /// @brief delete the Move assignment operator
         FileParse& operator=(FileParse&&) = delete;
 
         /// @brief use this constructor if you need to use a file not in the current working directory

@@ -20,22 +20,18 @@ application::logger::logger(const std::error_code &ec, Error type, const std::fi
         mMessage += ws_error_message + filepath.wstring();
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -48,23 +44,16 @@ application::logger::logger(const std::wstring &s, Error type, const std::source
     try{
         mMessage += L" Message: " + s;
     }
-    catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
-        std::cerr << "Filesystem error: " << e.what() << "\n";
-    }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -97,23 +86,16 @@ application::logger::logger(Error type, const std::source_location& location, DW
         // mMessage is timestamped and has error type now add win32error and location to the end
         mMessage += win32error_str;
     }
-    catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
-        std::cerr << "Filesystem error: " << e.what() << "\n";
-    }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -128,23 +110,16 @@ void application::logger::to_console() const noexcept{
             std::wcout << "\n";
         }
     }
-    catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
-        std::cerr << "Filesystem error: " << e.what() << "\n";
-    }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -165,28 +140,21 @@ void application::logger::to_log_file() const noexcept{
         // attempt to write mMessage to the log.txt file
         logFile << mMessage << std::endl;
     }
-    catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
-        std::cerr << "Filesystem error: " << e.what() << "\n";
-    }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 
 
-    // if it fails to write mMessage to log.txt, log the fail to the console and output window
+    // if it fails to write mMessage to log.txt, log the fail to the console
     if(logFile.fail()) {
         std::wcout << L"failed to write to log file" << std::endl;
     }
@@ -202,23 +170,16 @@ void application::logger::initErrorType() noexcept {
             default: { mMessage = L"[UNKNOWN]" + mMessage; } break;
         }
     }
-    catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
-        std::cerr << "Filesystem error: " << e.what() << "\n";
-    }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -241,22 +202,18 @@ application::logger::logger(const std::wstring& s,Error type,const std::filesyst
         mMessage += filepath.wstring();
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -269,23 +226,16 @@ void application::logger::time_stamp() noexcept{
         // add the time to the message
         mMessage = std::format(L"[{:%F %T}] {}", clock, mMessage);
     }
-    catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
-        std::cerr << "Filesystem error: " << e.what() << "\n";
-    }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -302,23 +252,16 @@ void application::logger::location_stamp() noexcept{
 
         mMessage += std::format(L"File: {} Line: {} Function: {}",w_file_name,w_line,w_function_name);
     }
-    catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
-        std::cerr << "Filesystem error: " << e.what() << "\n";
-    }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }

@@ -26,30 +26,37 @@ namespace application{
         semi_colon = 1 << 13,   // 8192
         benchmark = 1 << 14,    // 16384
         create = 1 << 15,       // 32768
-        four_k = 1 << 16,
-        fast = 1 << 17
+        four_k = 1 << 16,       // 65536
+        fast = 1 << 17          // 131072
     };
-    using cs = cherry_script;
 
+    using cs = cherry_script;       // Alias for cherry_script for convenience.
+
+    // Overload bitwise OR operator to combine cherry_script flags.
     inline cs operator|(cs a, cs b) {
         return static_cast<cs>(static_cast<int>(a) | static_cast<int>(b));
     }
 
+    // Overload bitwise AND operator to intersect cherry_script flags.
     inline cs operator&(cs a, cs b) {
         return static_cast<cs>(static_cast<int>(a) & static_cast<int>(b));
     }
+
+    // Overload bitwise OR assignment operator to update cherry_script flags by combining them.
     inline cs& operator|=(cs& a, cs b) {
         return a = a | b;
     }
 
+    // Defines a class to map string arguments to their corresponding cherry_script enum values.
     class args_maps{
     public:
+        // Find the enum value corresponding to a string command argument.
         std::optional<cs> Find(const std::string& arg){
-            auto command_arg = m_command_mp.find(arg);
-            if(command_arg != m_command_mp.end()){
-                return std::optional<cs>(command_arg->second);
+            auto command_arg = m_command_mp.find(arg);          // Search for the argument in the map.
+            if(command_arg != m_command_mp.end()){              // If found, return the associated enum value.
+                return std::optional<cs>(command_arg->second);  
             }
-            return std::nullopt;
+            return std::nullopt;                                // If not found, return an empty optional.
         }
 
     private:
