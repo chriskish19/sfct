@@ -243,7 +243,9 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
     // keeps track of all the files created so we can clean them up
     std::vector<STRING> filenames;
 
-    try{
+    // if the code in the try block throws an exception(any exception) we delete any created files
+    // and return the function back to the caller
+    try{ 
         // attempt to create filesCount number of files for speed testing
         for(std::uintmax_t i{};i<filesCount;i++){
             // create a unique file name for each file
@@ -322,25 +324,21 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
         }
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
 
-        // slower but safer than using remove_all
+        // clean up any files that were created
         for(const auto& filename:filenames){
-            // clean up files
             sfct_api::remove_entry(dir.source/filename);
             sfct_api::remove_entry(dir.destination/filename);
         }
-
+        
+        // exit
         return;
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
 
-        // slower but safer than using remove_all
         for(const auto& filename:filenames){
-            // clean up files
             sfct_api::remove_entry(dir.source/filename);
             sfct_api::remove_entry(dir.destination/filename);
         }
@@ -348,12 +346,9 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
         return;
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
 
-        // slower but safer than using remove_all
         for(const auto& filename:filenames){
-            // clean up files
             sfct_api::remove_entry(dir.source/filename);
             sfct_api::remove_entry(dir.destination/filename);
         }
@@ -361,25 +356,20 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
         return;
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
 
-        // slower but safer than using remove_all
         for(const auto& filename:filenames){
-            // clean up files
             sfct_api::remove_entry(dir.source/filename);
             sfct_api::remove_entry(dir.destination/filename);
         }
 
         return;
 
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
 
-        // slower but safer than using remove_all
         for(const auto& filename:filenames){
-            // clean up files
             sfct_api::remove_entry(dir.source/filename);
             sfct_api::remove_entry(dir.destination/filename);
         }
@@ -387,23 +377,28 @@ void application::benchmark::speed_test_4k(const copyto &dir, std::uintmax_t fil
         return;
     }
 
-    // start the clock
+    // create a benchmark object for speed testing
     benchmark test;
+
+    // start the timer
     test.start_clock();
 
+    // this will copy the entire directory source to destination
+    // it could be a problem if the directory contains file entries in it
+    // that are not part of the test
     sfct_api::copy_entry(dir.source,dir.destination,dir.co);
     
     // stop the timer
     test.end_clock();
 
-    // speed in MB/s
+    // get the speed in MB/s
     double_t speed = test.speed(bytes);
 
+    // inform the user of transfer speed
     STDOUT << App_MESSAGE("Speed in MB/s: ") << TOSTRING(speed) << "\n";
 
-    // slower but safer than using remove_all
+    // clean up the created files
     for(const auto& filename:filenames){
-        // clean up files
         sfct_api::remove_entry(dir.source/filename);
         sfct_api::remove_entry(dir.destination/filename);
     }

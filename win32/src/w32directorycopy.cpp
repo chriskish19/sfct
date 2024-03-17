@@ -5,30 +5,25 @@ application::directory_copy::directory_copy(std::shared_ptr<std::vector<copyto>>
 {
     try{
         if(!dirs){
+            // log the error to the console
             logger log(App_MESSAGE("nullptr"),Error::FATAL);
             log.to_console();
             log.to_log_file();
+
             // make a blank object so directory copy can exit safely
             m_dirs = std::make_shared<std::vector<copyto>>();
         }
     }
-    catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
-        std::cerr << "Filesystem error: " << e.what() << "\n";
-    }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
