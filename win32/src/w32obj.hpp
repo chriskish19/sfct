@@ -24,9 +24,16 @@ namespace application{
 
     inline bool copyto_comparison(const copyto& a, const copyto& b){
         // Define ordering for copyto objects
-        if (a.source != b.source) return a.source < b.source;
-        if (a.destination != b.destination) return a.destination < b.destination;
-        if (a.commands != b.commands) return a.commands < b.commands;
+        if (a.source != b.source) {
+            return a.source < b.source;
+        }
+        if (a.destination != b.destination) {
+            return a.destination < b.destination;
+        }
+        if (a.commands != b.commands) {
+            return a.commands < b.commands;
+        }
+            
         return a.co < b.co;
     }
 
@@ -72,8 +79,9 @@ namespace application{
         std::error_code e;                  // error code
     };
 
+    // sets the status of a file entry
     enum class file_queue_status{
-        file_added,
+        file_added,                         
         file_updated,
         file_removed,
         directory_added,
@@ -87,6 +95,7 @@ namespace application{
         none
     };
 
+    // is a file entry object
     struct file_queue_info{
         std::filesystem::path src,dst,main_src,main_dst;
         std::filesystem::copy_options co;
@@ -136,6 +145,7 @@ namespace application{
         std::error_code e;                      // error code
     };
 
+    // used in the remove_all() function in sfct_api
     struct remove_all_ext{
         enum class remove_all_status{
             removal_success,
@@ -149,6 +159,7 @@ namespace application{
         remove_all_status s;                    // state/status of the removal operation                 
     };
 
+    // used to check whether a directory has entries or not
     struct is_directory_empty_ext{
         enum class directory_status{
             invalid_directory,
@@ -162,6 +173,7 @@ namespace application{
 }
 
 // used in queue_system.hpp to tell the difference between two file_queue_info objects
+// in a set or map
 namespace std {
     template<>
     struct hash<application::file_queue_info> {

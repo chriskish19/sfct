@@ -8,6 +8,7 @@
 #include "w32benchmark.hpp"
 #include "w32constants.hpp"
 #include "w32directorycopy.hpp"
+#include "w32specific_api.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // This header is responsible for the main object used to run the program.              //

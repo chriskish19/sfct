@@ -3,7 +3,8 @@
 #include "w32logger.hpp"
 #include "w32appmacros.hpp"
 #include <windows.h>
-
+#include <fcntl.h>
+#include <io.h>
 
 /////////////////////////////////////////////////////////////////////////////////
 // This header contains windows specific functions                             //
@@ -16,4 +17,7 @@ namespace Windows{
     /// @param dst any path
     /// @return true if successful copy operation, false if there was an error
     bool FastCopy(const std::filesystem::path src, const std::filesystem::path dst) noexcept;
+
+    /// @brief sets the console to handle utf16 characters
+    void set_console_mode();
 }

@@ -37,6 +37,14 @@ namespace application{
         /// @brief regular copy the directories
         void copy() noexcept;
     private:
+        /// @brief call this in the constructor, it initializes the directory_copy class.
+        /// @return boolean indicating success or error.
+        bool initialize_dc() noexcept;
+
+        /// @brief return value for initialize_dc() function
+        bool m_init_success{false};
+
+        /// @brief the directories to copy or fast_copy
         std::shared_ptr<std::vector<copyto>> m_dirs;
     };
 }

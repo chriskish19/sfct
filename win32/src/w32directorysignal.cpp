@@ -81,7 +81,6 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
         }
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
 
         // if an exception is thrown in the constructor
@@ -91,43 +90,20 @@ application::DirectorySignal::DirectorySignal(std::shared_ptr<std::vector<copyto
         no_watch = true;
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
-
-        // if an exception is thrown in the constructor
-        // we do not want to attempt to call the monitor() function
-        // as it would be undefined behaviour since the DirectorySignal object would be
-        // malformed so to speak
         no_watch = true;
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
-
-        // if an exception is thrown in the constructor
-        // we do not want to attempt to call the monitor() function
-        // as it would be undefined behaviour since the DirectorySignal object would be
-        // malformed so to speak
         no_watch = true;
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-
-        // if an exception is thrown in the constructor
-        // we do not want to attempt to call the monitor() function
-        // as it would be undefined behaviour since the DirectorySignal object would be
-        // malformed so to speak
         no_watch = true;
 
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
-
-        // if an exception is thrown in the constructor
-        // we do not want to attempt to call the monitor() function
-        // as it would be undefined behaviour since the DirectorySignal object would be
-        // malformed so to speak
         no_watch = true;
     }
 
@@ -220,10 +196,17 @@ void application::DirectorySignal::monitor() noexcept{
         timer_thread.join();
     }
 
-    
+
+    // exit the queue system
     m_queue_processor.exit();
+
+    // check if q_sys_thread can be joined
     if(q_sys_thread.joinable()){
+        // notify the thread in the process() function if its waiting
+        // that its ime to exit
         m_queue_processor.m_local_thread_cv.notify_one();
+
+        // join the q_sys_thread
         q_sys_thread.join();
     }
 }
@@ -240,19 +223,79 @@ bool application::DirectorySignal::Overflow(DWORD bytes_returned) noexcept
 void application::DirectorySignal::UpdateWatcher(DS_resources* p_monitor) noexcept
 {
     if(!ReadDirectoryChangesW(
-            p_monitor->m_hDir, 
-            &p_monitor->m_buffer, 
-            sizeof(p_monitor->m_buffer), 
-            sfct_api::recursive_flag_check(p_monitor->directory.commands), // watch subtree
-            m_NotifyFilter,
-            NULL, 
-            &p_monitor->m_ol, 
-            NULL)){
+            p_monitor->m_hDir,                                              // handle to the monitored directory
+            &p_monitor->m_buffer,                                           // pointer to the monitoring buffer
+            MonitorBuffer,                                                  // size of the monitoring buffer in bytes
+            sfct_api::recursive_flag_check(p_monitor->directory.commands),  // watch subtree
+            m_NotifyFilter,                                                 // flags used for monitoring
+            NULL,                                                           // a pointer to a variable that receives the size of the read results, in bytes.
+            &p_monitor->m_ol,                                               // a pointer to an OVERLAPPED structure
+            NULL)){                                                         // a pointer to the completion routine
+                // if ReadDirectoryChanges fails, log the windows error.
                 logger log(Error::WARNING);
                 log.to_console();
                 log.to_log_file();
                 log.to_output();
             }
+
+
+    // For a complete description of ReadDirectoryChanges() parameters:
+
+    /*
+        hDirectory:
+        Type: HANDLE
+        A handle to the directory to be monitored. 
+        This directory handle must be opened with the FILE_LIST_DIRECTORY access right.
+
+    lpBuffer:
+        Type: LPVOID
+        A pointer to the buffer that receives the read results. 
+        The read results are returned as an array of FILE_NOTIFY_INFORMATION structures.
+
+    nBufferLength:
+        Type: DWORD
+        The size of the buffer pointed to by lpBuffer, in bytes.
+
+    bWatchSubtree:
+        Type: BOOL
+        Specifies whether to monitor the directory or the directory and its subdirectories. 
+        If this parameter is TRUE, the function monitors the directory and all its subdirectories. 
+        If it is FALSE, it monitors only the directory.
+
+    dwNotifyFilter:
+        Type: DWORD
+        The filter criteria that the function checks to determine if the wait operation has completed. 
+        This parameter can be one or more of the following values:
+            FILE_NOTIFY_CHANGE_FILE_NAME
+            FILE_NOTIFY_CHANGE_DIR_NAME
+            FILE_NOTIFY_CHANGE_ATTRIBUTES
+            FILE_NOTIFY_CHANGE_SIZE
+            FILE_NOTIFY_CHANGE_LAST_WRITE
+            FILE_NOTIFY_CHANGE_LAST_ACCESS
+            FILE_NOTIFY_CHANGE_CREATION
+            FILE_NOTIFY_CHANGE_SECURITY
+        These flags can be combined using the OR operator to specify multiple filter criteria.
+
+    lpBytesReturned:
+        Type: LPDWORD
+        A pointer to a variable that receives the size of the read results, in bytes.
+
+    lpOverlapped:
+        Type: LPOVERLAPPED
+        A pointer to an OVERLAPPED structure. 
+        If the hDirectory handle is opened with FILE_FLAG_OVERLAPPED, lpOverlapped must not be NULL. 
+        It can be NULL only if the hDirectory handle is created without specifying FILE_FLAG_OVERLAPPED.
+
+    lpCompletionRoutine:
+        Type: LPOVERLAPPED_COMPLETION_ROUTINE
+        A pointer to the completion routine to be called when the read operation is completed and the calling thread is in an alertable wait state. 
+        This parameter is optional and can be NULL.
+
+    The ReadDirectoryChangesW function allows for asynchronous notifications of directory changes, 
+    making it possible to monitor directory changes without polling. 
+    It is crucial to manage the memory for lpBuffer correctly, as this buffer will be filled with change information by the system.
+    
+    */
 }
 
 void application::DirectorySignal::ProcessDirectoryChanges(FILE_NOTIFY_INFORMATION *pNotify,DS_resources* pMonitor) noexcept

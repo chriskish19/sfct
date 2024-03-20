@@ -6,23 +6,16 @@ void application::TM::join_all() noexcept{
             try{
                 t.join();
             }
-            catch (const std::filesystem::filesystem_error& e) {
-                // Handle filesystem related errors
-                std::cerr << "Filesystem error: " << e.what() << "\n";
-            }
             catch(const std::runtime_error& e){
-                // the error message
                 std::cerr << e.what() << "\n";
             }
             catch(const std::bad_alloc& e){
-                // the error message
                 std::cerr << e.what() << "\n";
             }
             catch (const std::exception& e) {
-                // Catch other standard exceptions
                 std::cerr << "Standard exception: " << e.what() << "\n";
-            } catch (...) {
-                // Catch any other exceptions
+            } 
+            catch (...) {
                 std::cerr << "Unknown exception caught \n";
             }
 
@@ -80,23 +73,16 @@ bool application::TM::join_one() noexcept{
         try{
             m_Threads.front().join();  // Join the oldest thread
         }
-        catch (const std::filesystem::filesystem_error& e) {
-            // Handle filesystem related errors
-            std::cerr << "Filesystem error: " << e.what() << "\n";
-        }
         catch(const std::runtime_error& e){
-            // the error message
             std::cerr << e.what() << "\n";
         }
         catch(const std::bad_alloc& e){
-            // the error message
             std::cerr << e.what() << "\n";
         }
         catch (const std::exception& e) {
-            // Catch other standard exceptions
             std::cerr << "Standard exception: " << e.what() << "\n";
-        } catch (...) {
-            // Catch any other exceptions
+        } 
+        catch (...) {
             std::cerr << "Unknown exception caught \n";
         }
         

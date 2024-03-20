@@ -35,19 +35,19 @@ namespace application{
     // simple logger class that handles writing to a log file and posting messages
     class logger{
     public:
-        // default destructor
+        /// @brief default destructor
         ~logger()= default;
         
-        // Copy constructor
+        /// @brief delete the Copy constructor
         logger(const logger&) = delete;
 
-        // Copy assignment operator
+        /// @brief delete Copy assignment operator
         logger& operator=(const logger&) = delete;
 
-        // Move constructor
+        /// @brief delete the Move constructor
         logger(logger&&) = delete;
 
-        // Move assignment operator
+        /// @brief delete Move assignment operator
         logger& operator=(logger&&) = delete;
 
         /// @brief logger constructor that takes an std::error_code, filepath, and location

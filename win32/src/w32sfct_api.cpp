@@ -126,32 +126,23 @@ bool sfct_api::create_directory_tree(path src, path dst) noexcept
         return true;
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return false;
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";	
 		return false;
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return false;
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return false;
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
-
 		return false;
 	}
 }
@@ -308,22 +299,18 @@ void sfct_api::output_entry_to_console(const fs::directory_entry &entry,const si
         }
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -344,22 +331,18 @@ void sfct_api::output_path_to_console(path p, const size_t prev_p_length) noexce
         }
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -702,22 +685,18 @@ void sfct_api::to_console(const STRING& message,path p) noexcept
         }
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
@@ -854,32 +833,23 @@ std::optional<application::path_ext> sfct_api::ext::private_current_path() noexc
         return _p;
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";	
 		return std::nullopt;
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return std::nullopt;
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
-
 		return std::nullopt;
 	}
 }
@@ -1034,32 +1004,23 @@ std::optional<bool> sfct_api::ext::create_directory_paths(path dir) noexcept
         return false;
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";	
 		return std::nullopt;
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return std::nullopt;
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
-
 		return std::nullopt;
 	}
 }
@@ -1246,32 +1207,23 @@ bool sfct_api::ext::is_entry_in_transit(path entry) noexcept
         }
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return false;
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";		
 		return false;
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return false;
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return false;
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
-
 		return false;
 	}
 }
@@ -1288,22 +1240,18 @@ void sfct_api::ext::copy_entry(path src, path dst, fs::copy_options co) noexcept
         }
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
 	}
 	catch(const std::runtime_error& e){
-		// the error message
 		std::cerr << "Runtime error :" << e.what() << "\n";
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
 	}
 }
@@ -1363,32 +1311,23 @@ std::optional<std::shared_ptr<std::unordered_map<sfct_api::fs::path,sfct_api::fs
         }
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";		
 		return std::nullopt;
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return std::nullopt;
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
-
 		return std::nullopt;
 	}
     
@@ -1437,32 +1376,23 @@ application::directory_info sfct_api::ext::get_directory_info(const application:
         }
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return application::directory_info{};
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";	
 		return application::directory_info{};
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return application::directory_info{};
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return application::directory_info{};
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
-
 		return application::directory_info{};
 	}
 }
@@ -1510,32 +1440,23 @@ std::optional<application::copy_sym_ext> sfct_api::ext::private_read_symlink(pat
         return _cs;
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";	
 		return std::nullopt;
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return std::nullopt;
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
-
 		return std::nullopt;
 	}
 }
@@ -1552,32 +1473,23 @@ bool sfct_api::ext::private_open_file(path filepath) noexcept
         return false;
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return false;
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";		
 		return false;
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return false;
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return false;
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
-
 		return false;
 	}
 }
@@ -1590,33 +1502,23 @@ std::optional<application::remove_all_ext> sfct_api::ext::private_remove_all(pat
         return _rfe;
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";		
 		return std::nullopt;
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return std::nullopt;
 	} 
     catch (...) {
-		// Catch any other exceptions
 		std::cerr << "Unknown exception caught \n";
-
 		return std::nullopt;
 	}
 }
@@ -1636,32 +1538,23 @@ std::optional<application::path_ext> sfct_api::ext::private_get_relative_path(pa
         return _p;
 	}
 	catch (const std::filesystem::filesystem_error& e) {
-		// Handle filesystem related errors
 		std::cerr << "Filesystem error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch(const std::runtime_error& e){
-		// the error message
-		std::cerr << "Runtime error :" << e.what() << "\n";
-		
+		std::cerr << "Runtime error :" << e.what() << "\n";		
 		return std::nullopt;
 	}
 	catch(const std::bad_alloc& e){
-		// the error message
 		std::cerr << "Allocation error: " << e.what() << "\n";
-
 		return std::nullopt;
 	}
 	catch (const std::exception& e) {
-		// Catch other standard exceptions
 		std::cerr << "Standard exception: " << e.what() << "\n";
-
 		return std::nullopt;
-	} catch (...) {
-		// Catch any other exceptions
+	} 
+    catch (...) {
 		std::cerr << "Unknown exception caught \n";
-
 		return std::nullopt;
 	}
 }

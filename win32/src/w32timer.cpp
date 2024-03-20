@@ -55,7 +55,8 @@ void application::timer::notify_timer(double_t seconds_until_notify, std::atomic
         catch (const std::exception& e) {
             std::cerr << "Standard exception: " << e.what() << "\n";
             m_running = false; // exit
-        } catch (...) {
+        } 
+        catch (...) {
             std::cerr << "Unknown exception caught \n";
             m_running = false; // exit
         }

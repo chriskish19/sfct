@@ -26,42 +26,28 @@ void application::FileParse::ExtractData() noexcept{
         ParseSyntax();
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
-
         m_DataExtracted = false;
-
         return;
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
-
         m_DataExtracted = false;
-
         return;
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: " << e.what() << "\n";
-
         m_DataExtracted = false;
-
         return;
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-
         m_DataExtracted = false;
-
         return;
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
-
         m_DataExtracted = false;
-
         return;
     }
 
@@ -99,32 +85,23 @@ bool application::FileParse::OpenFile() noexcept{
         return true;
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
-
         return false;
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
-
         return false;
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: "<< e.what() << "\n";
-
         return false;
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-
         return false;
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
-
         return false;
     }
 }
@@ -138,25 +115,20 @@ application::FileParse::FileParse(const std::string& filename) noexcept{
         m_FilePath/=filename;
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: "<< e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
-
 
     // check if the file exists
     m_FileExists = sfct_api::exists(m_FilePath);
@@ -190,53 +162,28 @@ void application::FileParse::SetFilePath(const std::filesystem::path& new_path) 
         }
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: "<< e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
 
 void application::FileParse::CheckData() noexcept{
-    try{
-        if(!m_DataExtracted){
-            logger log(App_MESSAGE("Data has not been extracted, you need to call ExtractData() before calling CheckData()"),Error::DEBUG);
-            log.to_console();
-            log.to_log_file();
-            return;
-        }
-    }
-    catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
-        std::cerr << "Filesystem error: " << e.what() << "\n";
-    }
-    catch(const std::runtime_error& e){
-        // the error message
-        std::cerr << "Runtime error: " << e.what() << "\n";
-    }
-    catch(const std::bad_alloc& e){
-        // the error message
-        std::cerr << "Allocation error: "<< e.what() << "\n";
-    }
-    catch (const std::exception& e) {
-        // Catch other standard exceptions
-        std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
-        std::cerr << "Unknown exception caught \n";
+    if(!m_DataExtracted){
+        logger log(App_MESSAGE("Data has not been extracted, you need to call ExtractData() before calling CheckData()"),Error::DEBUG);
+        log.to_console();
+        log.to_log_file();
+        return;
     }
 
     CheckDirectories();
@@ -299,38 +246,15 @@ void application::FileParse::CheckDirectories() noexcept{
             sfct_api::create_directory_paths(it->destination);
         }
         
-        
-        
         if(!sfct_api::exists(it->source) || 
         !sfct_api::exists(it->destination) || 
         !ValidCommands(it->commands) ||
         it->source == it->destination){
 
-            try{
-                logger log(App_MESSAGE("Invalid entry"),Error::WARNING,it->source);
-                log.to_console();
-                log.to_log_file();
-            }
-            catch (const std::filesystem::filesystem_error& e) {
-                // Handle filesystem related errors
-                std::cerr << "Filesystem error: " << e.what() << "\n";
-            }
-            catch(const std::runtime_error& e){
-                // the error message
-                std::cerr << "Runtime error: " << e.what() << "\n";
-            }
-            catch(const std::bad_alloc& e){
-                // the error message
-                std::cerr << "Allocation error: "<< e.what() << "\n";
-            }
-            catch (const std::exception& e) {
-                // Catch other standard exceptions
-                std::cerr << "Standard exception: " << e.what() << "\n";
-            } catch (...) {
-                // Catch any other exceptions
-                std::cerr << "Unknown exception caught \n";
-            }
-
+            logger log(App_MESSAGE("Invalid entry"),Error::WARNING,it->source);
+            log.to_console();
+            log.to_log_file();
+            
             it = m_Data->erase(it);
         }
         else{
@@ -353,22 +277,18 @@ void application::FileParse::CheckDirectories() noexcept{
         }
     }
     catch (const std::filesystem::filesystem_error& e) {
-        // Handle filesystem related errors
         std::cerr << "Filesystem error: " << e.what() << "\n";
     }
     catch(const std::runtime_error& e){
-        // the error message
         std::cerr << "Runtime error: " << e.what() << "\n";
     }
     catch(const std::bad_alloc& e){
-        // the error message
         std::cerr << "Allocation error: "<< e.what() << "\n";
     }
     catch (const std::exception& e) {
-        // Catch other standard exceptions
         std::cerr << "Standard exception: " << e.what() << "\n";
-    } catch (...) {
-        // Catch any other exceptions
+    } 
+    catch (...) {
         std::cerr << "Unknown exception caught \n";
     }
 }
