@@ -25,7 +25,7 @@ namespace application{
 
     // code for outputting to a log file
     // the file will be created in the current working directory and is called "Applog.txt"
-    inline OFSTREAM logFile{sfct_api::get_current_path()/"Applog.txt",std::ios::out};
+    inline OFSTREAM logFile{std::filesystem::current_path()/"Applog.txt",std::ios::out};
     inline std::mutex logfile_mtx;
 
 /////////////////////////////////////
