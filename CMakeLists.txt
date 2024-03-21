@@ -10,25 +10,36 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # Conditionally add the OS specific source files
+
 # windows
 if(WIN32)
     # Add the win32 source files here
-    set(SOURCE_FILES    win32/src/w32main.cpp
-                        win32/src/w32tm.cpp
-                        win32/src/w32logger.cpp
-                        win32/src/w32fileparse.cpp
-                        win32/src/w32directorysignal.cpp
-                        win32/src/w32consoletm.cpp
-                        win32/src/w32consoleapp.cpp
-                        win32/src/w32benchmark.cpp
-                        win32/src/w32sfct_api.cpp
-                        win32/src/w32timer.cpp
-                        win32/src/w32directorycopy.cpp
-                        win32/src/w32specific_api.cpp
-                        win32/src/w32cpplib.cpp)
+    set(SOURCE_FILES    # main app src files
+                        win32/main_app/src/w32main.cpp
+                        win32/main_app/src/w32tm.cpp
+                        win32/main_app/src/w32logger.cpp
+                        win32/main_app/src/w32fileparse.cpp
+                        win32/main_app/src/w32directorysignal.cpp
+                        win32/main_app/src/w32consoletm.cpp
+                        win32/main_app/src/w32consoleapp.cpp
+                        win32/main_app/src/w32benchmark.cpp
+                        win32/main_app/src/w32sfct_api.cpp
+                        win32/main_app/src/w32timer.cpp
+                        win32/main_app/src/w32directorycopy.cpp
+                        win32/main_app/src/w32specific_api.cpp
+                        win32/main_app/src/w32cpplib.cpp
+                        
+                        # mgui src files
+                        win32/mgui/src/mgui_button.cpp)
 
 
     add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+
+    # main app includes
+    include_directories(win32/main_app/includes)
+
+    # mgui includes
+    include_directories(win32/mgui/includes)
 
     # Link against the Direct2D library
     target_link_libraries(${PROJECT_NAME} d2d1)
