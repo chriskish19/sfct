@@ -30,16 +30,25 @@ if(WIN32)
                         win32/main_app/src/w32cpplib.cpp
                         
                         # mgui src files
-                        win32/mgui/src/mgui_button.cpp)
+                        win32/mgui/src/mgui_box_button.cpp
+                        
+                        # WindowMTSystem src files
+                        win32/WindowMTSystem/src/iWindow.cpp
+                        win32/WindowMTSystem/src/WindowDimensions.cpp
+                        win32/WindowMTSystem/src/WindowResources.cpp)
 
-
-    add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
     # main app includes
     include_directories(win32/main_app/includes)
 
     # mgui includes
     include_directories(win32/mgui/includes)
+
+    # WindowMTSystem includes
+    include_directories(win32/WindowMTSystem/includes)
+
+
+    add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
     # Link against the Direct2D library
     target_link_libraries(${PROJECT_NAME} d2d1)
