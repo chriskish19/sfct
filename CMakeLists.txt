@@ -31,6 +31,11 @@ if(WIN32)
                         
                         # mgui src files
                         win32/mgui/src/mgui_box_button.cpp
+                        win32/mgui/src/mgui_box_element.cpp
+                        win32/mgui/src/mgui_d2d1_init.cpp 
+                        win32/mgui/src/mgui_round_element.cpp 
+                        win32/mgui/src/mgui_element.cpp 
+                        win32/mgui/src/mgui_direct_write.cpp 
                         
                         # WindowMTSystem src files
                         win32/WindowMTSystem/src/iWindow.cpp

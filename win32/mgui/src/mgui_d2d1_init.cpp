@@ -8,11 +8,11 @@ mgui::d2d1_init::d2d1_init(HWND WindowHandle)
     // Create render target
     RECT rc;
     GetClientRect(WindowHandle, &rc);
-    pFactory->CreateHwndRenderTarget(
+    m_pFactory->CreateHwndRenderTarget(
         D2D1::RenderTargetProperties(),
         D2D1::HwndRenderTargetProperties(
             WindowHandle,
-            D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top)
+            D2D1::SizeU(static_cast<UINT>(rc.right - rc.left), static_cast<UINT>(rc.bottom - rc.top))
         ),
         &m_pRenderTarget
     );

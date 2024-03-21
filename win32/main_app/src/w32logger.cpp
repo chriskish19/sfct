@@ -124,7 +124,42 @@ void application::logger::to_console() const noexcept{
     }
 }
 
-void application::logger::to_output() const noexcept{
+application::logger::logger(Error type, HRESULT hr, const std::source_location &location)
+:m_type(type),m_location(location)
+{
+    initLogger();
+
+    try{
+        // object for decoding HRESULT errors
+        _com_error com_error(hr);
+
+        // HRESULT error string
+        std::wstring wcom_error_str{ com_error.ErrorMessage() };
+
+        // for readability
+        wcom_error_str = L"HRESULT Error: " + wcom_error_str + L"|";
+
+        mMessage += wcom_error_str;
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Filesystem error: " << e.what() << "\n";
+    }
+    catch(const std::runtime_error& e){
+        std::cerr << "Runtime error: " << e.what() << "\n";
+    }
+    catch(const std::bad_alloc& e){
+        std::cerr << "Allocation error: " << e.what() << "\n";
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Standard exception: " << e.what() << "\n";
+    } 
+    catch (...) {
+        std::cerr << "Unknown exception caught \n";
+    }
+}
+
+void application::logger::to_output() const noexcept
+{
     OutputDebugStringW(mMessage.c_str());
 }
 

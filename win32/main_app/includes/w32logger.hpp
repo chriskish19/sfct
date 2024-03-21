@@ -2,6 +2,7 @@
 #include "w32cpplib.hpp"
 #include <Windows.h>
 #include "w32appmacros.hpp"
+#include <comdef.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // This header is responsible for logging messages to the console, logfile and output window  //                                                 
@@ -75,6 +76,12 @@ namespace application{
         /// @param location the file, line number, column number, and function that logger() was constructed in.
         /// @param Win32error the windows specific error code
         logger(Error type, const std::source_location& location = std::source_location::current(), DWORD Win32error = GetLastError()) noexcept;
+
+		/// @brief log d2d1 HRESULT errors with this constructor
+		/// @param type type of error, INFO, FATAL, ect..
+		/// @param hr windows error result
+		/// @param location the file, line number, column number, and function that logger() was constructed in.
+		logger(Error type, HRESULT hr, const std::source_location& location = std::source_location::current());
 
         /// @brief output mMessage to output window in visual studio
         void to_output() const noexcept;
