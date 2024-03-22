@@ -7,8 +7,8 @@ mgui::box_element::box_element()
 
 mgui::box_element::box_element(int x, int y, int width, int height)
 {
-    dimensions->left = x;
-    dimensions->top = y;
-    dimensions->bottom = width;
-    dimensions->top = height;
+    m_dimensions->left = x;
+    m_dimensions->top = y;
+    m_dimensions->bottom = width;
+    m_dimensions->top = height;
 }

@@ -73,7 +73,7 @@ void WMTS::PlainWin32Window::SetWindowClass(){
 
 void WMTS::PlainWin32Window::RegisterWindowClass(){
     if (!RegisterClassExW(&mWCEX)) {
-        logger log(Error::FATAL);
+        application::logger log(application::Error::FATAL);
         log.to_console();
         log.to_output();
         log.to_log_file();
@@ -98,7 +98,7 @@ bool WMTS::PlainWin32Window::CreateAWindow(){
         this);
 
     if (!IsWindow(hwnd)) {
-        logger log(Error::FATAL);
+        application::logger log(application::Error::FATAL);
         log.to_console();
         log.to_output();
         log.to_log_file();
@@ -121,67 +121,57 @@ bool WMTS::PlainWin32Window::CreateAWindow(){
 }
 
 LRESULT CALLBACK WMTS::PlainWin32Window::WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
-    switch (message)
-    {
-    case WM_KEYDOWN: {
-        break;
-    }
-    case WM_MBUTTONDOWN:
-    {
-        break;
-    }
-    case WM_MBUTTONUP:
-    {
-        break;
-    }
-    case WM_MOUSEMOVE: {
-        break;
-    }
-    case WM_DISPLAYCHANGE:
-    {
-        break;
-    }
-    case WM_SIZE:
-    case WM_SIZING:
-    {
-        auto size = mResources.SearchWindowmp(hwnd);
-        if(size.has_value()){
-            size.value().UpdateWindowDimensions(hwnd);
-        }
-        break;
-    }
-    case WM_COMMAND:
-    {
-        int wmId = LOWORD(wParam);
-        // Parse the menu selections:
-        switch (wmId)
-        {
-        case ID_NEW_WINDOW: {
-            
+    switch (message){
+        case WM_KEYDOWN: {
             break;
         }
+        case WM_MBUTTONDOWN:{
+            break;
+        }
+        case WM_MBUTTONUP:{
+            break;
+        }
+        case WM_MOUSEMOVE: {
+            break;
+        }
+        case WM_DISPLAYCHANGE:{
+            break;
+        }
+        case WM_SIZE:
+        case WM_SIZING:{
+            auto size = mResources.SearchWindowmp(hwnd);
+            if(size.has_value()){
+                size.value().UpdateWindowDimensions(hwnd);
+            }
+            break;
+        }
+        case WM_COMMAND:{
+            int wmId = LOWORD(wParam);
+            // Parse the menu selections:
+            switch (wmId){
+                case ID_NEW_WINDOW: {
+                    break;
+                }
+                default:
+                    return DefWindowProc(hwnd, message, wParam, lParam);
+            }
+            break;
+        }
+        case WM_PAINT:{
+            PAINTSTRUCT ps{};
+            HDC hdc = BeginPaint(hwnd, &ps);
+
+            EndPaint(hwnd, &ps);
+            break;
+        }
+        
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
         default:
             return DefWindowProc(hwnd, message, wParam, lParam);
-        }
-        break;
     }
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps{};
-        HDC hdc = BeginPaint(hwnd, &ps);
 
-        EndPaint(hwnd, &ps);
-        break;
-    }
-    
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hwnd, message, wParam, lParam);
-
-
-    }
     return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
@@ -340,7 +330,7 @@ bool WMTS::MTPlainWin32Window::CreateAWindow(){
         this);
 
     if (!IsWindow(hwnd)) {
-        logger log(Error::FATAL);
+        application::logger log(application::Error::FATAL);
         log.to_console();
         log.to_output();
         log.to_log_file();

@@ -88,6 +88,6 @@ bool mgui::direct_write::init_direct_write()
     }
 
     
-    // if everything passes and gets created return true
+    
     return true;
 }

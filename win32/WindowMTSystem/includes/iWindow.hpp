@@ -1,10 +1,10 @@
 #pragma once
 #include "w32cpplib.hpp"
+#include "w32logger.hpp"
 #include <Windows.h>
 #include "resource.h"
 #include "WindowDimensions.hpp"
 #include "WindowResources.hpp"
-#include "w32logger.hpp"
 
 
 namespace WMTS {	
