@@ -38,6 +38,8 @@ if(WIN32)
                         win32/mgui/src/mgui_direct_write_init.cpp
                         win32/mgui/src/mgui_api.cpp 
                         win32/mgui/src/mgui_selector.cpp
+                        win32/mgui/src/mgui_box_border.cpp
+                        win32/mgui/src/mgui_rounded_box_element.cpp
                         
                         # WindowMTSystem src files
                         win32/WindowMTSystem/src/iWindow.cpp

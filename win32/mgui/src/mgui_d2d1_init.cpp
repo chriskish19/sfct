@@ -65,5 +65,4 @@ bool mgui::d2d1_init::init_d2d1()
     }
 
     return true;
-
 }
