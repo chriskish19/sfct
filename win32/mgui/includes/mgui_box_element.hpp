@@ -2,6 +2,7 @@
 #include "w32cpplib.hpp"            
 #include "mgui_element.hpp"    
 #include <d2d1.h>
+#include "mgui_api.hpp"
 
 
 namespace mgui{
@@ -20,7 +21,13 @@ namespace mgui{
         /// @param height The height
         box_element(int x,int y, int width,int height);
 
+        /// @brief Returns true if the button is pressed
+        /// @return True if the button is pressed
+        bool is_pressed() const override;
 
+        /// @brief Returns true if the button is hovering over
+        /// @return True if the button is hovering over
+        bool is_hovering_over() override;
 
         std::shared_ptr<D2D1_RECT_F> get_dimensions_rect_sp(){return m_dimensions;}
     protected:

@@ -14,4 +14,6 @@ namespace mgui{
     /// @param rect The rectangle to check
     /// @return True if the point is inside the rectangle
     bool is_point_inside_rect(const POINT& point, const D2D1_RECT_F& rect);
+
+    
 }

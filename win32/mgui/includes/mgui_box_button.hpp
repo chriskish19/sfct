@@ -7,42 +7,30 @@
 
 
 namespace mgui{
-    /// @brief A button element
-    /// @details A button element that can be pressed and released
-    /// @details The button element can be hovered over
+    /// @brief A rectangular button
     class box_button:public box_element{
     public:
         /// @brief Constructor
         box_button();
 
-        /// @brief Returns the shared pointer to the pressed state
-        /// @return The shared pointer to the pressed state
-        const std::shared_ptr<std::atomic<bool>> get_hovering_sp(){return m_hovering;}
+        /// @brief Constructor
+        box_button(std::function<void()> callback);
 
-        /// @brief Returns the shared pointer to the pressed state
-        /// @return The shared pointer to the pressed state
-        const std::shared_ptr<std::atomic<bool>> get_pressed_sp(){return m_pressed;}
-
-        /// @brief Returns true if the button is pressed
-        /// @return True if the button is pressed
-        bool is_pressed() const;
-
-        /// @brief Returns true if the button is hovering over
-        /// @return True if the button is hovering over
-        bool is_hovering_over();
-        
         /// @brief Presses the button
-        void manual_press();
+        void press();
 
         /// @brief Releases the button
-        void manual_release();
+        void release();
+
+        /// @brief Define a member function to set the callback function
+        /// @param callback The callback function to set, so when the button is pressed this function is called
+        void set_callback(std::function<void()> callback){m_callback = callback;}   
 
     protected:
-        
-        /// @brief Called when the button is pressed
-        std::shared_ptr<std::atomic<bool>> m_pressed{std::make_shared<std::atomic<bool>>(false)};
 
-        /// @brief Called when the button is hovering over
-        std::shared_ptr<std::atomic<bool>> m_hovering{std::make_shared<std::atomic<bool>>(false)};
+
+        /// @brief Define a member variable to store the callback function
+        std::function<void()> m_callback; 
+        
     };
 }

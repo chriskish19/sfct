@@ -35,8 +35,9 @@ if(WIN32)
                         win32/mgui/src/mgui_d2d1_init.cpp 
                         win32/mgui/src/mgui_round_element.cpp 
                         win32/mgui/src/mgui_element.cpp 
-                        win32/mgui/src/mgui_direct_write.cpp
+                        win32/mgui/src/mgui_direct_write_init.cpp
                         win32/mgui/src/mgui_api.cpp 
+                        win32/mgui/src/mgui_selector.cpp
                         
                         # WindowMTSystem src files
                         win32/WindowMTSystem/src/iWindow.cpp

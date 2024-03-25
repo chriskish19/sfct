@@ -1,7 +1,19 @@
 #include "mgui_d2d1_init.hpp"
 
+mgui::d2d1_init::~d2d1_init()
+{
+    // Release resources
+    if(m_pFactory){
+        m_pFactory->Release();
+    }
+
+    if(m_pRenderTarget){
+        m_pRenderTarget->Release();
+    }
+}
+
 mgui::d2d1_init::d2d1_init(HWND WindowHandle)
-:m_window_handle(WindowHandle)
+    : m_window_handle(WindowHandle)
 {
     m_successful_d2d1_init = init_d2d1();
 }
