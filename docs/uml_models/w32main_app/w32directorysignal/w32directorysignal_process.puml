@@ -1,5 +1,5 @@
 @startuml directorysignal
-!theme plain
+
 
 participant "Main Application" as app
 participant "DirectorySignal" as ds

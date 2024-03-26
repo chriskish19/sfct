@@ -1,5 +1,5 @@
 @startuml iwindow
-!theme plain
+
 
 actor User
 participant "MTPlainWin32Window : iWindowClass" as MTWin

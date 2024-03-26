@@ -1,5 +1,5 @@
 @startuml iwindow
-!theme plain
+
 
 class iWindow {
     {abstract} +GetWindowSize(HWND WindowHandle): WindowDimensions

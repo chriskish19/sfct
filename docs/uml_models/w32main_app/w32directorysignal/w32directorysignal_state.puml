@@ -1,5 +1,4 @@
 @startuml directorysignal
-!theme plain
 
 [*] --> Initialization
 Initialization : Instantiate with directories to monitor

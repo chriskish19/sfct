@@ -1,5 +1,4 @@
 @startuml queue_system
-!theme plain
 
 participant "Other Thread" as other
 participant "Queue System" as qs

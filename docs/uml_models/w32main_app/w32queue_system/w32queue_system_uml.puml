@@ -1,0 +1,40 @@
+@startuml queue_system_class_diagram
+
+
+class "queue_system<T>" {
+    -m_queue : std::queue<T>
+    -m_queue_buffer : std::queue<T>
+    -m_wait_data : std::queue<T>
+    -m_still_wait_data : std::queue<T>
+    -m_queue_buffer_mtx : std::mutex
+    -m_local_thread_guard : std::mutex
+    -m_main_thread_guard : std::mutex
+    -m_local_thread_cv : std::condition_variable
+    -m_main_thread_cv : std::condition_variable
+    -m_ready_to_process : std::atomic<bool>
+    -m_running : std::atomic<bool>
+    +queue_system()
+    +~queue_system()
+    +process() : void
+    +add_to_queue(const T&) : void
+    +exit() : void
+    {abstract} +process_entry(const T&) : void
+}
+
+note right of "queue_system<T>"
+  queue_system is a template class designed for managing
+  and processing tasks in a multi-threaded environment.
+  It provides a thread-safe mechanism for adding tasks to a queue,
+  processing them on a dedicated thread, and handling synchronization
+  and shutdown gracefully.
+end note
+
+note "Template Parameter" as TP
+note "Member Functions" as MF
+note "Attributes" as A
+
+TP .. "queue_system<T>"
+MF .. "queue_system<T>"
+A .. "queue_system<T>"
+
+@enduml

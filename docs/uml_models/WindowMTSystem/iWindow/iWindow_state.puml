@@ -1,5 +1,4 @@
 @startuml iwindow
-!theme plain
 
 [*] --> Initialization
 Initialization: Object instantiation\nRegister window class

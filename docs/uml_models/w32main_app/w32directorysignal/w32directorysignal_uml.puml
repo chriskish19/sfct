@@ -1,5 +1,5 @@
 @startuml directorysignal
-!theme plain
+
 
 class DirectorySignal {
     -m_dirs : std::shared_ptr<std::vector<copyto>>
@@ -15,14 +15,14 @@ class DirectorySignal {
     -ProcessDirectoryChanges(pNotify : FILE_NOTIFY_INFORMATION*, pMonitor : DS_resources*) noexcept : void
 }
 
-class DS_resources {
-    -m_hDir : HANDLE
-    -m_buffer : BYTE[]
-    -m_ol : OVERLAPPED
-    -directory : copyto
+struct DS_resources {
+    +m_hDir : HANDLE
+    +m_buffer : BYTE[]
+    +m_ol : OVERLAPPED
+    +directory : copyto
 }
 
-class copyto {
+struct copyto {
     +source : std::filesystem::path
     +destination : std::filesystem::path
     +commands : cs

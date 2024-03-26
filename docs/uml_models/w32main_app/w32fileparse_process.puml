@@ -1,5 +1,4 @@
 @startuml fileparse
-!theme plain
 
 participant "Client Code" as client
 participant "FileParse" as fp
