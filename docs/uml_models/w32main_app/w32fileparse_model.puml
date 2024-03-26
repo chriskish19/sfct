@@ -1,0 +1,53 @@
+@startuml fileparse
+!theme plain
+
+participant "Client Code" as client
+participant "FileParse" as fp
+database "File System" as fs
+participant "Logger" as log
+
+client -> fp : Instantiate(path)
+activate fp
+fp -> fs : Check if file exists
+fs -> fp : File existence status
+fp -> fp : Initialize members
+deactivate fp
+
+client -> fp : OpenFile()
+activate fp
+fp -> fs : Open file
+alt File opened successfully
+    fs -> fp : File handle
+else File opening failed
+    fp -> log : Log error
+end
+deactivate fp
+
+client -> fp : ExtractData()
+activate fp
+fp -> fp : ParseSyntax()
+activate fp
+loop Until EOF
+    fp -> fs : Read line
+    fs -> fp : Return line data
+    fp -> fp : Process line data
+end
+fp -> fp : Validate extracted data
+deactivate fp
+fp -> fp : Mark data as extracted
+deactivate fp
+
+client -> fp : CheckData()
+activate fp
+fp -> fp : CheckDirectories()
+fp -> fp : Validate commands
+alt Validation passed
+    fp -> log : Log validation success
+else Validation failed
+    fp -> log : Log validation errors
+    fp -> fp : Clean invalid data
+end
+deactivate fp
+
+@enduml
+

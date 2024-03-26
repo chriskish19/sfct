@@ -7,8 +7,6 @@
 
 namespace mgui{
     /// @brief A box element
-    /// @details A box element that has dimensions
-    /// @details The box element has a left, top, right, and bottom
     class box_element:public element{
     public:
         /// @brief Constructor

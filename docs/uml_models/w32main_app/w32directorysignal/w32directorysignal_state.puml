@@ -1,0 +1,51 @@
+@startuml directorysignal
+!theme plain
+
+[*] --> Initialization
+Initialization : Instantiate with directories to monitor
+Initialization --> MonitoringSetup : Setup successful
+
+MonitoringSetup : Register directories\nCreate completion port
+MonitoringSetup --> Monitoring : Begin monitoring
+Monitoring : Directory changes are being monitored
+
+Monitoring --> ProcessingChanges : Change detected
+ProcessingChanges : Extract and queue changes
+ProcessingChanges --> Monitoring : Continue monitoring
+
+Monitoring --> AddingDirectory : Add new directory to monitor
+AddingDirectory --> Monitoring : Directory added
+
+Monitoring --> Stopping : User requests stop\nOr window closes
+Stopping --> [*] : Monitoring stopped
+
+note right of Initialization
+  The DirectorySignal object is
+  instantiated with a list of directories
+  to monitor for changes.
+end note
+
+note right of MonitoringSetup
+  Setup involves creating I/O completion ports
+  and associating them with directory handles
+  for asynchronous notification.
+end note
+
+note right of ProcessingChanges
+  Detected changes are processed,
+  including file additions, deletions,
+  and modifications.
+end note
+
+note right of AddingDirectory
+  New directories can be dynamically
+  added to the monitoring list.
+end note
+
+note right of Stopping
+  Monitoring can be stopped manually
+  by the user or through program logic,
+  leading to cleanup and shutdown.
+end note
+
+@enduml

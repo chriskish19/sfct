@@ -1,0 +1,43 @@
+@startuml directorysignal
+!theme plain
+
+participant "Main Application" as app
+participant "DirectorySignal" as ds
+participant "Windows API" as winapi
+database "Directory" as dir
+participant "queue_system<file_queue_info>" as qs
+participant "Timer" as timer
+
+app -> ds : Instantiate with dirs_to_watch
+ds -> winapi : CreateIoCompletionPort()
+ds -> winapi : CreateFile(dirs_to_watch)
+ds -> winapi : ReadDirectoryChangesW()
+ds -> ds : monitor()
+activate ds
+
+ds -> winapi : GetQueuedCompletionStatus()
+winapi -> ds : Return changes
+ds -> dir : Read changes
+dir -> ds : Notify about change
+
+ds -> qs : add_to_queue(entry)
+qs -> qs : process_entry(entry) on a separate thread
+
+alt Overflow condition
+    ds -> app : Log "Buffer Overflow"
+end
+
+loop Monitoring Loop
+    ds -> winapi : UpdateWatcher()
+    winapi -> ds : Monitor directory changes
+end
+
+alt Timer triggered
+    ds -> timer : Start timer
+    timer -> qs : Notify processing thread after delay
+end
+
+ds -> qs : exit()
+deactivate ds
+
+@enduml

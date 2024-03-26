@@ -1,0 +1,34 @@
+@startuml iwindow
+!theme plain
+
+[*] --> Initialization
+Initialization: Object instantiation\nRegister window class
+Initialization --> WindowCreation : Successful registration
+WindowCreation: Create main window
+WindowCreation --> Active : Window successfully created
+
+Active: Window is visible and active
+Active --> ProcessingMessages : Begin message loop
+ProcessingMessages: Handle Windows messages
+ProcessingMessages --> Active : User interacts
+ProcessingMessages -down-> CreatingAdditionalWindows : ID_NEW_WINDOW command
+
+CreatingAdditionalWindows: Create windows for new threads
+CreatingAdditionalWindows --> ProcessingMessagesInThreads : Process messages in thread windows
+ProcessingMessagesInThreads: Each thread processes its messages
+ProcessingMessagesInThreads --> Active : Threads are running
+
+Active --> Closing : User closes main window
+ProcessingMessagesInThreads --> Closing : User closes any thread window
+Closing: Process WM_DESTROY message
+Closing --> [*] : Process completed
+
+note right of Closing
+  Transition to this state occurs
+  when the main window receives
+  the WM_DESTROY message, or when
+  all thread windows are closed and
+  the application is exiting.
+end note
+
+@enduml

@@ -1,0 +1,57 @@
+@startuml directorysignal
+!theme plain
+
+class DirectorySignal {
+    -m_dirs : std::shared_ptr<std::vector<copyto>>
+    -m_NotifyFilter : DWORD
+    -m_hCompletionPort : HANDLE
+    -m_pMonitors : std::vector<DS_resources*>
+    -no_watch : bool
+    +DirectorySignal(dirs_to_watch : std::shared_ptr<std::vector<copyto>>) noexcept
+    +~DirectorySignal() noexcept
+    +monitor() noexcept : void
+    -Overflow(bytes_returned : DWORD) noexcept : bool
+    -UpdateWatcher(p_monitor : DS_resources*) noexcept : void
+    -ProcessDirectoryChanges(pNotify : FILE_NOTIFY_INFORMATION*, pMonitor : DS_resources*) noexcept : void
+}
+
+class DS_resources {
+    -m_hDir : HANDLE
+    -m_buffer : BYTE[]
+    -m_ol : OVERLAPPED
+    -directory : copyto
+}
+
+class copyto {
+    +source : std::filesystem::path
+    +destination : std::filesystem::path
+    +commands : cs
+    +co : std::filesystem::copy_options
+}
+
+DirectorySignal "1" --> "1" DS_resources : contains
+DS_resources "1" --> "1" copyto : has
+
+note right of DirectorySignal
+  DirectorySignal is responsible for monitoring
+  directories for changes using the Windows API.
+  It sets up monitoring for each directory specified,
+  processes changes, and manages the lifecycle of
+  monitoring resources.
+end note
+
+note right of DS_resources
+  DS_resources holds the resources necessary for
+  monitoring a single directory, including the handle,
+  buffer for changes, and overlapped structure for
+  asynchronous I/O operations.
+end note
+
+note right of copyto
+  Represents a directory to monitor and includes
+  the source, destination, and options for copying
+  or processing changes.
+end note
+
+
+@enduml

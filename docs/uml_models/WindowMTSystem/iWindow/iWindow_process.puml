@@ -1,0 +1,42 @@
+@startuml iwindow
+!theme plain
+
+actor User
+participant "MTPlainWin32Window : iWindowClass" as MTWin
+participant "Windows API" as WinAPI
+participant "Message Loop" as MsgLoop
+participant "Logic Thread" as LogicThd
+
+User -> MTWin : Instantiate
+activate MTWin
+MTWin -> WinAPI : RegisterWindowClass()
+MTWin -> WinAPI : CreateWindow()
+WinAPI -> MTWin : Return HWND
+MTWin -> MTWin : ExecuteThreads()
+activate MTWin #FFAAAA
+
+MTWin -> WinAPI : CreateWindow()\n(for each thread)
+loop Each Thread
+    WinAPI -> LogicThd : Assign HWND
+    activate LogicThd
+    LogicThd -> MTWin : RunLogic(thread_id, run_flag)
+    LogicThd -> MsgLoop : ProcessMessage()
+    deactivate LogicThd
+end
+
+alt Thread Execution
+    LogicThd -> MTWin : WindowProcedure()
+    MTWin -> WinAPI : DefWindowProc()\n(Default handling)
+else User Interaction
+    User -> MsgLoop : Generate Message (e.g., Click)
+    MsgLoop -> MTWin : WindowProcedure()
+    MTWin --> User : Perform Action
+end
+
+MTWin -> MTWin : main_thread_cv.wait()\n(Wait for threads to complete)
+User -> MTWin : Close Main Window
+MTWin -> MsgLoop : WM_DESTROY
+deactivate MTWin
+
+@enduml
+

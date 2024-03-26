@@ -1,0 +1,72 @@
+@startuml iwindow
+!theme plain
+
+class iWindow {
+    {abstract} +GetWindowSize(HWND WindowHandle): WindowDimensions
+    {abstract} +GetHandle(size_t index=0): HWND
+    {abstract} +WindowProcedure(HWND, UINT, WPARAM, LPARAM): LRESULT
+    {abstract} +ProcessMessage(): int
+    -window_proc_proxy(HWND, UINT, WPARAM, LPARAM): LRESULT
+}
+
+class iWindowClass {
+    {abstract} +SetWindowClass(): void
+    {abstract} +RegisterWindowClass(): void
+    {abstract} +CreateAWindow(): bool
+    {abstract} +SetWindowTitle(const std::wstring, const HWND): void
+    {abstract} +WindowInit(): void
+}
+
+class PlainWin32Window {
+    +PlainWin32Window()
+    +ProcessMessage(): int
+    +WindowInit(): void
+    +SetWindowTitle(const std::wstring, const HWND): void
+    +SetWindowClass(): void
+    +RegisterWindowClass(): void
+    +CreateAWindow(): bool
+    +WindowProcedure(HWND, UINT, WPARAM, LPARAM): LRESULT
+    +GetHandle(size_t index=0): HWND
+    +GetWindowSize(HWND WindowHandle): WindowDimensions
+}
+
+class MTPlainWin32Window {
+    +ExecuteThreads(): void
+    +RunLogic(std::thread::id, std::shared_ptr<std::atomic<bool>>): void
+    -BuildThreadPool(size_t, auto, auto): void
+    +WindowProcedure(HWND, UINT, WPARAM, LPARAM): LRESULT
+    +ProcessMessage(): int
+    +CreateAWindow(): bool
+    +Run(): void
+}
+
+iWindow <|-- iWindowClass
+iWindowClass <|-- PlainWin32Window
+PlainWin32Window <|-- MTPlainWin32Window
+
+note right of MTPlainWin32Window : Multi-threaded Window\nSystem Extension
+
+PlainWin32Window : -mWindowWidthINIT
+PlainWin32Window : -mWindowHeightINIT
+
+MTPlainWin32Window : -total_threads
+MTPlainWin32Window : -main_thread_cv
+
+MTPlainWin32Window ..> "create & manage" : Thread
+
+MTPlainWin32Window ..> "process" : Message Loop
+
+class Thread {
+    +id: std::thread::id
+    +run(): void
+}
+
+class MessageLoop {
+    +Process(): int
+}
+
+Thread ..> PlainWin32Window : "Creates window for each thread"
+MessageLoop ..> PlainWin32Window : "Handles windows messages"
+
+@enduml
+

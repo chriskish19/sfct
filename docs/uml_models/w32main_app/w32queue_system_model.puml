@@ -1,0 +1,34 @@
+@startuml queue_system
+!theme plain
+
+participant "Other Thread" as other
+participant "Queue System" as qs
+participant "Processing Thread" as pt
+database "Task Queue" as tq
+database "Buffer Queue" as bq
+database "Still Wait Queue" as swq
+database "Wait Queue" as wq
+
+other -> qs : add_to_queue(data_t)
+qs -> bq : "Add to Buffer Queue"
+note right: Thread-safe addition
+
+qs -> pt : "Start process() on dedicated thread"
+pt -> bq : "Checks Buffer Queue"
+pt -> tq : "Swap Buffer Queue to Task Queue"
+loop Processing Loop
+    pt -> tq : "Process Task Queue"
+    pt -> tq : "Task processing logic"
+    alt Task needs to wait
+        tq -> swq : "Move to Still Wait Queue"
+    end
+    pt -> tq : "Check if Queue is empty"
+    pt -> wq : "Swap Still Wait Queue to Wait Queue"
+    pt -> wq : "Process Wait Queue"
+    pt -> qs : "Signal main thread if needed"
+end
+
+qs -> pt : exit()
+pt -> qs : "Stop processing, cleanup"
+
+@enduml
